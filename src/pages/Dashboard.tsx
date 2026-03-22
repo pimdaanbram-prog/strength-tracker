@@ -1,0 +1,235 @@
+import { useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
+import { Play, TrendingUp, Flame, Trophy, ChevronRight, Zap, Users } from 'lucide-react'
+import { useProfiles } from '../hooks/useProfiles'
+import { useWorkouts } from '../hooks/useWorkouts'
+import { useExercises } from '../hooks/useExercises'
+import { getDayLabel } from '../utils/weekUtils'
+import { workoutTemplates } from '../data/workoutTemplates'
+import Header from '../components/layout/Header'
+import PageWrapper from '../components/layout/PageWrapper'
+
+export default function Dashboard() {
+  const navigate = useNavigate()
+  const { activeProfile, isOnboarding, profiles } = useProfiles()
+  const { getThisWeekSessionCount, getStreak, getPersonalRecords, getProfileSessions } = useWorkouts()
+  const { getExercise } = useExercises()
+
+  const weekCount = getThisWeekSessionCount()
+  const streak = getStreak()
+  const prs = getPersonalRecords()
+  const recentPRs = prs.slice(-3)
+
+  const today = new Date()
+  const dayLabel = getDayLabel(today)
+  const sessions = getProfileSessions()
+  const todaySessions = sessions.filter(s => s.date === today.toISOString().split('T')[0])
+
+  // Suggest alternating A/B
+  const suggestedTemplate = useMemo(() => {
+    const lastSession = sessions[sessions.length - 1]
+    if (!lastSession || lastSession.workoutName?.includes('A')) {
+      return workoutTemplates.find(t => t.id === 'training-b') || workoutTemplates[1]
+    }
+    return workoutTemplates.find(t => t.id === 'training-a') || workoutTemplates[0]
+  }, [sessions])
+
+  if (isOnboarding) {
+    return (
+      <>
+        <Header showProfile={false} />
+        <PageWrapper>
+          <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              <span className="text-6xl mb-6 block">💪</span>
+              <h1 className="text-4xl tracking-wider mb-2">STRENGTH TRACKER</h1>
+              <p className="text-text-secondary mb-8 text-lg">
+                Volg je trainingen, meet je vooruitgang, word sterker.
+              </p>
+              <button
+                onClick={() => navigate('/profiles/new')}
+                className="px-8 py-3 bg-accent hover:bg-accent-hover text-white rounded-xl text-lg font-semibold transition-colors cursor-pointer"
+              >
+                Start — Maak je profiel
+              </button>
+            </motion.div>
+          </div>
+        </PageWrapper>
+      </>
+    )
+  }
+
+  return (
+    <>
+      <Header />
+      <PageWrapper>
+        {/* Greeting */}
+        <div className="mb-6">
+          <h2 className="text-3xl tracking-wider mb-1">
+            HEY {activeProfile?.name?.toUpperCase()}
+          </h2>
+          <p className="text-text-secondary">{dayLabel} — Klaar om te trainen?</p>
+        </div>
+
+        {/* Stats Row */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            className="bg-bg-card border border-border rounded-xl p-3 text-center"
+          >
+            <Zap size={18} className="text-accent mx-auto mb-1" />
+            <p className="text-2xl font-heading tracking-wider text-text-primary">{weekCount}</p>
+            <p className="text-xs text-text-muted">Deze week</p>
+          </motion.div>
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            className="bg-bg-card border border-border rounded-xl p-3 text-center"
+          >
+            <Flame size={18} className="text-warning mx-auto mb-1" />
+            <p className="text-2xl font-heading tracking-wider text-text-primary">{streak}</p>
+            <p className="text-xs text-text-muted">Weken streak</p>
+          </motion.div>
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            className="bg-bg-card border border-border rounded-xl p-3 text-center"
+          >
+            <Trophy size={18} className="text-success mx-auto mb-1" />
+            <p className="text-2xl font-heading tracking-wider text-text-primary">{prs.length}</p>
+            <p className="text-xs text-text-muted">PR's</p>
+          </motion.div>
+        </div>
+
+        {/* Quick Start */}
+        {todaySessions.length === 0 && suggestedTemplate && (
+          <motion.div
+            initial={{ y: 10, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.1 }}
+            className="mb-6"
+          >
+            <h3 className="text-lg tracking-wider mb-3">VANDAAG</h3>
+            <button
+              onClick={() => navigate('/workout', { state: { templateId: suggestedTemplate.id } })}
+              className="w-full bg-gradient-to-r from-accent to-blue-600 rounded-xl p-4 text-left cursor-pointer border-0"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-white font-semibold text-base m-0">
+                    {suggestedTemplate.nameNL}
+                  </p>
+                  <p className="text-white/70 text-sm mt-1 m-0">
+                    {suggestedTemplate.exercises.length} oefeningen · ~{suggestedTemplate.estimatedMinutes} min
+                  </p>
+                </div>
+                <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                  <Play size={20} className="text-white ml-0.5" />
+                </div>
+              </div>
+            </button>
+          </motion.div>
+        )}
+
+        {todaySessions.length > 0 && (
+          <div className="mb-6 p-4 bg-success/10 border border-success/20 rounded-xl">
+            <p className="text-success text-sm m-0">
+              Je hebt vandaag al {todaySessions.length} training(en) gedaan!
+            </p>
+          </div>
+        )}
+
+        {/* Training Templates */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg tracking-wider m-0">TRAININGEN</h3>
+            <button
+              onClick={() => navigate('/workout')}
+              className="text-xs text-accent cursor-pointer bg-transparent border-0"
+            >
+              Eigen training
+            </button>
+          </div>
+          <div className="space-y-2">
+            {workoutTemplates.slice(0, 4).map(template => (
+              <button
+                key={template.id}
+                onClick={() => navigate('/workout', { state: { templateId: template.id } })}
+                className="w-full flex items-center gap-3 p-3 bg-bg-card border border-border rounded-xl hover:border-border-light transition-colors cursor-pointer text-left"
+              >
+                <div className="flex-1">
+                  <p className="text-sm text-text-primary font-medium m-0">{template.nameNL}</p>
+                  <p className="text-xs text-text-muted m-0 mt-0.5">
+                    {template.exercises.length} oefeningen · {template.difficulty}
+                  </p>
+                </div>
+                <ChevronRight size={16} className="text-text-muted" />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Samen Trainen */}
+        {profiles.length >= 2 && (
+          <div className="mb-6">
+            <button
+              onClick={() => navigate('/workout', { state: { samen: true } })}
+              className="w-full flex items-center gap-3 p-4 bg-bg-card border border-border rounded-xl hover:border-accent transition-colors cursor-pointer text-left"
+            >
+              <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center shrink-0">
+                <Users size={20} className="text-accent" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm text-text-primary font-semibold m-0">Samen Trainen</p>
+                <p className="text-xs text-text-muted m-0 mt-0.5">
+                  Train met {profiles.length} profielen tegelijk
+                </p>
+              </div>
+              <ChevronRight size={16} className="text-text-muted" />
+            </button>
+          </div>
+        )}
+
+        {/* Recent PRs */}
+        {recentPRs.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-lg tracking-wider mb-3">RECENTE PR'S</h3>
+            <div className="space-y-2">
+              {recentPRs.map(pr => {
+                const exercise = getExercise(pr.exerciseId)
+                return (
+                  <div key={pr.exerciseId} className="flex items-center gap-3 p-3 bg-bg-card border border-border rounded-xl">
+                    <TrendingUp size={16} className="text-success shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm text-text-primary m-0">{exercise?.nameNL || pr.exerciseId}</p>
+                      <p className="text-xs text-text-muted m-0 mt-0.5">{pr.date}</p>
+                    </div>
+                    <span className="text-sm font-semibold text-success">{pr.weight}kg</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Week Feedback link */}
+        <button
+          onClick={() => navigate('/week-feedback')}
+          className="w-full p-4 bg-bg-card border border-border rounded-xl text-left hover:border-border-light transition-colors cursor-pointer mb-6"
+        >
+          <div className="flex items-center gap-3">
+            <TrendingUp size={20} className="text-accent" />
+            <div>
+              <p className="text-sm text-text-primary font-medium m-0">Wekelijkse Feedback</p>
+              <p className="text-xs text-text-muted m-0 mt-0.5">Bekijk je voortgang en aanbevelingen</p>
+            </div>
+            <ChevronRight size={16} className="text-text-muted ml-auto" />
+          </div>
+        </button>
+      </PageWrapper>
+    </>
+  )
+}
