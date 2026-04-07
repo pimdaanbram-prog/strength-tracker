@@ -16,6 +16,7 @@ import { useProfiles } from '../hooks/useProfiles'
 import { useAppStore } from '../store/appStore'
 import type { UserProfile } from '../store/appStore'
 import { useTimer } from '../hooks/useTimer'
+import { usePlans } from '../hooks/usePlans'
 import { workoutTemplates } from '../data/workoutTemplates'
 import { calculateRecommendedWeight } from '../utils/weightCalculator'
 import { getDayLabel, toISODateString } from '../utils/weekUtils'
@@ -31,12 +32,14 @@ export default function WorkoutPage() {
   const { activeProfile } = useProfiles()
   const allProfiles = useAppStore(s => s.profiles)
   const timer = useTimer()
+  const { getPlan, markPlanUsed } = usePlans()
 
   const templateId = (location.state as { templateId?: string })?.templateId
+  const planId = (location.state as { planId?: string })?.planId
   const startSamen = (location.state as { samen?: boolean })?.samen ?? false
 
   const [mode, setMode] = useState<WorkoutMode>(
-    startSamen ? 'samen-select' : templateId ? 'solo' : 'choose'
+    startSamen ? 'samen-select' : (templateId || planId) ? 'solo' : 'choose'
   )
   const [workoutName, setWorkoutName] = useState('Eigen Training')
   const [showBuilder, setShowBuilder] = useState(false)
@@ -54,9 +57,39 @@ export default function WorkoutPage() {
   // List of exercise IDs in order (shared across participants)
   const [samenExerciseOrder, setSamenExerciseOrder] = useState<string[]>([])
 
-  // Load template (solo mode only)
+  // Load template or custom plan (solo mode only)
   useEffect(() => {
-    if (templateId && mode === 'solo') {
+    if (mode !== 'solo') return
+
+    // Custom plan
+    if (planId) {
+      const plan = getPlan(planId)
+      if (plan) {
+        setWorkoutName(plan.name)
+        const sessionExercises: SessionExercise[] = plan.exercises.map(pe => {
+          const smartRec = getSmartRecommendation(pe.exerciseId)
+          const lastData = getLastExerciseSets(pe.exerciseId)
+          const prefilledWeight = smartRec?.weight ?? lastData?.maxWeight ?? null
+          const sets: SetLog[] = Array.from({ length: pe.sets }, (_, i) => ({
+            setNumber: i + 1,
+            weight: prefilledWeight,
+            reps: null,
+            seconds: null,
+            completed: false,
+            rpe: null,
+          }))
+          return { exerciseId: pe.exerciseId, sets, notes: '' }
+        })
+        setExercises(sessionExercises)
+        setStarted(true)
+        timer.start()
+        markPlanUsed(planId)
+      }
+      return
+    }
+
+    // Built-in template
+    if (templateId) {
       const template = workoutTemplates.find(t => t.id === templateId)
       if (template) {
         setWorkoutName(template.nameNL)
@@ -79,7 +112,7 @@ export default function WorkoutPage() {
         timer.start()
       }
     }
-  }, [templateId, mode])
+  }, [templateId, planId, mode])
 
   // --- Solo mode handlers ---
   const selectedIds = mode === 'solo'
@@ -158,6 +191,41 @@ export default function WorkoutPage() {
     for (const id of selectedProfileIds) {
       initial[id] = []
     }
+
+    // If a plan was selected, pre-load its exercises for each participant
+    if (planId) {
+      const plan = getPlan(planId)
+      if (plan) {
+        setWorkoutName(plan.name)
+        const exerciseOrder = plan.exercises.map(pe => pe.exerciseId)
+        setSamenExerciseOrder(exerciseOrder)
+
+        const withExercises: Record<string, SessionExercise[]> = {}
+        for (const profileId of selectedProfileIds) {
+          withExercises[profileId] = plan.exercises.map(pe => {
+            const smartRec = getSmartRecommendation(pe.exerciseId, profileId)
+            const lastData = getLastExerciseSets(pe.exerciseId, profileId)
+            const prefilledWeight = smartRec?.weight ?? lastData?.maxWeight ?? null
+            const sets: SetLog[] = Array.from({ length: pe.sets }, (_, i) => ({
+              setNumber: i + 1,
+              weight: prefilledWeight,
+              reps: null,
+              seconds: null,
+              completed: false,
+              rpe: null,
+            }))
+            return { exerciseId: pe.exerciseId, sets, notes: '' }
+          })
+        }
+        setSamenExercises(withExercises)
+        markPlanUsed(planId)
+        setStarted(true)
+        timer.start()
+        setMode('samen')
+        return
+      }
+    }
+
     setSamenExercises(initial)
     setSamenExerciseOrder([])
     setMode('samen')

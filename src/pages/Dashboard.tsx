@@ -1,10 +1,11 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Play, TrendingUp, Flame, Trophy, ChevronRight, Zap, Users } from 'lucide-react'
+import { Play, TrendingUp, Flame, Trophy, ChevronRight, Zap, Users, Plus, BookMarked } from 'lucide-react'
 import { useProfiles } from '../hooks/useProfiles'
 import { useWorkouts } from '../hooks/useWorkouts'
 import { useExercises } from '../hooks/useExercises'
+import { usePlans } from '../hooks/usePlans'
 import { getDayLabel } from '../utils/weekUtils'
 import { workoutTemplates } from '../data/workoutTemplates'
 import Header from '../components/layout/Header'
@@ -15,6 +16,9 @@ export default function Dashboard() {
   const { activeProfile, isOnboarding, profiles } = useProfiles()
   const { getThisWeekSessionCount, getStreak, getPersonalRecords, getProfileSessions } = useWorkouts()
   const { getExercise } = useExercises()
+  const { getPlans } = usePlans()
+
+  const myPlans = getPlans()
 
   const weekCount = getThisWeekSessionCount()
   const streak = getStreak()
@@ -142,10 +146,80 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* My Plans */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg tracking-wider m-0">MIJN PLANNEN</h3>
+            <button
+              onClick={() => navigate('/plans')}
+              className="text-xs text-accent cursor-pointer bg-transparent border-0"
+            >
+              Alles zien
+            </button>
+          </div>
+
+          {myPlans.length === 0 ? (
+            <button
+              onClick={() => navigate('/plans/new')}
+              className="w-full flex items-center gap-3 p-4 bg-bg-card border border-dashed border-border rounded-xl hover:border-accent transition-colors cursor-pointer text-left"
+            >
+              <div className="w-9 h-9 rounded-full bg-accent/15 flex items-center justify-center shrink-0">
+                <Plus size={18} className="text-accent" />
+              </div>
+              <div>
+                <p className="text-sm text-text-primary font-medium m-0">Maak je eerste plan</p>
+                <p className="text-xs text-text-muted m-0 mt-0.5">Stel oefeningen samen en sla op</p>
+              </div>
+            </button>
+          ) : (
+            <div className="space-y-2">
+              {myPlans.slice(0, 3).map(plan => (
+                <div
+                  key={plan.id}
+                  className="flex items-center gap-3 p-3 bg-bg-card border border-border rounded-xl"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-accent/15 flex items-center justify-center shrink-0">
+                    <BookMarked size={16} className="text-accent" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-text-primary font-medium m-0 truncate">{plan.name}</p>
+                    <p className="text-xs text-text-muted m-0 mt-0.5">{plan.exercises.length} oefeningen</p>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {profiles.length >= 2 && (
+                      <button
+                        onClick={() => navigate('/workout', { state: { planId: plan.id, samen: true } })}
+                        className="p-2 bg-bg-input hover:bg-white/10 text-text-muted rounded-lg transition-colors cursor-pointer border-0"
+                        title="Samen trainen"
+                      >
+                        <Users size={13} />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => navigate('/workout', { state: { planId: plan.id } })}
+                      className="flex items-center gap-1 px-3 py-1.5 bg-accent hover:bg-accent-hover text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer border-0"
+                    >
+                      <Play size={12} /> Start
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {myPlans.length > 3 && (
+                <button
+                  onClick={() => navigate('/plans')}
+                  className="w-full text-xs text-text-muted py-2 text-center cursor-pointer bg-transparent border-0 hover:text-text-secondary"
+                >
+                  +{myPlans.length - 3} meer plannen
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* Training Templates */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-lg tracking-wider m-0">TRAININGEN</h3>
+            <h3 className="text-lg tracking-wider m-0">STANDAARD TRAININGEN</h3>
             <button
               onClick={() => navigate('/workout')}
               className="text-xs text-accent cursor-pointer bg-transparent border-0"

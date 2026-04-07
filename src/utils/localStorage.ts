@@ -29,4 +29,5 @@ export const STORAGE_KEYS = {
   WORKOUTS: 'strength-tracker-workouts',
   WEEK_LOGS: 'strength-tracker-week-logs',
   SESSIONS: 'strength-tracker-sessions',
+  PLANS: 'strength-tracker-plans',
 } as const

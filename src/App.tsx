@@ -14,6 +14,8 @@ import ProgressPage from './pages/ProgressPage'
 import ProfilesPage from './pages/ProfilesPage'
 import ProfileNew from './pages/ProfileNew'
 import WeekFeedback from './pages/WeekFeedback'
+import PlansPage from './pages/PlansPage'
+import PlanEditPage from './pages/PlanEditPage'
 import { useSync } from './hooks/useSync'
 import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
@@ -100,6 +102,9 @@ function MainApp() {
           <Route path="/profiles" element={<ProfilesPage />} />
           <Route path="/profiles/new" element={<ProfileNew />} />
           <Route path="/week-feedback" element={<WeekFeedback />} />
+          <Route path="/plans" element={<PlansPage />} />
+          <Route path="/plans/new" element={<PlanEditPage />} />
+          <Route path="/plans/:id/edit" element={<PlanEditPage />} />
         </Routes>
       </AnimatePresence>
       <BottomNav />
