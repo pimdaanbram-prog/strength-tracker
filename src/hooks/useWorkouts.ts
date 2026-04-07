@@ -73,11 +73,16 @@ function generateId(): string {
 
 export function useWorkouts() {
   const activeProfileId = useAppStore(s => s.activeProfileId)
+  // Subscribing to sessionVersion causes any component using this hook
+  // to re-render whenever sessions change (local save/delete or cloud sync)
+  const sessionVersion = useAppStore(s => s.sessionVersion)
+  const bumpSessionVersion = useAppStore(s => s.bumpSessionVersion)
   const { pushSession, pushWeekLog } = useSync()
 
   const getSessions = useCallback((): WorkoutSession[] => {
     return getFromStorage<WorkoutSession[]>(STORAGE_KEYS.SESSIONS, [])
-  }, [])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionVersion])
 
   const getProfileSessions = useCallback((): WorkoutSession[] => {
     if (!activeProfileId) return []
@@ -103,6 +108,7 @@ export function useWorkouts() {
     const sessions = getSessions()
     sessions.push(newSession)
     setToStorage(STORAGE_KEYS.SESSIONS, sessions)
+    bumpSessionVersion()
 
     // Push to cloud
     pushSession(newSession)
@@ -128,7 +134,7 @@ export function useWorkouts() {
     pushWeekLog(weekLog)
 
     return newSession
-  }, [activeProfileId, getSessions, pushSession, pushWeekLog])
+  }, [activeProfileId, getSessions, pushSession, pushWeekLog, bumpSessionVersion])
 
   const saveSessionForProfile = useCallback((profileId: string, session: Omit<WorkoutSession, 'id' | 'profileId' | 'weekNumber' | 'year'>): WorkoutSession => {
     const date = new Date(session.date)
@@ -143,6 +149,7 @@ export function useWorkouts() {
     const sessions = getSessions()
     sessions.push(newSession)
     setToStorage(STORAGE_KEYS.SESSIONS, sessions)
+    bumpSessionVersion()
 
     // Push to cloud
     pushSession(newSession)
@@ -168,12 +175,13 @@ export function useWorkouts() {
     pushWeekLog(weekLog)
 
     return newSession
-  }, [getSessions, pushSession, pushWeekLog])
+  }, [getSessions, pushSession, pushWeekLog, bumpSessionVersion])
 
   const deleteSession = useCallback((sessionId: string) => {
     const sessions = getSessions().filter(s => s.id !== sessionId)
     setToStorage(STORAGE_KEYS.SESSIONS, sessions)
-  }, [getSessions])
+    bumpSessionVersion()
+  }, [getSessions, bumpSessionVersion])
 
   const getExerciseHistory = useCallback((exerciseId: string): { date: string; maxWeight: number; maxReps: number; totalVolume: number }[] => {
     const sessions = getProfileSessions()

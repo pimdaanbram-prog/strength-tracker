@@ -20,7 +20,7 @@ export default function ProgressPage() {
   const weeklyVolume = useMemo(() => {
     const volumeMap: Record<string, number> = {}
     for (const session of sessions) {
-      const key = `W${session.weekNumber}`
+      const key = `${session.year}-W${session.weekNumber.toString().padStart(2, '0')}`
       let vol = 0
       for (const ex of session.exercises) {
         for (const set of ex.sets) {
@@ -32,8 +32,12 @@ export default function ProgressPage() {
       volumeMap[key] = (volumeMap[key] || 0) + vol
     }
     return Object.entries(volumeMap)
-      .map(([week, volume]) => ({ week, volume: Math.round(volume) }))
+      .sort(([a], [b]) => a.localeCompare(b))
       .slice(-12)
+      .map(([key, volume]) => {
+        const [, week] = key.split('-')
+        return { week, volume: Math.round(volume) }
+      })
   }, [sessions])
 
   // Body part frequency
@@ -178,7 +182,6 @@ export default function ProgressPage() {
                             labelStyle={{ color: '#9CA3AF' }}
                           />
                           <Line type="monotone" dataKey="maxWeight" stroke="#3B82F6" strokeWidth={2} dot={{ r: 3 }} name="Max kg" />
-                          <Line type="monotone" dataKey="totalVolume" stroke="#10B981" strokeWidth={2} dot={{ r: 3 }} name="Volume" />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>

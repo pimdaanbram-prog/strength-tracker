@@ -131,6 +131,9 @@ export function useSync() {
 
         setToStorage(STORAGE_KEYS.SESSIONS, merged)
 
+        // Trigger re-render in all components reading sessions
+        useAppStore.getState().bumpSessionVersion()
+
         // Push local-only sessions to cloud
         for (const s of localOnly) {
           await supabase.from('workout_sessions').upsert(sessionToDb(s, accountId))
@@ -276,9 +279,11 @@ export function useSync() {
               sessions.push(session)
             }
             setToStorage(STORAGE_KEYS.SESSIONS, sessions)
+            useAppStore.getState().bumpSessionVersion()
           }
           if (payload.eventType === 'DELETE') {
             setToStorage(STORAGE_KEYS.SESSIONS, sessions.filter(s => s.id !== payload.old.id))
+            useAppStore.getState().bumpSessionVersion()
           }
         })
         .subscribe()

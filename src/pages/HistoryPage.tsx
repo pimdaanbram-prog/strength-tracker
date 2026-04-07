@@ -1,276 +1,252 @@
 import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ChevronRight, Clock, Dumbbell, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
+import { Clock, Dumbbell, Trash2, ChevronDown, ChevronUp, Flame, Calendar } from 'lucide-react'
 import Header from '../components/layout/Header'
 import PageWrapper from '../components/layout/PageWrapper'
 import { useWorkouts } from '../hooks/useWorkouts'
 import { useExercises } from '../hooks/useExercises'
-import { getWeekDates, getWeekNumber, getYear, getDayLabel, getMonthLabel, isSameDay, isToday, formatDateShort } from '../utils/weekUtils'
+import { getWeekNumber, getYear } from '../utils/weekUtils'
 
-const INITIAL_SHOW = 10
+const MONTHS_NL = [
+  'Januari', 'Februari', 'Maart', 'April', 'Mei', 'Juni',
+  'Juli', 'Augustus', 'September', 'Oktober', 'November', 'December',
+]
+
+const DAYS_NL = ['Zondag', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag']
+
+function formatSessionDate(dateStr: string): string {
+  const d = new Date(dateStr)
+  return `${DAYS_NL[d.getDay()]} ${d.getDate()} ${MONTHS_NL[d.getMonth()]}`
+}
+
+function monthKey(dateStr: string): string {
+  const d = new Date(dateStr)
+  return `${MONTHS_NL[d.getMonth()]} ${d.getFullYear()}`
+}
 
 export default function HistoryPage() {
-  const { getProfileSessions, deleteSession } = useWorkouts()
+  // getProfileSessions re-creates when sessionVersion changes (reactive via Zustand)
+  const { getProfileSessions, deleteSession, getStreak } = useWorkouts()
   const { getExercise } = useExercises()
 
-  const [currentDate, setCurrentDate] = useState(new Date())
-  const weekNumber = getWeekNumber(currentDate)
-  const year = getYear(currentDate)
-  const weekDates = getWeekDates(weekNumber, year)
-
   const sessions = getProfileSessions()
-  const sortedSessions = useMemo(() => sessions.slice().reverse(), [sessions])
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
-  const [showAll, setShowAll] = useState(false)
-  const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null)
+  const sorted = useMemo(
+    () => sessions.slice().sort((a, b) => b.date.localeCompare(a.date)),
+    [sessions]
+  )
 
-  const sessionsForSelectedDate = useMemo(() => {
-    if (!selectedDate) return []
-    return sessions.filter(s => isSameDay(new Date(s.date), selectedDate))
-  }, [sessions, selectedDate])
+  // Group by month
+  const grouped = useMemo(() => {
+    const groups: { month: string; sessions: typeof sorted }[] = []
+    for (const s of sorted) {
+      const mk = monthKey(s.date)
+      const existing = groups.find(g => g.month === mk)
+      if (existing) existing.sessions.push(s)
+      else groups.push({ month: mk, sessions: [s] })
+    }
+    return groups
+  }, [sorted])
 
-  const sessionDates = useMemo(() => {
-    return new Set(sessions.map(s => s.date))
+  const streak = getStreak()
+  const totalMinutes = sessions.reduce((t, s) => t + (s.durationMinutes || 0), 0)
+
+  const thisWeek = useMemo(() => {
+    const now = new Date()
+    const wn = getWeekNumber(now)
+    const yr = getYear(now)
+    return sessions.filter(s => s.weekNumber === wn && s.year === yr)
   }, [sessions])
 
-  const prevWeek = () => {
-    const d = new Date(currentDate)
-    d.setDate(d.getDate() - 7)
-    setCurrentDate(d)
-    setSelectedDate(null)
+  const handleDelete = (id: string) => {
+    if (!confirm('Training verwijderen?')) return
+    deleteSession(id)
   }
 
-  const nextWeek = () => {
-    const d = new Date(currentDate)
-    d.setDate(d.getDate() + 7)
-    setCurrentDate(d)
-    setSelectedDate(null)
-  }
-
-  const weekSessions = sessions.filter(s => {
-    const sd = new Date(s.date)
-    return weekDates.some(wd => isSameDay(wd, sd))
-  })
-
-  const visibleSessions = showAll ? sortedSessions : sortedSessions.slice(0, INITIAL_SHOW)
-
-  const renderSessionDetail = (session: (typeof sessions)[0]) => {
-    const isExpanded = expandedSessionId === session.id
+  if (sessions.length === 0) {
     return (
-      <motion.div
-        key={session.id}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-bg-card border border-border rounded-xl overflow-hidden"
-      >
-        <div
-          className="flex items-start gap-3 p-4 cursor-pointer hover:bg-white/5 transition-colors"
-          onClick={() => setExpandedSessionId(isExpanded ? null : session.id)}
-        >
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-text-primary m-0">{session.workoutName}</p>
-            <div className="flex items-center gap-2 mt-1">
-              <Clock size={12} className="text-text-muted" />
-              <span className="text-xs text-text-muted">{session.durationMinutes} min</span>
-              <Dumbbell size={12} className="text-text-muted" />
-              <span className="text-xs text-text-muted">{session.exercises.length} oefeningen</span>
-              <span className="text-xs text-text-muted">·</span>
-              <span className="text-xs text-text-muted">{session.dayLabel} {formatDateShort(new Date(session.date))}</span>
-            </div>
+      <>
+        <Header title="MIJN TRAININGEN" />
+        <PageWrapper>
+          <div className="text-center py-16">
+            <span className="text-5xl mb-4 block">📋</span>
+            <h3 className="text-xl tracking-wider mb-2">GEEN TRAININGEN NOG</h3>
+            <p className="text-text-secondary text-sm">
+              Start je eerste training om je geschiedenis bij te houden
+            </p>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={e => {
-                e.stopPropagation()
-                if (confirm('Training verwijderen?')) deleteSession(session.id)
-              }}
-              className="p-1 text-danger/50 hover:text-danger cursor-pointer bg-transparent border-0"
-            >
-              <Trash2 size={14} />
-            </button>
-            {isExpanded
-              ? <ChevronUp size={14} className="text-text-muted" />
-              : <ChevronDown size={14} className="text-text-muted" />
-            }
-          </div>
-        </div>
-
-        <AnimatePresence>
-          {isExpanded && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="overflow-hidden"
-            >
-              <div className="px-4 pb-4 space-y-2 border-t border-border pt-3">
-                {session.exercises.map(se => {
-                  const exercise = getExercise(se.exerciseId)
-                  const completedSets = se.sets.filter(s => s.completed)
-                  const maxWeight = completedSets.length > 0
-                    ? Math.max(...completedSets.filter(s => s.weight !== null).map(s => s.weight!), 0)
-                    : 0
-                  const maxReps = completedSets.length > 0
-                    ? Math.max(...completedSets.filter(s => s.reps !== null).map(s => s.reps!), 0)
-                    : 0
-                  return (
-                    <div key={se.exerciseId} className="space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-text-primary font-medium">{exercise?.nameNL || se.exerciseId}</span>
-                        <span className="text-xs text-text-muted">
-                          {completedSets.length} sets
-                          {maxWeight > 0 ? ` · ${maxWeight}kg` : ''}
-                          {maxReps > 0 ? ` × ${maxReps}` : ''}
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap gap-1">
-                        {completedSets.map((set, i) => (
-                          <span key={i} className="text-xs px-2 py-0.5 bg-bg-input rounded text-text-secondary">
-                            {set.weight !== null ? `${set.weight}kg` : ''}
-                            {set.weight !== null && set.reps !== null ? ' × ' : ''}
-                            {set.reps !== null ? `${set.reps}` : ''}
-                            {set.seconds !== null ? `${set.seconds}s` : ''}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )
-                })}
-                {session.notes && (
-                  <p className="text-xs text-text-muted italic mt-2">"{session.notes}"</p>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
+        </PageWrapper>
+      </>
     )
   }
 
   return (
     <>
-      <Header title="GESCHIEDENIS" />
+      <Header title="MIJN TRAININGEN" />
       <PageWrapper>
-        {/* Week navigator */}
-        <div className="flex items-center justify-between mb-4">
-          <button onClick={prevWeek} className="p-2 hover:bg-white/5 rounded-lg cursor-pointer bg-transparent border-0">
-            <ChevronLeft size={20} className="text-text-primary" />
-          </button>
-          <div className="text-center">
-            <p className="text-sm font-medium text-text-primary m-0">Week {weekNumber}</p>
-            <p className="text-xs text-text-muted m-0">{getMonthLabel(weekDates[0])} {year}</p>
+
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-3 mb-5">
+          <div className="bg-bg-card border border-border rounded-xl p-3 text-center">
+            <p className="text-2xl font-heading tracking-wider text-text-primary m-0">{sessions.length}</p>
+            <p className="text-xs text-text-muted m-0 mt-0.5">Trainingen</p>
           </div>
-          <button onClick={nextWeek} className="p-2 hover:bg-white/5 rounded-lg cursor-pointer bg-transparent border-0">
-            <ChevronRight size={20} className="text-text-primary" />
-          </button>
-        </div>
-
-        {/* Calendar week */}
-        <div className="grid grid-cols-7 gap-1 mb-6">
-          {['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'].map(d => (
-            <div key={d} className="text-center text-xs text-text-muted py-1">{d}</div>
-          ))}
-          {weekDates.map((date, i) => {
-            const dateStr = date.toISOString().split('T')[0]
-            const hasSession = sessionDates.has(dateStr)
-            const isSelected = selectedDate && isSameDay(date, selectedDate)
-            const isTodayDate = isToday(date)
-
-            return (
-              <button
-                key={i}
-                onClick={() => setSelectedDate(isSelected ? null : date)}
-                className={`aspect-square rounded-xl flex flex-col items-center justify-center transition-colors cursor-pointer border-0 ${
-                  isSelected
-                    ? 'bg-accent text-white'
-                    : isTodayDate
-                    ? 'bg-accent/20 text-accent'
-                    : 'bg-bg-card text-text-primary hover:bg-white/5'
-                }`}
-              >
-                <span className="text-sm">{date.getDate()}</span>
-                {hasSession && (
-                  <span className={`w-1.5 h-1.5 rounded-full mt-0.5 ${isSelected ? 'bg-white' : 'bg-accent'}`} />
-                )}
-              </button>
-            )
-          })}
-        </div>
-
-        {/* Week summary */}
-        <div className="bg-bg-card border border-border rounded-xl p-4 mb-4">
-          <h3 className="text-sm tracking-wider text-text-primary m-0 mb-2">WEEK SAMENVATTING</h3>
-          <div className="grid grid-cols-3 gap-3">
-            <div className="text-center">
-              <p className="text-xl font-heading text-text-primary m-0">{weekSessions.length}</p>
-              <p className="text-xs text-text-muted m-0">Trainingen</p>
+          <div className="bg-bg-card border border-border rounded-xl p-3 text-center">
+            <div className="flex items-center justify-center gap-1">
+              <Flame size={14} className="text-warning" />
+              <p className="text-2xl font-heading tracking-wider text-text-primary m-0">{streak}</p>
             </div>
-            <div className="text-center">
-              <p className="text-xl font-heading text-text-primary m-0">
-                {weekSessions.reduce((t, s) => t + s.exercises.length, 0)}
-              </p>
-              <p className="text-xs text-text-muted m-0">Oefeningen</p>
-            </div>
-            <div className="text-center">
-              <p className="text-xl font-heading text-text-primary m-0">
-                {weekSessions.reduce((t, s) => t + s.durationMinutes, 0)}
-              </p>
-              <p className="text-xs text-text-muted m-0">Minuten</p>
-            </div>
+            <p className="text-xs text-text-muted m-0">Weken streak</p>
+          </div>
+          <div className="bg-bg-card border border-border rounded-xl p-3 text-center">
+            <p className="text-2xl font-heading tracking-wider text-text-primary m-0">
+              {Math.round(totalMinutes / 60)}u
+            </p>
+            <p className="text-xs text-text-muted m-0 mt-0.5">Totaal</p>
           </div>
         </div>
 
-        {/* Selected date sessions */}
-        {selectedDate && (
-          <div className="mb-4">
-            <h3 className="text-sm tracking-wider text-text-primary mb-3 m-0">
-              {getDayLabel(selectedDate)} {selectedDate.getDate()} {getMonthLabel(selectedDate)}
-            </h3>
-            {sessionsForSelectedDate.length > 0 ? (
-              <div className="space-y-3">
-                {sessionsForSelectedDate.map(session => renderSessionDetail(session))}
+        {/* Deze week */}
+        {thisWeek.length > 0 && (
+          <div className="bg-accent/10 border border-accent/20 rounded-xl p-3 mb-5">
+            <p className="text-xs text-accent font-semibold m-0">DEZE WEEK — {thisWeek.length}× getraind</p>
+            <p className="text-xs text-text-secondary m-0 mt-0.5">
+              {thisWeek.map(s => s.workoutName).join(', ')}
+            </p>
+          </div>
+        )}
+
+        {/* Alle trainingen per maand */}
+        <div className="space-y-6">
+          {grouped.map(({ month, sessions: ms }) => (
+            <div key={month}>
+              <div className="flex items-center gap-2 mb-3">
+                <p className="text-xs font-semibold tracking-wider text-text-muted m-0 uppercase">{month}</p>
+                <span className="text-xs text-text-muted">· {ms.length}×</span>
               </div>
-            ) : (
-              <p className="text-text-muted text-sm text-center py-4">Geen trainingen op deze dag</p>
-            )}
-          </div>
-        )}
+              <div className="space-y-2">
+                {ms.map(session => {
+                  const isExpanded = expandedId === session.id
+                  return (
+                    <motion.div
+                      key={session.id}
+                      layout
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-bg-card border border-border rounded-xl overflow-hidden"
+                    >
+                      {/* Header */}
+                      <div className="p-4">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-text-primary m-0">{session.workoutName}</p>
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1">
+                              <span className="text-xs text-text-muted flex items-center gap-1">
+                                <Calendar size={11} /> {formatSessionDate(session.date)}
+                              </span>
+                              <span className="text-xs text-text-muted flex items-center gap-1">
+                                <Clock size={11} /> {session.durationMinutes} min
+                              </span>
+                              <span className="text-xs text-text-muted flex items-center gap-1">
+                                <Dumbbell size={11} /> {session.exercises.length} oefeningen
+                              </span>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleDelete(session.id)}
+                            className="p-1.5 text-danger/40 hover:text-danger transition-colors cursor-pointer bg-transparent border-0 shrink-0"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
 
-        {/* All sessions list (when no date selected) */}
-        {!selectedDate && sessions.length > 0 && (
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm tracking-wider text-text-primary m-0">
-                ALLE TRAININGEN ({sessions.length})
-              </h3>
+                        {/* Oefeningen — altijd zichtbaar */}
+                        <div className="space-y-1 mb-2">
+                          {session.exercises.map(se => {
+                            const exercise = getExercise(se.exerciseId)
+                            const completedSets = se.sets.filter(s => s.completed)
+                            const weightsArr = completedSets.filter(s => s.weight !== null && s.weight > 0).map(s => s.weight!)
+                            const repsArr = completedSets.filter(s => s.reps !== null).map(s => s.reps!)
+                            const maxWeight = weightsArr.length > 0 ? Math.max(...weightsArr) : 0
+                            const maxReps = repsArr.length > 0 ? Math.max(...repsArr) : 0
+
+                            return (
+                              <div key={se.exerciseId} className="flex items-center justify-between">
+                                <span className="text-xs text-text-secondary truncate flex-1 mr-2">
+                                  {exercise?.nameNL || se.exerciseId}
+                                </span>
+                                <span className="text-xs text-text-muted shrink-0">
+                                  {completedSets.length > 0
+                                    ? `${completedSets.length}×${maxWeight > 0 ? ` ${maxWeight}kg` : ''}${maxReps > 0 ? ` · ${maxReps} reps` : ''}`
+                                    : '—'
+                                  }
+                                </span>
+                              </div>
+                            )
+                          })}
+                        </div>
+
+                        {/* Expand toggle voor per-set detail */}
+                        <button
+                          onClick={() => setExpandedId(isExpanded ? null : session.id)}
+                          className="flex items-center gap-1 text-xs text-text-muted hover:text-accent transition-colors cursor-pointer bg-transparent border-0 p-0"
+                        >
+                          {isExpanded
+                            ? <><ChevronUp size={11} /> Minder</>
+                            : <><ChevronDown size={11} /> Sets & gewichten</>}
+                        </button>
+                      </div>
+
+                      {/* Per-set detail */}
+                      <AnimatePresence>
+                        {isExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.18 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="px-4 pb-4 pt-0 space-y-3 border-t border-border">
+                              <div className="pt-3 space-y-3">
+                                {session.exercises.map(se => {
+                                  const exercise = getExercise(se.exerciseId)
+                                  const completedSets = se.sets.filter(s => s.completed)
+                                  if (completedSets.length === 0) return null
+                                  return (
+                                    <div key={se.exerciseId}>
+                                      <p className="text-xs font-semibold text-text-primary mb-1.5">
+                                        {exercise?.nameNL || se.exerciseId}
+                                      </p>
+                                      <div className="flex flex-wrap gap-1">
+                                        {completedSets.map((set, i) => (
+                                          <span key={i} className="text-xs px-2 py-1 bg-bg-input rounded-lg text-text-secondary">
+                                            {set.weight !== null && set.weight > 0 ? `${set.weight}kg` : ''}
+                                            {set.weight !== null && set.weight > 0 && set.reps !== null ? ' × ' : ''}
+                                            {set.reps !== null ? `${set.reps} reps` : ''}
+                                            {set.seconds !== null ? `${set.seconds}s` : ''}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )
+                                })}
+                                {session.notes && (
+                                  <p className="text-xs text-text-muted italic">"{session.notes}"</p>
+                                )}
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  )
+                })}
+              </div>
             </div>
-            <div className="space-y-2">
-              {visibleSessions.map(session => renderSessionDetail(session))}
-            </div>
-
-            {sortedSessions.length > INITIAL_SHOW && (
-              <button
-                onClick={() => setShowAll(!showAll)}
-                className="w-full mt-3 py-3 text-sm text-text-muted hover:text-text-secondary border border-border rounded-xl transition-colors cursor-pointer bg-transparent"
-              >
-                {showAll
-                  ? `Minder tonen`
-                  : `Toon alle ${sortedSessions.length} trainingen`
-                }
-              </button>
-            )}
-          </div>
-        )}
-
-        {sessions.length === 0 && !selectedDate && (
-          <div className="text-center py-12">
-            <span className="text-4xl mb-4 block">📋</span>
-            <h3 className="text-xl tracking-wider mb-2">GEEN GESCHIEDENIS</h3>
-            <p className="text-text-secondary text-sm">Start je eerste training om je geschiedenis bij te houden</p>
-          </div>
-        )}
+          ))}
+        </div>
       </PageWrapper>
     </>
   )
