@@ -5,6 +5,7 @@ import Header from '../components/layout/Header'
 import PageWrapper from '../components/layout/PageWrapper'
 import { useWorkouts } from '../hooks/useWorkouts'
 import { useExercises } from '../hooks/useExercises'
+import { useLanguage } from '../hooks/useLanguage'
 import { getWeekNumber, getYear } from '../utils/weekUtils'
 
 const MONTHS_NL = [
@@ -28,6 +29,7 @@ export default function HistoryPage() {
   // getProfileSessions re-creates when sessionVersion changes (reactive via Zustand)
   const { getProfileSessions, deleteSession, getStreak } = useWorkouts()
   const { getExercise } = useExercises()
+  const { exName } = useLanguage()
 
   const sessions = getProfileSessions()
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -174,7 +176,7 @@ export default function HistoryPage() {
                             return (
                               <div key={se.exerciseId} className="flex items-center justify-between">
                                 <span className="text-xs text-text-secondary truncate flex-1 mr-2">
-                                  {exercise?.nameNL || se.exerciseId}
+                                  {exName(exercise) || se.exerciseId}
                                 </span>
                                 <span className="text-xs text-text-muted shrink-0">
                                   {doneSets.length > 0
@@ -217,7 +219,7 @@ export default function HistoryPage() {
                                   return (
                                     <div key={se.exerciseId}>
                                       <p className="text-xs font-semibold text-text-primary mb-1.5">
-                                        {exercise?.nameNL || se.exerciseId}
+                                        {exName(exercise) || se.exerciseId}
                                       </p>
                                       <div className="flex flex-wrap gap-1">
                                         {doneSets.map((set, i) => (

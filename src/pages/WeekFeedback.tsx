@@ -5,12 +5,14 @@ import Header from '../components/layout/Header'
 import PageWrapper from '../components/layout/PageWrapper'
 import { useWeekFeedback } from '../hooks/useWeekFeedback'
 import { useExercises } from '../hooks/useExercises'
+import { useLanguage } from '../hooks/useLanguage'
 import { getWeekNumber } from '../utils/weekUtils'
 import type { WeekFeedback as WeekFeedbackType } from '../hooks/useWorkouts'
 
 export default function WeekFeedback() {
   const { generateCurrentWeekFeedback, getLatestFeedback } = useWeekFeedback()
   const { getExercise } = useExercises()
+  const { exName } = useLanguage()
   const [feedback, setFeedback] = useState<WeekFeedbackType | null>(null)
 
   useEffect(() => {
@@ -120,7 +122,7 @@ export default function WeekFeedback() {
                         <div className="flex items-center gap-2 mb-1">
                           {statusIcon(note.progressStatus)}
                           <span className="text-sm font-medium text-text-primary">
-                            {exercise?.nameNL || note.exerciseId}
+                            {exName(exercise) || note.exerciseId}
                           </span>
                         </div>
                         <p className="text-xs text-text-muted m-0">{note.note}</p>
@@ -148,7 +150,7 @@ export default function WeekFeedback() {
                         <div className="flex items-center gap-2 mb-1">
                           <ArrowUp size={14} className="text-accent" />
                           <span className="text-sm font-medium text-text-primary">
-                            {exercise?.nameNL || rec.exerciseId}
+                            {exName(exercise) || rec.exerciseId}
                           </span>
                           <span className="text-sm text-accent ml-auto font-bold">{rec.recommendedWeight}kg</span>
                         </div>

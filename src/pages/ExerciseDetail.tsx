@@ -8,6 +8,7 @@ import PageWrapper from '../components/layout/PageWrapper'
 import { useExercises } from '../hooks/useExercises'
 import { useWorkouts } from '../hooks/useWorkouts'
 import { useProfiles } from '../hooks/useProfiles'
+import { useLanguage } from '../hooks/useLanguage'
 import { calculateRecommendedWeight } from '../utils/weightCalculator'
 
 type Tab = 'instructies' | 'tips' | 'fouten' | 'geschiedenis'
@@ -18,6 +19,7 @@ export default function ExerciseDetail() {
   const { getExercise } = useExercises()
   const { getExerciseHistory } = useWorkouts()
   const { activeProfile } = useProfiles()
+  const { exName } = useLanguage()
   const [activeTab, setActiveTab] = useState<Tab>('instructies')
 
   const exercise = getExercise(id || '')
@@ -44,13 +46,13 @@ export default function ExerciseDetail() {
 
   return (
     <>
-      <Header title={exercise.nameNL.toUpperCase()} showBack />
+      <Header title={exName(exercise).toUpperCase()} showBack />
       <PageWrapper>
         {/* Header Info */}
         <div className="bg-bg-card border border-border rounded-xl p-4 mb-4">
           <div className="flex items-start justify-between mb-3">
             <div>
-              <h2 className="text-2xl tracking-wider m-0">{exercise.nameNL.toUpperCase()}</h2>
+              <h2 className="text-2xl tracking-wider m-0">{exName(exercise).toUpperCase()}</h2>
               <p className="text-sm text-text-muted mt-1 m-0">{exercise.name}</p>
             </div>
             <span className={`text-xs px-2 py-1 rounded-full ${

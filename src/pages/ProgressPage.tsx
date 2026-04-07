@@ -7,6 +7,7 @@ import PageWrapper from '../components/layout/PageWrapper'
 import { useWorkouts } from '../hooks/useWorkouts'
 import { useExercises } from '../hooks/useExercises'
 import { useSync } from '../hooks/useSync'
+import { useLanguage } from '../hooks/useLanguage'
 
 const CATEGORY_NL: Record<string, string> = {
   'Chest': 'Borst',
@@ -27,6 +28,7 @@ export default function ProgressPage() {
   const { getProfileSessions, getExerciseHistory, getPersonalRecords } = useWorkouts()
   const { exercises, getExercise } = useExercises()
   const { pullFromCloud } = useSync()
+  const { exName } = useLanguage()
 
   const sessions = getProfileSessions()
   const prs = getPersonalRecords()
@@ -337,7 +339,7 @@ export default function ProgressPage() {
                                   const maxW = done.filter(s => s.weight).reduce((m, s) => Math.max(m, s.weight!), 0)
                                   return (
                                     <p key={e.exerciseId} className="text-xs text-text-secondary m-0">
-                                      {ex?.nameNL} · {done.length} sets{maxW > 0 ? ` · ${maxW}kg` : ''}
+                                      {exName(ex)} · {done.length} sets{maxW > 0 ? ` · ${maxW}kg` : ''}
                                     </p>
                                   )
                                 })}
@@ -365,7 +367,7 @@ export default function ProgressPage() {
                 >
                   <option value="">Kies een oefening...</option>
                   {usedExercises.map(ex => (
-                    <option key={ex.id} value={ex.id}>{ex.nameNL}</option>
+                    <option key={ex.id} value={ex.id}>{exName(ex)}</option>
                   ))}
                 </select>
 
@@ -432,7 +434,7 @@ export default function ProgressPage() {
                       >
                         <span className="text-warning">🏆</span>
                         <div className="flex-1">
-                          <p className="text-sm text-text-primary m-0">{exercise?.nameNL || pr.exerciseId}</p>
+                          <p className="text-sm text-text-primary m-0">{exName(exercise) || pr.exerciseId}</p>
                           <p className="text-xs text-text-muted m-0 mt-0.5">{pr.date}</p>
                         </div>
                         <span className="text-sm font-bold text-warning">{pr.weight}kg × {pr.reps}</span>

@@ -12,6 +12,7 @@ import { useProfiles } from '../hooks/useProfiles'
 import { useWorkouts } from '../hooks/useWorkouts'
 import { useExercises } from '../hooks/useExercises'
 import { usePlans } from '../hooks/usePlans'
+import { useLanguage } from '../hooks/useLanguage'
 import { getDayLabel } from '../utils/weekUtils'
 import { workoutTemplates } from '../data/workoutTemplates'
 import Header from '../components/layout/Header'
@@ -25,6 +26,7 @@ export default function Dashboard() {
   const { getPlans } = usePlans()
 
   const myPlans = getPlans()
+  const { exName } = useLanguage()
 
   const weekCount = getThisWeekSessionCount()
   const streak = getStreak()
@@ -165,7 +167,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-white font-semibold text-base m-0">
-                    {suggestedTemplate.nameNL}
+                    {exName(suggestedTemplate)}
                   </p>
                   <p className="text-white/70 text-sm mt-1 m-0">
                     {suggestedTemplate.exercises.length} oefeningen · ~{suggestedTemplate.estimatedMinutes} min
@@ -276,7 +278,7 @@ export default function Dashboard() {
                 className="w-full flex items-center gap-3 p-3 bg-bg-card border border-border rounded-xl hover:border-border-light transition-colors cursor-pointer text-left"
               >
                 <div className="flex-1">
-                  <p className="text-sm text-text-primary font-medium m-0">{template.nameNL}</p>
+                  <p className="text-sm text-text-primary font-medium m-0">{exName(template)}</p>
                   <p className="text-xs text-text-muted m-0 mt-0.5">
                     {template.exercises.length} oefeningen · {template.difficulty}
                   </p>
@@ -319,7 +321,7 @@ export default function Dashboard() {
                   <div key={pr.exerciseId} className="flex items-center gap-3 p-3 bg-bg-card border border-border rounded-xl">
                     <TrendingUp size={16} className="text-success shrink-0" />
                     <div className="flex-1">
-                      <p className="text-sm text-text-primary m-0">{exercise?.nameNL || pr.exerciseId}</p>
+                      <p className="text-sm text-text-primary m-0">{exName(exercise) || pr.exerciseId}</p>
                       <p className="text-xs text-text-muted m-0 mt-0.5">{pr.date}</p>
                     </div>
                     <span className="text-sm font-semibold text-success">{pr.weight}kg</span>

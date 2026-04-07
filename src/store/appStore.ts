@@ -19,9 +19,8 @@ export interface UserProfile {
 interface AppState {
   profiles: UserProfile[]
   activeProfileId: string | null
-  // Version counter — increments whenever sessions change (save/delete/sync)
-  // Components subscribed to this will re-render and re-read localStorage
   sessionVersion: number
+  language: 'nl' | 'en'
 
   // Computed
   getActiveProfile: () => UserProfile | null
@@ -32,6 +31,7 @@ interface AppState {
   deleteProfile: (id: string) => void
   setActiveProfile: (id: string | null) => void
   bumpSessionVersion: () => void
+  setLanguage: (lang: 'nl' | 'en') => void
 }
 
 export const useAppStore = create<AppState>()(
@@ -40,6 +40,7 @@ export const useAppStore = create<AppState>()(
       profiles: [],
       activeProfileId: null,
       sessionVersion: 0,
+      language: 'nl',
 
       getActiveProfile: () => {
         const { profiles, activeProfileId } = get()
@@ -75,13 +76,16 @@ export const useAppStore = create<AppState>()(
 
       bumpSessionVersion: () =>
         set((state) => ({ sessionVersion: state.sessionVersion + 1 })),
+
+      setLanguage: (lang) => set({ language: lang }),
     }),
     {
       name: 'strength-tracker-profiles',
       partialize: (state) => ({
         profiles: state.profiles,
         activeProfileId: state.activeProfileId,
-        // sessionVersion is intentionally NOT persisted — always starts fresh
+        language: state.language,
+        // sessionVersion is intentionally NOT persisted
       }),
     }
   )

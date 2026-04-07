@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { ArrowLeft, LogOut } from 'lucide-react'
 import ProfileSwitcher from '../profile/ProfileSwitcher'
 import { useAuthContext } from '../../contexts/AuthContext'
+import { useLanguage } from '../../hooks/useLanguage'
 
 interface HeaderProps {
   title?: string
@@ -14,6 +15,7 @@ export default function Header({ title, showBack = false, showProfile = true }: 
   const navigate = useNavigate()
   const location = useLocation()
   const { signOut } = useAuthContext()
+  const { language, setLanguage } = useLanguage()
   const [showMenu, setShowMenu] = useState(false)
 
   const isHome = location.pathname === '/'
@@ -45,6 +47,14 @@ export default function Header({ title, showBack = false, showProfile = true }: 
           ) : null}
         </div>
         <div className="flex items-center gap-2">
+          {/* Language toggle */}
+          <button
+            onClick={() => setLanguage(language === 'nl' ? 'en' : 'nl')}
+            className="px-2 py-1 rounded-lg text-xs font-bold border border-border bg-bg-card text-text-muted hover:text-text-primary hover:border-border-light transition-colors cursor-pointer"
+            title="Switch language / Wissel taal"
+          >
+            {language === 'nl' ? 'EN' : 'NL'}
+          </button>
           {showProfile && <ProfileSwitcher />}
           {isHome && (
             <div className="relative">
@@ -63,7 +73,7 @@ export default function Header({ title, showBack = false, showProfile = true }: 
                       className="w-full flex items-center gap-2 px-4 py-3 text-sm text-danger hover:bg-white/5 transition-colors cursor-pointer bg-transparent border-0 text-left"
                     >
                       <LogOut size={14} />
-                      Uitloggen
+                      {language === 'nl' ? 'Uitloggen' : 'Sign out'}
                     </button>
                   </div>
                 </>

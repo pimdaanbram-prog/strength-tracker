@@ -7,6 +7,7 @@ import PageWrapper from '../components/layout/PageWrapper'
 import WorkoutBuilder from '../components/workout/WorkoutBuilder'
 import { usePlans } from '../hooks/usePlans'
 import { useExercises } from '../hooks/useExercises'
+import { useLanguage } from '../hooks/useLanguage'
 import type { PlanExercise } from '../hooks/usePlans'
 import type { Exercise } from '../data/exercises'
 
@@ -15,6 +16,7 @@ export default function PlanEditPage() {
   const navigate = useNavigate()
   const { getPlan, savePlan, updatePlan } = usePlans()
   const { getExercise } = useExercises()
+  const { exName } = useLanguage()
 
   const isEditing = Boolean(id)
   const existing = id ? getPlan(id) : null
@@ -117,7 +119,7 @@ export default function PlanEditPage() {
                   >
                     <GripVertical size={16} className="text-text-muted shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-text-primary font-medium truncate m-0">{exercise.nameNL}</p>
+                      <p className="text-sm text-text-primary font-medium truncate m-0">{exName(exercise)}</p>
                       <p className="text-xs text-text-muted m-0 mt-0.5">{exercise.category} · {exercise.equipment}</p>
                     </div>
                     {/* Sets stepper */}

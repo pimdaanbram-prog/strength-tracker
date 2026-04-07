@@ -7,12 +7,14 @@ import PageWrapper from '../components/layout/PageWrapper'
 import { usePlans } from '../hooks/usePlans'
 import { useExercises } from '../hooks/useExercises'
 import { useAppStore } from '../store/appStore'
+import { useLanguage } from '../hooks/useLanguage'
 
 export default function PlansPage() {
   const navigate = useNavigate()
   const { getPlans, deletePlan } = usePlans()
   const { getExercise } = useExercises()
   const profiles = useAppStore(s => s.profiles)
+  const { exName } = useLanguage()
 
   const [plans, setPlans] = useState(() => getPlans())
 
@@ -111,7 +113,7 @@ export default function PlansPage() {
                       const ex = getExercise(pe.exerciseId)
                       return ex ? (
                         <span key={pe.exerciseId} className="text-xs px-2 py-0.5 bg-bg-input rounded text-text-secondary">
-                          {ex.nameNL}
+                          {exName(ex)}
                         </span>
                       ) : null
                     })}

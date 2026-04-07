@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ChevronDown, ChevronUp, Timer, Trash2, Plus, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import MultiPersonSetLogger from './MultiPersonSetLogger'
+import { useLanguage } from '../../hooks/useLanguage'
 import type { SessionExercise, SetLog } from '../../hooks/useWorkouts'
 import type { Exercise } from '../../data/exercises'
 import type { UserProfile } from '../../store/appStore'
@@ -45,6 +46,7 @@ export default function MultiPersonExerciseCard({
 }: MultiPersonExerciseCardProps) {
   const [expanded, setExpanded] = useState(true)
   const [activeTab, setActiveTab] = useState(0)
+  const { exName } = useLanguage()
 
   const totalCompletedAll = participants.reduce((sum, p) => {
     return sum + p.sessionExercise.sets.filter(s => s.completed).length
@@ -142,7 +144,7 @@ export default function MultiPersonExerciseCard({
       >
         <div className="flex-1 min-w-0">
           <h4 className="text-sm font-semibold text-text-primary m-0 truncate font-body">
-            {exercise.nameNL}
+            {exName(exercise)}
           </h4>
           <span className="text-xs text-text-muted">{exercise.category}</span>
         </div>

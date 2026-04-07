@@ -6,6 +6,7 @@ import Header from '../components/layout/Header'
 import PageWrapper from '../components/layout/PageWrapper'
 import { useExercises } from '../hooks/useExercises'
 import { useWorkouts } from '../hooks/useWorkouts'
+import { useLanguage } from '../hooks/useLanguage'
 
 const categoryEmojis: Record<string, string> = {
   'Borst': '🫁',
@@ -23,6 +24,7 @@ export default function ExercisesPage() {
   const navigate = useNavigate()
   const { exercises, categories, exercisesByCategory } = useExercises()
   const { getPersonalRecords, getLastExerciseSets } = useWorkouts()
+  const { exName } = useLanguage()
   const [search, setSearch] = useState('')
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
 
@@ -106,7 +108,7 @@ export default function ExercisesPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-text-primary font-medium truncate m-0">
-                    {exercise.nameNL}
+                    {exName(exercise)}
                   </p>
                   <p className="text-xs text-text-muted m-0 mt-0.5">
                     {exercise.equipment} · {exercise.musclesWorked.slice(0, 2).join(', ')}

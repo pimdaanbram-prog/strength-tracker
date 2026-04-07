@@ -17,6 +17,7 @@ import { useAppStore } from '../store/appStore'
 import type { UserProfile } from '../store/appStore'
 import { useTimer } from '../hooks/useTimer'
 import { usePlans } from '../hooks/usePlans'
+import { useLanguage } from '../hooks/useLanguage'
 import { workoutTemplates } from '../data/workoutTemplates'
 import { calculateRecommendedWeight } from '../utils/weightCalculator'
 import { getDayLabel, toISODateString } from '../utils/weekUtils'
@@ -33,6 +34,7 @@ export default function WorkoutPage() {
   const allProfiles = useAppStore(s => s.profiles)
   const timer = useTimer()
   const { getPlan, markPlanUsed } = usePlans()
+  const { exName } = useLanguage()
 
   const templateId = (location.state as { templateId?: string })?.templateId
   const planId = (location.state as { planId?: string })?.planId
@@ -92,7 +94,7 @@ export default function WorkoutPage() {
     if (templateId) {
       const template = workoutTemplates.find(t => t.id === templateId)
       if (template) {
-        setWorkoutName(template.nameNL)
+        setWorkoutName(exName(template))
         const sessionExercises: SessionExercise[] = template.exercises.map(te => {
           const smartRec = getSmartRecommendation(te.exerciseId)
           const lastData = getLastExerciseSets(te.exerciseId)

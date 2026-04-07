@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { Search, Plus, X, LayoutGrid } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useExercises } from '../../hooks/useExercises'
+import { useLanguage } from '../../hooks/useLanguage'
 import { workoutTemplates } from '../../data/workoutTemplates'
 import type { Exercise } from '../../data/exercises'
 
@@ -23,6 +24,7 @@ export default function WorkoutBuilder({
   selectedIds,
 }: WorkoutBuilderProps) {
   const { exercises, categories } = useExercises()
+  const { exName } = useLanguage()
   const [search, setSearch] = useState('')
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [tab, setTab] = useState<Tab>('exercises')
@@ -35,7 +37,7 @@ export default function WorkoutBuilder({
     if (search) {
       const q = search.toLowerCase()
       result = result.filter(
-        e => e.name.toLowerCase().includes(q) || e.nameNL.toLowerCase().includes(q) || e.musclesWorked.some(m => m.toLowerCase().includes(q))
+        e => e.name.toLowerCase().includes(q) || e.nameNL.toLowerCase().includes(q) || exName(e).toLowerCase().includes(q) || e.musclesWorked.some(m => m.toLowerCase().includes(q))
       )
     }
     return result
@@ -152,7 +154,7 @@ export default function WorkoutBuilder({
                     }`}
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-text-primary truncate m-0">{exercise.nameNL}</p>
+                      <p className="text-sm text-text-primary truncate m-0">{exName(exercise)}</p>
                       <p className="text-xs text-text-muted m-0 mt-0.5">
                         {exercise.equipment} · {exercise.musclesWorked.slice(0, 3).join(', ')}
                       </p>
@@ -191,7 +193,7 @@ export default function WorkoutBuilder({
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-text-primary m-0">{template.nameNL}</p>
+                      <p className="text-sm font-semibold text-text-primary m-0">{exName(template)}</p>
                       <p className="text-xs text-text-muted m-0 mt-0.5">
                         {template.exercises.length} oefeningen · ~{template.estimatedMinutes}min · {template.difficulty}
                       </p>
@@ -206,7 +208,7 @@ export default function WorkoutBuilder({
                                 isAdded ? 'bg-success/10 text-success' : 'bg-bg-input text-text-muted'
                               }`}
                             >
-                              {ex.nameNL}
+                              {exName(ex)}
                             </span>
                           ) : null
                         })}

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import SetLogger from './SetLogger'
 import type { SessionExercise, SetLog } from '../../hooks/useWorkouts'
 import type { Exercise } from '../../data/exercises'
+import { useLanguage } from '../../hooks/useLanguage'
 
 interface LastSession {
   date: string
@@ -42,6 +43,7 @@ export default function ExerciseCard({
 }: ExerciseCardProps) {
   const [expanded, setExpanded] = useState(true)
   const [showNotes, setShowNotes] = useState(false)
+  const { exName } = useLanguage()
 
   const completedSets = sessionExercise.sets.filter(s => s.completed).length
   const totalSets = sessionExercise.sets.length
@@ -91,7 +93,7 @@ export default function ExerciseCard({
       >
         <div className="flex-1 min-w-0">
           <h4 className="text-sm font-semibold text-text-primary m-0 truncate font-body">
-            {exercise.nameNL}
+            {exName(exercise)}
           </h4>
           <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1">
             <span className="text-xs text-text-muted">{exercise.category}</span>
