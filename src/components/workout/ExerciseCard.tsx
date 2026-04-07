@@ -1,14 +1,30 @@
 import { useState } from 'react'
-import { ChevronDown, ChevronUp, Timer, Trash2, MessageSquare } from 'lucide-react'
+import { ChevronDown, ChevronUp, Timer, Trash2, MessageSquare, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import SetLogger from './SetLogger'
 import type { SessionExercise, SetLog } from '../../hooks/useWorkouts'
 import type { Exercise } from '../../data/exercises'
 
+interface LastSession {
+  date: string
+  sets: { weight: number | null; reps: number | null }[]
+  maxWeight: number
+  maxReps: number
+}
+
+interface SmartRecommendation {
+  weight: number
+  reps: string
+  trend: 'up' | 'same' | 'down' | 'new'
+  note: string
+}
+
 interface ExerciseCardProps {
   exercise: Exercise
   sessionExercise: SessionExercise
   recommendedWeight: number | null
+  lastSession: LastSession | null
+  smartRecommendation: SmartRecommendation | null
   onUpdate: (updated: SessionExercise) => void
   onRemove: () => void
   onStartRest: (seconds: number) => void
@@ -18,6 +34,8 @@ export default function ExerciseCard({
   exercise,
   sessionExercise,
   recommendedWeight,
+  lastSession,
+  smartRecommendation,
   onUpdate,
   onRemove,
   onStartRest,
@@ -32,7 +50,6 @@ export default function ExerciseCard({
     const newSets = [...sessionExercise.sets]
     newSets[index] = updated
 
-    // Auto-start rest timer when completing a set
     if (updated.completed && !sessionExercise.sets[index].completed) {
       onStartRest(exercise.restSeconds)
     }
@@ -53,6 +70,18 @@ export default function ExerciseCard({
     onUpdate({ ...sessionExercise, sets: [...sessionExercise.sets, newSet] })
   }
 
+  const trendIcon = smartRecommendation?.trend === 'up'
+    ? <TrendingUp size={12} className="text-success shrink-0" />
+    : smartRecommendation?.trend === 'down'
+    ? <TrendingDown size={12} className="text-warning shrink-0" />
+    : <Minus size={12} className="text-accent shrink-0" />
+
+  const trendColor = smartRecommendation?.trend === 'up'
+    ? 'text-success'
+    : smartRecommendation?.trend === 'down'
+    ? 'text-warning'
+    : 'text-accent'
+
   return (
     <div className="bg-bg-card border border-border rounded-xl overflow-hidden">
       {/* Header */}
@@ -64,9 +93,20 @@ export default function ExerciseCard({
           <h4 className="text-sm font-semibold text-text-primary m-0 truncate font-body">
             {exercise.nameNL}
           </h4>
-          <div className="flex items-center gap-2 mt-1">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1">
             <span className="text-xs text-text-muted">{exercise.category}</span>
-            {recommendedWeight !== null && (
+            {lastSession && lastSession.maxWeight > 0 && (
+              <span className="text-xs text-text-secondary">
+                Vorige: {lastSession.maxWeight}kg × {lastSession.maxReps}
+              </span>
+            )}
+            {smartRecommendation && (
+              <span className={`text-xs flex items-center gap-0.5 ${trendColor}`}>
+                {trendIcon}
+                {smartRecommendation.weight}kg · {smartRecommendation.reps}
+              </span>
+            )}
+            {!smartRecommendation && recommendedWeight !== null && (
               <span className="text-xs text-accent">
                 Aanbevolen: {recommendedWeight}kg
               </span>
@@ -85,6 +125,19 @@ export default function ExerciseCard({
           {expanded ? <ChevronUp size={16} className="text-text-muted" /> : <ChevronDown size={16} className="text-text-muted" />}
         </div>
       </div>
+
+      {/* Smart tip banner */}
+      {smartRecommendation && expanded && (
+        <div className={`mx-4 mb-2 px-3 py-2 rounded-lg text-xs ${
+          smartRecommendation.trend === 'up'
+            ? 'bg-success/10 border border-success/20 text-success'
+            : smartRecommendation.trend === 'down'
+            ? 'bg-warning/10 border border-warning/20 text-warning'
+            : 'bg-accent/10 border border-accent/20 text-accent'
+        }`}>
+          {smartRecommendation.note}
+        </div>
+      )}
 
       {/* Sets */}
       <AnimatePresence>

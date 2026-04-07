@@ -1,15 +1,31 @@
 import { useState } from 'react'
-import { ChevronDown, ChevronUp, Timer, Trash2, Plus } from 'lucide-react'
+import { ChevronDown, ChevronUp, Timer, Trash2, Plus, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import MultiPersonSetLogger from './MultiPersonSetLogger'
 import type { SessionExercise, SetLog } from '../../hooks/useWorkouts'
 import type { Exercise } from '../../data/exercises'
 import type { UserProfile } from '../../store/appStore'
 
+interface LastSession {
+  date: string
+  sets: { weight: number | null; reps: number | null }[]
+  maxWeight: number
+  maxReps: number
+}
+
+interface SmartRecommendation {
+  weight: number
+  reps: string
+  trend: 'up' | 'same' | 'down' | 'new'
+  note: string
+}
+
 interface ParticipantData {
   profile: UserProfile
   sessionExercise: SessionExercise
   recommendedWeight: number | null
+  lastSession: LastSession | null
+  smartRecommendation: SmartRecommendation | null
 }
 
 interface MultiPersonExerciseCardProps {
@@ -61,10 +77,32 @@ export default function MultiPersonExerciseCard({
     onUpdate(profileId, { ...se, sets: [...se.sets, newSet] })
   }
 
-  const renderPersonColumn = (p: ParticipantData) => (
+  const renderPersonColumn = (p: ParticipantData) => {
+    const trendIcon = p.smartRecommendation?.trend === 'up'
+      ? <TrendingUp size={11} className="shrink-0" />
+      : p.smartRecommendation?.trend === 'down'
+      ? <TrendingDown size={11} className="shrink-0" />
+      : <Minus size={11} className="shrink-0" />
+
+    return (
     <div className="space-y-2">
-      {/* Recommended weight */}
-      {p.recommendedWeight !== null && (
+      {/* Last session + smart recommendation */}
+      {p.smartRecommendation ? (
+        <div className="text-xs mb-2 space-y-0.5">
+          {p.lastSession && p.lastSession.maxWeight > 0 && (
+            <div className="text-text-muted">
+              Vorige: {p.lastSession.maxWeight}kg × {p.lastSession.maxReps}
+            </div>
+          )}
+          <div className={`flex items-center gap-1 ${
+            p.smartRecommendation.trend === 'up' ? 'text-success' :
+            p.smartRecommendation.trend === 'down' ? 'text-warning' : 'text-accent'
+          }`} style={{ color: undefined }}>
+            {trendIcon}
+            <span>{p.smartRecommendation.weight}kg · {p.smartRecommendation.reps}</span>
+          </div>
+        </div>
+      ) : p.recommendedWeight !== null && (
         <div className="text-xs mb-2" style={{ color: p.profile.color }}>
           Aanbevolen: {p.recommendedWeight}kg
         </div>
@@ -93,6 +131,7 @@ export default function MultiPersonExerciseCard({
       </button>
     </div>
   )
+  }
 
   return (
     <div className="bg-bg-card border border-border rounded-xl overflow-hidden">

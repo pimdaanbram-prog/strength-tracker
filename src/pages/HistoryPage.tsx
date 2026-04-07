@@ -1,11 +1,13 @@
 import { useState, useMemo } from 'react'
-import { motion } from 'framer-motion'
-import { ChevronLeft, ChevronRight, Clock, Dumbbell, Trash2 } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { ChevronLeft, ChevronRight, Clock, Dumbbell, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
 import Header from '../components/layout/Header'
 import PageWrapper from '../components/layout/PageWrapper'
 import { useWorkouts } from '../hooks/useWorkouts'
 import { useExercises } from '../hooks/useExercises'
 import { getWeekDates, getWeekNumber, getYear, getDayLabel, getMonthLabel, isSameDay, isToday, formatDateShort } from '../utils/weekUtils'
+
+const INITIAL_SHOW = 10
 
 export default function HistoryPage() {
   const { getProfileSessions, deleteSession } = useWorkouts()
@@ -17,8 +19,11 @@ export default function HistoryPage() {
   const weekDates = getWeekDates(weekNumber, year)
 
   const sessions = getProfileSessions()
+  const sortedSessions = useMemo(() => sessions.slice().reverse(), [sessions])
 
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [showAll, setShowAll] = useState(false)
+  const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null)
 
   const sessionsForSelectedDate = useMemo(() => {
     if (!selectedDate) return []
@@ -47,6 +52,102 @@ export default function HistoryPage() {
     const sd = new Date(s.date)
     return weekDates.some(wd => isSameDay(wd, sd))
   })
+
+  const visibleSessions = showAll ? sortedSessions : sortedSessions.slice(0, INITIAL_SHOW)
+
+  const renderSessionDetail = (session: (typeof sessions)[0]) => {
+    const isExpanded = expandedSessionId === session.id
+    return (
+      <motion.div
+        key={session.id}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-bg-card border border-border rounded-xl overflow-hidden"
+      >
+        <div
+          className="flex items-start gap-3 p-4 cursor-pointer hover:bg-white/5 transition-colors"
+          onClick={() => setExpandedSessionId(isExpanded ? null : session.id)}
+        >
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-text-primary m-0">{session.workoutName}</p>
+            <div className="flex items-center gap-2 mt-1">
+              <Clock size={12} className="text-text-muted" />
+              <span className="text-xs text-text-muted">{session.durationMinutes} min</span>
+              <Dumbbell size={12} className="text-text-muted" />
+              <span className="text-xs text-text-muted">{session.exercises.length} oefeningen</span>
+              <span className="text-xs text-text-muted">·</span>
+              <span className="text-xs text-text-muted">{session.dayLabel} {formatDateShort(new Date(session.date))}</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={e => {
+                e.stopPropagation()
+                if (confirm('Training verwijderen?')) deleteSession(session.id)
+              }}
+              className="p-1 text-danger/50 hover:text-danger cursor-pointer bg-transparent border-0"
+            >
+              <Trash2 size={14} />
+            </button>
+            {isExpanded
+              ? <ChevronUp size={14} className="text-text-muted" />
+              : <ChevronDown size={14} className="text-text-muted" />
+            }
+          </div>
+        </div>
+
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
+            >
+              <div className="px-4 pb-4 space-y-2 border-t border-border pt-3">
+                {session.exercises.map(se => {
+                  const exercise = getExercise(se.exerciseId)
+                  const completedSets = se.sets.filter(s => s.completed)
+                  const maxWeight = completedSets.length > 0
+                    ? Math.max(...completedSets.filter(s => s.weight !== null).map(s => s.weight!), 0)
+                    : 0
+                  const maxReps = completedSets.length > 0
+                    ? Math.max(...completedSets.filter(s => s.reps !== null).map(s => s.reps!), 0)
+                    : 0
+                  return (
+                    <div key={se.exerciseId} className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-text-primary font-medium">{exercise?.nameNL || se.exerciseId}</span>
+                        <span className="text-xs text-text-muted">
+                          {completedSets.length} sets
+                          {maxWeight > 0 ? ` · ${maxWeight}kg` : ''}
+                          {maxReps > 0 ? ` × ${maxReps}` : ''}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {completedSets.map((set, i) => (
+                          <span key={i} className="text-xs px-2 py-0.5 bg-bg-input rounded text-text-secondary">
+                            {set.weight !== null ? `${set.weight}kg` : ''}
+                            {set.weight !== null && set.reps !== null ? ' × ' : ''}
+                            {set.reps !== null ? `${set.reps}` : ''}
+                            {set.seconds !== null ? `${set.seconds}s` : ''}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+                {session.notes && (
+                  <p className="text-xs text-text-muted italic mt-2">"{session.notes}"</p>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    )
+  }
 
   return (
     <>
@@ -129,54 +230,7 @@ export default function HistoryPage() {
             </h3>
             {sessionsForSelectedDate.length > 0 ? (
               <div className="space-y-3">
-                {sessionsForSelectedDate.map(session => (
-                  <motion.div
-                    key={session.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-bg-card border border-border rounded-xl p-4"
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <p className="text-sm font-semibold text-text-primary m-0">{session.workoutName}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Clock size={12} className="text-text-muted" />
-                          <span className="text-xs text-text-muted">{session.durationMinutes} min</span>
-                          <Dumbbell size={12} className="text-text-muted" />
-                          <span className="text-xs text-text-muted">{session.exercises.length} oefeningen</span>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => {
-                          if (confirm('Training verwijderen?')) deleteSession(session.id)
-                        }}
-                        className="p-1 text-danger/50 hover:text-danger cursor-pointer bg-transparent border-0"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-
-                    <div className="space-y-1">
-                      {session.exercises.map(se => {
-                        const exercise = getExercise(se.exerciseId)
-                        const completedSets = se.sets.filter(s => s.completed).length
-                        const maxWeight = Math.max(...se.sets.filter(s => s.completed && s.weight).map(s => s.weight!), 0)
-                        return (
-                          <div key={se.exerciseId} className="flex items-center justify-between text-sm py-1">
-                            <span className="text-text-secondary">{exercise?.nameNL || se.exerciseId}</span>
-                            <span className="text-text-muted">
-                              {completedSets} sets {maxWeight > 0 ? `· ${maxWeight}kg` : ''}
-                            </span>
-                          </div>
-                        )
-                      })}
-                    </div>
-
-                    {session.notes && (
-                      <p className="text-xs text-text-muted mt-2 m-0 italic">"{session.notes}"</p>
-                    )}
-                  </motion.div>
-                ))}
+                {sessionsForSelectedDate.map(session => renderSessionDetail(session))}
               </div>
             ) : (
               <p className="text-text-muted text-sm text-center py-4">Geen trainingen op deze dag</p>
@@ -187,24 +241,26 @@ export default function HistoryPage() {
         {/* All sessions list (when no date selected) */}
         {!selectedDate && sessions.length > 0 && (
           <div>
-            <h3 className="text-sm tracking-wider text-text-primary mb-3 m-0">RECENTE TRAININGEN</h3>
-            <div className="space-y-2">
-              {sessions.slice().reverse().slice(0, 10).map(session => (
-                <button
-                  key={session.id}
-                  onClick={() => setSelectedDate(new Date(session.date))}
-                  className="w-full flex items-center gap-3 p-3 bg-bg-card border border-border rounded-xl text-left hover:border-border-light transition-colors cursor-pointer"
-                >
-                  <div className="flex-1">
-                    <p className="text-sm text-text-primary font-medium m-0">{session.workoutName}</p>
-                    <p className="text-xs text-text-muted m-0 mt-0.5">
-                      {session.dayLabel} {formatDateShort(new Date(session.date))} · {session.durationMinutes} min
-                    </p>
-                  </div>
-                  <span className="text-xs text-text-muted">{session.exercises.length} oef.</span>
-                </button>
-              ))}
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm tracking-wider text-text-primary m-0">
+                ALLE TRAININGEN ({sessions.length})
+              </h3>
             </div>
+            <div className="space-y-2">
+              {visibleSessions.map(session => renderSessionDetail(session))}
+            </div>
+
+            {sortedSessions.length > INITIAL_SHOW && (
+              <button
+                onClick={() => setShowAll(!showAll)}
+                className="w-full mt-3 py-3 text-sm text-text-muted hover:text-text-secondary border border-border rounded-xl transition-colors cursor-pointer bg-transparent"
+              >
+                {showAll
+                  ? `Minder tonen`
+                  : `Toon alle ${sortedSessions.length} trainingen`
+                }
+              </button>
+            )}
           </div>
         )}
 

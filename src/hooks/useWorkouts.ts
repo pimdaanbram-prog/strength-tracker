@@ -224,11 +224,117 @@ export function useWorkouts() {
       }
     }
 
-    return Object.entries(prMap).map(([exerciseId, data]) => ({
-      exerciseId,
-      ...data,
-    }))
+    return Object.entries(prMap)
+      .map(([exerciseId, data]) => ({ exerciseId, ...data }))
+      .sort((a, b) => b.date.localeCompare(a.date))
   }, [getProfileSessions])
+
+  const getLastExerciseSets = useCallback((exerciseId: string, profileId?: string): {
+    date: string
+    sets: { weight: number | null; reps: number | null }[]
+    maxWeight: number
+    maxReps: number
+  } | null => {
+    const pid = profileId ?? activeProfileId
+    if (!pid) return null
+
+    const sessions = getSessions()
+      .filter(s => s.profileId === pid && s.exercises.some(e => e.exerciseId === exerciseId))
+      .sort((a, b) => b.date.localeCompare(a.date))
+
+    if (sessions.length === 0) return null
+
+    const lastSession = sessions[0]
+    const exercise = lastSession.exercises.find(e => e.exerciseId === exerciseId)
+    if (!exercise) return null
+
+    const completedSets = exercise.sets.filter(s => s.completed)
+    if (completedSets.length === 0) return null
+
+    const weightsOnly = completedSets.filter(s => s.weight !== null)
+    const repsOnly = completedSets.filter(s => s.reps !== null)
+    const maxWeight = weightsOnly.length > 0 ? Math.max(...weightsOnly.map(s => s.weight!)) : 0
+    const maxReps = repsOnly.length > 0 ? Math.max(...repsOnly.map(s => s.reps!)) : 0
+
+    return {
+      date: lastSession.date,
+      sets: completedSets.map(s => ({ weight: s.weight, reps: s.reps })),
+      maxWeight,
+      maxReps,
+    }
+  }, [activeProfileId, getSessions])
+
+  const getSmartRecommendation = useCallback((exerciseId: string, profileId?: string): {
+    weight: number
+    reps: string
+    trend: 'up' | 'same' | 'down' | 'new'
+    note: string
+  } | null => {
+    const pid = profileId ?? activeProfileId
+    if (!pid) return null
+
+    const sessions = getSessions()
+      .filter(s => s.profileId === pid && s.exercises.some(e => e.exerciseId === exerciseId))
+      .sort((a, b) => a.date.localeCompare(b.date))
+
+    if (sessions.length === 0) return null
+
+    const weightHistory = sessions.map(s => {
+      const ex = s.exercises.find(e => e.exerciseId === exerciseId)!
+      const completed = ex.sets.filter(s => s.completed)
+      const withWeight = completed.filter(s => s.weight !== null)
+      const withReps = completed.filter(s => s.reps !== null)
+      const maxWeight = withWeight.length > 0 ? Math.max(...withWeight.map(s => s.weight!)) : 0
+      const maxReps = withReps.length > 0 ? Math.max(...withReps.map(s => s.reps!)) : 0
+      return { maxWeight, maxReps }
+    })
+
+    const last = weightHistory[weightHistory.length - 1]
+    if (last.maxWeight === 0) return null
+
+    const increment = last.maxWeight >= 20 ? 2.5 : 1.25
+
+    if (weightHistory.length === 1) {
+      return { weight: last.maxWeight, reps: '8-10', trend: 'new', note: 'Eerste sessie — houd dit gewicht aan' }
+    }
+
+    const prev = weightHistory[weightHistory.length - 2]
+
+    if (last.maxReps >= 12 && last.maxWeight > 0) {
+      return {
+        weight: last.maxWeight + increment,
+        reps: '8-10',
+        trend: 'up',
+        note: `Vorige keer ${last.maxReps} reps — probeer ${last.maxWeight + increment}kg`,
+      }
+    }
+
+    if (last.maxWeight > prev.maxWeight) {
+      return {
+        weight: last.maxWeight,
+        reps: '8-12',
+        trend: 'up',
+        note: `Goed bezig! Probeer ${last.maxReps + 1}-${last.maxReps + 2} reps bij ${last.maxWeight}kg`,
+      }
+    }
+
+    if (last.maxWeight === prev.maxWeight) {
+      return {
+        weight: last.maxWeight,
+        reps: '10-12',
+        trend: 'same',
+        note: `Zelfde gewicht — probeer 1-2 extra reps bij ${last.maxWeight}kg`,
+      }
+    }
+
+    const recoveryWeight = Math.round(prev.maxWeight * 0.95 / 2.5) * 2.5 || last.maxWeight
+    return {
+      weight: recoveryWeight,
+      reps: '8-10',
+      trend: 'down',
+      note: `Herstelweek — start bij ${recoveryWeight}kg met goede vorm`,
+    }
+  }, [activeProfileId, getSessions])
 
   const getWeekLogs = useCallback((): WeekLog[] => {
     if (!activeProfileId) return []
@@ -289,6 +395,8 @@ export function useWorkouts() {
     deleteSession,
     getExerciseHistory,
     getPersonalRecords,
+    getLastExerciseSets,
+    getSmartRecommendation,
     getWeekLogs,
     saveWeekFeedback,
     getThisWeekSessionCount,

@@ -26,7 +26,7 @@ type WorkoutMode = 'choose' | 'solo' | 'samen-select' | 'samen'
 export default function WorkoutPage() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { saveSession, saveSessionForProfile } = useWorkouts()
+  const { saveSession, saveSessionForProfile, getLastExerciseSets, getSmartRecommendation } = useWorkouts()
   const { getExercise } = useExercises()
   const { activeProfile } = useProfiles()
   const allProfiles = useAppStore(s => s.profiles)
@@ -61,9 +61,12 @@ export default function WorkoutPage() {
       if (template) {
         setWorkoutName(template.nameNL)
         const sessionExercises: SessionExercise[] = template.exercises.map(te => {
+          const smartRec = getSmartRecommendation(te.exerciseId)
+          const lastData = getLastExerciseSets(te.exerciseId)
+          const prefilledWeight = smartRec?.weight ?? lastData?.maxWeight ?? null
           const sets: SetLog[] = Array.from({ length: te.sets }, (_, i) => ({
             setNumber: i + 1,
-            weight: null,
+            weight: prefilledWeight,
             reps: null,
             seconds: null,
             completed: false,
@@ -85,9 +88,12 @@ export default function WorkoutPage() {
 
   const handleAddExercise = (exercise: Exercise) => {
     if (mode === 'solo') {
+      const smartRec = getSmartRecommendation(exercise.id)
+      const lastData = getLastExerciseSets(exercise.id)
+      const prefilledWeight = smartRec?.weight ?? lastData?.maxWeight ?? null
       const sets: SetLog[] = Array.from({ length: exercise.defaultSets }, (_, i) => ({
         setNumber: i + 1,
-        weight: null,
+        weight: prefilledWeight,
         reps: null,
         seconds: null,
         completed: false,
@@ -100,9 +106,12 @@ export default function WorkoutPage() {
       setSamenExercises(prev => {
         const updated = { ...prev }
         for (const profileId of Object.keys(updated)) {
+          const smartRec = getSmartRecommendation(exercise.id, profileId)
+          const lastData = getLastExerciseSets(exercise.id, profileId)
+          const prefilledWeight = smartRec?.weight ?? lastData?.maxWeight ?? null
           const sets: SetLog[] = Array.from({ length: exercise.defaultSets }, (_, i) => ({
             setNumber: i + 1,
-            weight: null,
+            weight: prefilledWeight,
             reps: null,
             seconds: null,
             completed: false,
@@ -121,6 +130,11 @@ export default function WorkoutPage() {
       setStarted(true)
       timer.start()
     }
+  }
+
+  const handleAddMultipleExercises = (exercises: Exercise[]) => {
+    exercises.forEach(exercise => handleAddExercise(exercise))
+    setShowBuilder(false)
   }
 
   const handleUpdateExercise = (index: number, updated: SessionExercise) => {
@@ -323,6 +337,8 @@ export default function WorkoutPage() {
                 const recommended = activeProfile
                   ? calculateRecommendedWeight(exercise, activeProfile)
                   : null
+                const lastSession = getLastExerciseSets(se.exerciseId)
+                const smartRec = getSmartRecommendation(se.exerciseId)
                 return (
                   <motion.div
                     key={se.exerciseId + i}
@@ -335,6 +351,8 @@ export default function WorkoutPage() {
                       exercise={exercise}
                       sessionExercise={se}
                       recommendedWeight={recommended}
+                      lastSession={lastSession}
+                      smartRecommendation={smartRec}
                       onUpdate={updated => handleUpdateExercise(i, updated)}
                       onRemove={() => handleRemoveExercise(i)}
                       onStartRest={sec => setRestTimer(sec)}
@@ -356,6 +374,8 @@ export default function WorkoutPage() {
                     notes: '',
                   },
                   recommendedWeight: calculateRecommendedWeight(exercise, p),
+                  lastSession: getLastExerciseSets(exerciseId, p.id),
+                  smartRecommendation: getSmartRecommendation(exerciseId, p.id),
                 }))
 
                 return (
@@ -444,6 +464,7 @@ export default function WorkoutPage() {
                 handleAddExercise(exercise)
                 setShowBuilder(false)
               }}
+              onAddMultipleExercises={handleAddMultipleExercises}
               selectedIds={selectedIds}
             />
           )}
