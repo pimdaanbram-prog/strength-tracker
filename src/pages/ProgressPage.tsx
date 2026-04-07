@@ -1,75 +1,116 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { TrendingUp, Activity } from 'lucide-react'
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+import { TrendingUp, Activity, RefreshCw } from 'lucide-react'
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import Header from '../components/layout/Header'
 import PageWrapper from '../components/layout/PageWrapper'
 import { useWorkouts } from '../hooks/useWorkouts'
 import { useExercises } from '../hooks/useExercises'
+import { useSync } from '../hooks/useSync'
+
+const CATEGORY_NL: Record<string, string> = {
+  'Chest': 'Borst',
+  'Back': 'Rug',
+  'Shoulders': 'Schouders',
+  'Arms - Biceps': 'Biceps',
+  'Arms - Triceps': 'Triceps',
+  'Core': 'Core / Buik',
+  'Legs': 'Benen',
+  'Glutes': 'Billen',
+  'Full Body': 'Full Body',
+}
+
+const FRONT_CATS = ['Shoulders', 'Chest', 'Arms - Biceps', 'Core', 'Glutes', 'Legs']
+const BACK_CATS = ['Shoulders', 'Back', 'Arms - Triceps', 'Glutes', 'Legs']
 
 export default function ProgressPage() {
   const { getProfileSessions, getExerciseHistory, getPersonalRecords } = useWorkouts()
   const { exercises, getExercise } = useExercises()
+  const { pullFromCloud } = useSync()
 
   const sessions = getProfileSessions()
   const prs = getPersonalRecords()
 
   const [selectedExercise, setSelectedExercise] = useState<string>('')
+  const [bodyView, setBodyView] = useState<'front' | 'back'>('front')
+  const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null)
+  const [syncing, setSyncing] = useState(false)
 
-  // Volume per week
-  const weeklyVolume = useMemo(() => {
-    const volumeMap: Record<string, number> = {}
-    for (const session of sessions) {
-      const key = `${session.year}-W${session.weekNumber.toString().padStart(2, '0')}`
-      let vol = 0
-      for (const ex of session.exercises) {
-        for (const set of ex.sets) {
-          if (set.completed && set.weight && set.reps) {
-            vol += set.weight * set.reps
-          }
-        }
-      }
-      volumeMap[key] = (volumeMap[key] || 0) + vol
+  // Sessions per week
+  const weeklyFrequency = useMemo(() => {
+    const map: Record<string, number> = {}
+    for (const s of sessions) {
+      const key = `${s.year}-W${s.weekNumber.toString().padStart(2, '0')}`
+      map[key] = (map[key] || 0) + 1
     }
-    return Object.entries(volumeMap)
+    return Object.entries(map)
       .sort(([a], [b]) => a.localeCompare(b))
       .slice(-12)
-      .map(([key, volume]) => {
-        const [, week] = key.split('-')
-        return { week, volume: Math.round(volume) }
-      })
+      .map(([key, count]) => ({ week: key.split('-')[1], count }))
   }, [sessions])
 
-  // Body part frequency
-  const bodyPartFrequency = useMemo(() => {
+  // Category frequency
+  const categoryFreq = useMemo(() => {
     const freq: Record<string, number> = {}
     for (const session of sessions) {
       for (const ex of session.exercises) {
         const exercise = getExercise(ex.exerciseId)
-        if (exercise) {
+        if (exercise?.category) {
           freq[exercise.category] = (freq[exercise.category] || 0) + 1
         }
       }
     }
-    return Object.entries(freq)
-      .map(([category, count]) => ({ category, count }))
-      .sort((a, b) => b.count - a.count)
+    return freq
   }, [sessions, getExercise])
 
-  const categoryColors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#F97316', '#14B8A6', '#6366F1']
-
-  // Exercise-specific history
+  // Exercise history for selected exercise
   const exerciseHistory = useMemo(() => {
     if (!selectedExercise) return []
     return getExerciseHistory(selectedExercise)
   }, [selectedExercise, getExerciseHistory])
 
-  // Find exercises that have been used
+  // Used exercises (for dropdown)
   const usedExercises = useMemo(() => {
     const ids = new Set<string>()
     sessions.forEach(s => s.exercises.forEach(e => ids.add(e.exerciseId)))
     return exercises.filter(e => ids.has(e.id))
   }, [sessions, exercises])
+
+  // Sessions for selected muscle group (last 5)
+  const muscleGroupSessions = useMemo(() => {
+    if (!selectedMuscle) return []
+    return sessions
+      .filter(s => s.exercises.some(e => getExercise(e.exerciseId)?.category === selectedMuscle))
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, 5)
+  }, [selectedMuscle, sessions, getExercise])
+
+  const handleSync = async () => {
+    setSyncing(true)
+    await pullFromCloud()
+    setSyncing(false)
+  }
+
+  // Body diagram helpers
+  function bodyFill(cat: string): string {
+    const count = categoryFreq[cat] || 0
+    if (selectedMuscle === cat) return 'rgba(59,130,246,0.92)'
+    if (count === 0) return '#252535'
+    const intensity = Math.min(count / 8, 1)
+    return `rgba(59,130,246,${0.22 + intensity * 0.6})`
+  }
+  function bodyStroke(cat: string): string {
+    return selectedMuscle === cat ? '#60a5fa' : '#3d3d58'
+  }
+  function gp(cat: string) {
+    return {
+      fill: bodyFill(cat),
+      stroke: bodyStroke(cat),
+      strokeWidth: 1.5 as number,
+      style: { cursor: 'pointer' as const, transition: 'fill 0.25s' },
+      onClick: () => setSelectedMuscle(selectedMuscle === cat ? null : cat),
+    }
+  }
 
   return (
     <>
@@ -79,14 +120,22 @@ export default function ProgressPage() {
           <div className="text-center py-16">
             <span className="text-5xl mb-4 block">📊</span>
             <h3 className="text-xl tracking-wider mb-2">GEEN DATA</h3>
-            <p className="text-text-secondary text-sm">
+            <p className="text-text-secondary text-sm mb-4">
               Start met trainen om je voortgang bij te houden
             </p>
+            <button
+              onClick={handleSync}
+              disabled={syncing}
+              className="flex items-center gap-2 mx-auto px-4 py-2 bg-accent text-white rounded-xl text-sm cursor-pointer border-0"
+            >
+              <RefreshCw size={14} className={syncing ? 'animate-spin' : ''} />
+              {syncing ? 'Syncing...' : 'Sync met cloud'}
+            </button>
           </div>
         ) : (
           <>
-            {/* Stats overview */}
-            <div className="grid grid-cols-2 gap-3 mb-6">
+            {/* Stats */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
               <div className="bg-bg-card border border-border rounded-xl p-4">
                 <Activity size={16} className="text-accent mb-2" />
                 <p className="text-2xl font-heading tracking-wider text-text-primary m-0">{sessions.length}</p>
@@ -99,23 +148,33 @@ export default function ProgressPage() {
               </div>
             </div>
 
-            {/* Weekly Volume Chart */}
-            {weeklyVolume.length > 0 && (
+            {/* Sync button */}
+            <button
+              onClick={handleSync}
+              disabled={syncing}
+              className="flex items-center gap-1.5 text-xs text-text-muted mb-6 cursor-pointer bg-transparent border-0 p-0 hover:text-text-secondary transition-colors"
+            >
+              <RefreshCw size={11} className={syncing ? 'animate-spin' : ''} />
+              {syncing ? 'Syncing...' : 'Sync met cloud'}
+            </button>
+
+            {/* Trainingen per week */}
+            {weeklyFrequency.length > 0 && (
               <div className="mb-6">
-                <h3 className="text-lg tracking-wider mb-3 m-0">WEKELIJKS VOLUME</h3>
+                <h3 className="text-lg tracking-wider mb-3 m-0">TRAININGEN PER WEEK</h3>
                 <div className="bg-bg-card border border-border rounded-xl p-4">
-                  <div className="h-48">
+                  <div className="h-44">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={weeklyVolume}>
+                      <BarChart data={weeklyFrequency}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#2A2A2A" />
                         <XAxis dataKey="week" tick={{ fill: '#6B7280', fontSize: 10 }} />
-                        <YAxis tick={{ fill: '#6B7280', fontSize: 10 }} width={50} />
+                        <YAxis tick={{ fill: '#6B7280', fontSize: 10 }} width={24} allowDecimals={false} />
                         <Tooltip
                           contentStyle={{ background: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: 8 }}
                           labelStyle={{ color: '#9CA3AF' }}
-                          formatter={(value) => [`${value} kg`, 'Volume']}
+                          formatter={(value) => [`${value}×`, 'Trainingen']}
                         />
-                        <Bar dataKey="volume" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="count" fill="#3B82F6" radius={[4, 4, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -123,34 +182,179 @@ export default function ProgressPage() {
               </div>
             )}
 
-            {/* Body Part Frequency */}
-            {bodyPartFrequency.length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-lg tracking-wider mb-3 m-0">SPIERGROEP FREQUENTIE</h3>
-                <div className="bg-bg-card border border-border rounded-xl p-4">
-                  <div className="h-48">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={bodyPartFrequency} layout="vertical">
-                        <CartesianGrid strokeDasharray="3 3" stroke="#2A2A2A" />
-                        <XAxis type="number" tick={{ fill: '#6B7280', fontSize: 10 }} />
-                        <YAxis dataKey="category" type="category" tick={{ fill: '#6B7280', fontSize: 10 }} width={80} />
-                        <Tooltip
-                          contentStyle={{ background: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: 8 }}
-                          labelStyle={{ color: '#9CA3AF' }}
-                        />
-                        <Bar dataKey="count" radius={[0, 4, 4, 0]}>
-                          {bodyPartFrequency.map((_, i) => (
-                            <Cell key={i} fill={categoryColors[i % categoryColors.length]} />
-                          ))}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
+            {/* Body Diagram */}
+            <div className="mb-6">
+              <h3 className="text-lg tracking-wider mb-3 m-0">SPIERGROEPEN</h3>
+              <div className="bg-bg-card border border-border rounded-xl p-4">
+                {/* Toggle front/back */}
+                <div className="flex gap-2 mb-4">
+                  <button
+                    onClick={() => setBodyView('front')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer border-0 ${bodyView === 'front' ? 'bg-accent text-white' : 'bg-bg-input text-text-muted'}`}
+                  >
+                    Voorkant
+                  </button>
+                  <button
+                    onClick={() => setBodyView('back')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer border-0 ${bodyView === 'back' ? 'bg-accent text-white' : 'bg-bg-input text-text-muted'}`}
+                  >
+                    Achterkant
+                  </button>
+                </div>
+
+                <div className="flex gap-4 items-start">
+                  {/* Human body SVG */}
+                  <div className="shrink-0">
+                    <svg width="100" height="220" viewBox="0 0 100 220" xmlns="http://www.w3.org/2000/svg">
+                      {/* Head */}
+                      <circle cx="50" cy="15" r="12" fill="#2d2d45" stroke="#3d3d58" strokeWidth="1" />
+                      {/* Neck */}
+                      <rect x="44" y="26" width="12" height="7" rx="3" fill="#2d2d45" stroke="#3d3d58" strokeWidth="1" />
+
+                      {bodyView === 'front' ? (
+                        <>
+                          {/* Shoulders */}
+                          <g {...gp('Shoulders')}>
+                            <ellipse cx="26" cy="40" rx="12" ry="8" />
+                            <ellipse cx="74" cy="40" rx="12" ry="8" />
+                          </g>
+                          {/* Chest */}
+                          <g {...gp('Chest')}>
+                            <rect x="35" y="32" width="14" height="24" rx="3" />
+                            <rect x="51" y="32" width="14" height="24" rx="3" />
+                          </g>
+                          {/* Biceps + forearms */}
+                          <g {...gp('Arms - Biceps')}>
+                            <rect x="15" y="32" width="12" height="32" rx="5" />
+                            <rect x="73" y="32" width="12" height="32" rx="5" />
+                            <rect x="16" y="66" width="10" height="24" rx="4" />
+                            <rect x="74" y="66" width="10" height="24" rx="4" />
+                          </g>
+                          {/* Core */}
+                          <g {...gp('Core')}>
+                            <rect x="37" y="56" width="11" height="10" rx="2" />
+                            <rect x="52" y="56" width="11" height="10" rx="2" />
+                            <rect x="37" y="68" width="11" height="10" rx="2" />
+                            <rect x="52" y="68" width="11" height="10" rx="2" />
+                          </g>
+                          {/* Glutes/hip front */}
+                          <g {...gp('Glutes')}>
+                            <rect x="35" y="80" width="30" height="15" rx="5" />
+                          </g>
+                          {/* Quads + calves */}
+                          <g {...gp('Legs')}>
+                            <rect x="35" y="95" width="13" height="46" rx="5" />
+                            <rect x="52" y="95" width="13" height="46" rx="5" />
+                            <rect x="36" y="143" width="11" height="32" rx="4" />
+                            <rect x="53" y="143" width="11" height="32" rx="4" />
+                          </g>
+                        </>
+                      ) : (
+                        <>
+                          {/* Shoulders back */}
+                          <g {...gp('Shoulders')}>
+                            <ellipse cx="26" cy="40" rx="12" ry="8" />
+                            <ellipse cx="74" cy="40" rx="12" ry="8" />
+                          </g>
+                          {/* Back / lats */}
+                          <g {...gp('Back')}>
+                            <rect x="35" y="32" width="30" height="18" rx="3" />
+                            <rect x="20" y="40" width="15" height="26" rx="4" />
+                            <rect x="65" y="40" width="15" height="26" rx="4" />
+                            <rect x="38" y="58" width="24" height="16" rx="3" />
+                          </g>
+                          {/* Triceps + forearms */}
+                          <g {...gp('Arms - Triceps')}>
+                            <rect x="15" y="32" width="12" height="32" rx="5" />
+                            <rect x="73" y="32" width="12" height="32" rx="5" />
+                            <rect x="16" y="66" width="10" height="24" rx="4" />
+                            <rect x="74" y="66" width="10" height="24" rx="4" />
+                          </g>
+                          {/* Glutes back */}
+                          <g {...gp('Glutes')}>
+                            <rect x="35" y="76" width="13" height="20" rx="5" />
+                            <rect x="52" y="76" width="13" height="20" rx="5" />
+                          </g>
+                          {/* Hamstrings + calves */}
+                          <g {...gp('Legs')}>
+                            <rect x="35" y="96" width="13" height="46" rx="5" />
+                            <rect x="52" y="96" width="13" height="46" rx="5" />
+                            <rect x="36" y="144" width="11" height="32" rx="4" />
+                            <rect x="53" y="144" width="11" height="32" rx="4" />
+                          </g>
+                        </>
+                      )}
+                    </svg>
+                  </div>
+
+                  {/* Legend */}
+                  <div className="flex-1 flex flex-col gap-1.5 pt-1">
+                    {(bodyView === 'front' ? FRONT_CATS : BACK_CATS).map(cat => {
+                      const count = categoryFreq[cat] || 0
+                      const isSelected = selectedMuscle === cat
+                      return (
+                        <button
+                          key={cat}
+                          onClick={() => setSelectedMuscle(isSelected ? null : cat)}
+                          className={`flex items-center gap-2 text-xs text-left rounded-lg px-1.5 py-1 cursor-pointer bg-transparent border-0 transition-colors ${isSelected ? 'bg-accent/10' : ''}`}
+                        >
+                          <span
+                            className="w-2.5 h-2.5 rounded-sm shrink-0"
+                            style={{ background: count === 0 ? '#252535' : `rgba(59,130,246,${0.22 + Math.min(count / 8, 1) * 0.6})`, border: '1px solid #3d3d58' }}
+                          />
+                          <span className={`flex-1 ${isSelected ? 'text-accent font-semibold' : 'text-text-secondary'}`}>
+                            {CATEGORY_NL[cat] || cat}
+                          </span>
+                          <span className="text-text-muted">{count}×</span>
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
-              </div>
-            )}
 
-            {/* Exercise Progress */}
+                {/* Selected muscle group detail */}
+                {selectedMuscle && (
+                  <motion.div
+                    key={selectedMuscle}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-4 pt-4 border-t border-border"
+                  >
+                    <p className="text-xs font-semibold text-accent mb-2 m-0">
+                      {CATEGORY_NL[selectedMuscle] || selectedMuscle} — {categoryFreq[selectedMuscle] || 0}× getraind
+                    </p>
+                    {muscleGroupSessions.length > 0 ? (
+                      <div className="space-y-2">
+                        {muscleGroupSessions.map(s => {
+                          const relevant = s.exercises.filter(e => getExercise(e.exerciseId)?.category === selectedMuscle)
+                          return (
+                            <div key={s.id} className="flex items-start gap-3">
+                              <span className="text-xs text-text-muted shrink-0 w-14">{s.date.slice(5).replace('-', '/')}</span>
+                              <div className="flex-1">
+                                {relevant.map(e => {
+                                  const ex = getExercise(e.exerciseId)
+                                  const done = e.sets.filter(set => set.completed)
+                                  const maxW = done.filter(s => s.weight).reduce((m, s) => Math.max(m, s.weight!), 0)
+                                  return (
+                                    <p key={e.exerciseId} className="text-xs text-text-secondary m-0">
+                                      {ex?.nameNL} · {done.length} sets{maxW > 0 ? ` · ${maxW}kg` : ''}
+                                    </p>
+                                  )
+                                })}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-text-muted m-0">Nog niet getraind</p>
+                    )}
+                  </motion.div>
+                )}
+              </div>
+            </div>
+
+            {/* Oefening Progressie */}
             {usedExercises.length > 0 && (
               <div className="mb-6">
                 <h3 className="text-lg tracking-wider mb-3 m-0">OEFENING PROGRESSIE</h3>
@@ -165,26 +369,44 @@ export default function ProgressPage() {
                   ))}
                 </select>
 
-                {selectedExercise && exerciseHistory.length > 0 && (
+                {selectedExercise && exerciseHistory.length > 1 && (
                   <div className="bg-bg-card border border-border rounded-xl p-4">
-                    <div className="h-48">
+                    <div className="h-44">
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={exerciseHistory}>
                           <CartesianGrid strokeDasharray="3 3" stroke="#2A2A2A" />
                           <XAxis
                             dataKey="date"
                             tick={{ fill: '#6B7280', fontSize: 10 }}
-                            tickFormatter={v => v.slice(5)}
+                            tickFormatter={v => v.slice(5).replace('-', '/')}
                           />
-                          <YAxis tick={{ fill: '#6B7280', fontSize: 10 }} width={40} />
+                          <YAxis tick={{ fill: '#6B7280', fontSize: 10 }} width={40} unit="kg" />
                           <Tooltip
                             contentStyle={{ background: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: 8 }}
                             labelStyle={{ color: '#9CA3AF' }}
+                            formatter={(value) => [`${value}kg`, 'Max gewicht']}
                           />
-                          <Line type="monotone" dataKey="maxWeight" stroke="#3B82F6" strokeWidth={2} dot={{ r: 3 }} name="Max kg" />
+                          <Line
+                            type="monotone"
+                            dataKey="maxWeight"
+                            stroke="#3B82F6"
+                            strokeWidth={2}
+                            dot={{ r: 4, fill: '#3B82F6' }}
+                            activeDot={{ r: 6 }}
+                            name="Max kg"
+                          />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
+                  </div>
+                )}
+
+                {selectedExercise && exerciseHistory.length === 1 && (
+                  <div className="bg-bg-card border border-border rounded-xl p-4 text-center">
+                    <p className="text-xs text-text-muted m-0">
+                      Eerste sessie: {exerciseHistory[0].maxWeight}kg × {exerciseHistory[0].maxReps} reps
+                    </p>
+                    <p className="text-xs text-text-muted mt-1 m-0">Train nog een keer voor een progressiegrafiek</p>
                   </div>
                 )}
 

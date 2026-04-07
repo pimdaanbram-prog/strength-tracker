@@ -1,7 +1,13 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Play, TrendingUp, Flame, Trophy, ChevronRight, Zap, Users, Plus, BookMarked } from 'lucide-react'
+import { Play, TrendingUp, Flame, Trophy, ChevronRight, Zap, Users, Plus, BookMarked, Clock } from 'lucide-react'
+
+const MONTHS_SHORT = ['Jan','Feb','Mrt','Apr','Mei','Jun','Jul','Aug','Sep','Okt','Nov','Dec']
+function formatShortDate(dateStr: string) {
+  const d = new Date(dateStr)
+  return `${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}`
+}
 import { useProfiles } from '../hooks/useProfiles'
 import { useWorkouts } from '../hooks/useWorkouts'
 import { useExercises } from '../hooks/useExercises'
@@ -107,6 +113,41 @@ export default function Dashboard() {
             <p className="text-xs text-text-muted">PR's</p>
           </motion.div>
         </div>
+
+        {/* Recente Trainingen */}
+        {sessions.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg tracking-wider m-0">RECENTE TRAININGEN</h3>
+              <button
+                onClick={() => navigate('/history')}
+                className="text-xs text-accent cursor-pointer bg-transparent border-0"
+              >
+                Alle {sessions.length} zien
+              </button>
+            </div>
+            <div className="space-y-2">
+              {sessions.slice().sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3).map(session => (
+                <button
+                  key={session.id}
+                  onClick={() => navigate('/history')}
+                  className="w-full flex items-center gap-3 p-3 bg-bg-card border border-border rounded-xl text-left cursor-pointer hover:border-border-light transition-colors"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-accent/15 flex items-center justify-center shrink-0">
+                    <Clock size={14} className="text-accent" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-text-primary font-medium m-0 truncate">{session.workoutName}</p>
+                    <p className="text-xs text-text-muted m-0 mt-0.5">
+                      {formatShortDate(session.date)} · {session.exercises.length} oefeningen · {session.durationMinutes} min
+                    </p>
+                  </div>
+                  <ChevronRight size={14} className="text-text-muted shrink-0" />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Quick Start */}
         {todaySessions.length === 0 && suggestedTemplate && (

@@ -221,9 +221,14 @@ export function useSync() {
     }
   }, [getAccountId])
 
-  // Initial sync on mount
+  // Initial sync on mount + re-sync when app becomes visible (e.g. switching from laptop to phone)
   useEffect(() => {
     pullFromCloud()
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') pullFromCloud()
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
   }, [pullFromCloud])
 
   // Realtime subscriptions
