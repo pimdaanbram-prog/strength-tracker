@@ -196,7 +196,7 @@ export function useWorkouts() {
       let totalVolume = 0
 
       for (const set of exercise.sets) {
-        if (!set.completed) continue
+        if (!set.completed && !(set.weight !== null && set.weight > 0) && !(set.reps !== null && set.reps > 0)) continue
         if (set.weight !== null && set.weight > maxWeight) maxWeight = set.weight
         if (set.reps !== null && set.reps > maxReps) maxReps = set.reps
         if (set.weight !== null && set.reps !== null) {
@@ -219,7 +219,8 @@ export function useWorkouts() {
     for (const session of sessions) {
       for (const exercise of session.exercises) {
         for (const set of exercise.sets) {
-          if (!set.completed || set.weight === null) continue
+          if (set.weight === null || set.weight === 0) continue
+          if (!set.completed && !(set.reps !== null && set.reps > 0)) continue
           const current = prMap[exercise.exerciseId]
           if (!current || set.weight > current.weight) {
             prMap[exercise.exerciseId] = {
@@ -256,17 +257,17 @@ export function useWorkouts() {
     const exercise = lastSession.exercises.find(e => e.exerciseId === exerciseId)
     if (!exercise) return null
 
-    const completedSets = exercise.sets.filter(s => s.completed)
-    if (completedSets.length === 0) return null
+    const doneSets = exercise.sets.filter(s => s.completed || (s.weight !== null && s.weight > 0) || (s.reps !== null && s.reps > 0))
+    if (doneSets.length === 0) return null
 
-    const weightsOnly = completedSets.filter(s => s.weight !== null)
-    const repsOnly = completedSets.filter(s => s.reps !== null)
+    const weightsOnly = doneSets.filter(s => s.weight !== null)
+    const repsOnly = doneSets.filter(s => s.reps !== null)
     const maxWeight = weightsOnly.length > 0 ? Math.max(...weightsOnly.map(s => s.weight!)) : 0
     const maxReps = repsOnly.length > 0 ? Math.max(...repsOnly.map(s => s.reps!)) : 0
 
     return {
       date: lastSession.date,
-      sets: completedSets.map(s => ({ weight: s.weight, reps: s.reps })),
+      sets: doneSets.map(s => ({ weight: s.weight, reps: s.reps })),
       maxWeight,
       maxReps,
     }
@@ -289,9 +290,9 @@ export function useWorkouts() {
 
     const weightHistory = sessions.map(s => {
       const ex = s.exercises.find(e => e.exerciseId === exerciseId)!
-      const completed = ex.sets.filter(s => s.completed)
-      const withWeight = completed.filter(s => s.weight !== null)
-      const withReps = completed.filter(s => s.reps !== null)
+      const done = ex.sets.filter(s => s.completed || (s.weight !== null && s.weight > 0) || (s.reps !== null && s.reps > 0))
+      const withWeight = done.filter(s => s.weight !== null)
+      const withReps = done.filter(s => s.reps !== null)
       const maxWeight = withWeight.length > 0 ? Math.max(...withWeight.map(s => s.weight!)) : 0
       const maxReps = withReps.length > 0 ? Math.max(...withReps.map(s => s.reps!)) : 0
       return { maxWeight, maxReps }

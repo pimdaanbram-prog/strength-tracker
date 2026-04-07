@@ -165,9 +165,9 @@ export default function HistoryPage() {
                         <div className="space-y-1 mb-2">
                           {session.exercises.map(se => {
                             const exercise = getExercise(se.exerciseId)
-                            const completedSets = se.sets.filter(s => s.completed)
-                            const weightsArr = completedSets.filter(s => s.weight !== null && s.weight > 0).map(s => s.weight!)
-                            const repsArr = completedSets.filter(s => s.reps !== null).map(s => s.reps!)
+                            const doneSets = se.sets.filter(s => s.completed || (s.weight !== null && s.weight > 0) || (s.reps !== null && s.reps > 0) || (s.seconds !== null && s.seconds > 0))
+                            const weightsArr = doneSets.filter(s => s.weight !== null && s.weight > 0).map(s => s.weight!)
+                            const repsArr = doneSets.filter(s => s.reps !== null && s.reps > 0).map(s => s.reps!)
                             const maxWeight = weightsArr.length > 0 ? Math.max(...weightsArr) : 0
                             const maxReps = repsArr.length > 0 ? Math.max(...repsArr) : 0
 
@@ -177,8 +177,8 @@ export default function HistoryPage() {
                                   {exercise?.nameNL || se.exerciseId}
                                 </span>
                                 <span className="text-xs text-text-muted shrink-0">
-                                  {completedSets.length > 0
-                                    ? `${completedSets.length}×${maxWeight > 0 ? ` ${maxWeight}kg` : ''}${maxReps > 0 ? ` · ${maxReps} reps` : ''}`
+                                  {doneSets.length > 0
+                                    ? `${doneSets.length}×${maxWeight > 0 ? ` ${maxWeight}kg` : ''}${maxReps > 0 ? ` · ${maxReps} reps` : ''}`
                                     : '—'
                                   }
                                 </span>
@@ -212,15 +212,15 @@ export default function HistoryPage() {
                               <div className="pt-3 space-y-3">
                                 {session.exercises.map(se => {
                                   const exercise = getExercise(se.exerciseId)
-                                  const completedSets = se.sets.filter(s => s.completed)
-                                  if (completedSets.length === 0) return null
+                                  const doneSets = se.sets.filter(s => s.completed || (s.weight !== null && s.weight > 0) || (s.reps !== null && s.reps > 0) || (s.seconds !== null && s.seconds > 0))
+                                  if (doneSets.length === 0) return null
                                   return (
                                     <div key={se.exerciseId}>
                                       <p className="text-xs font-semibold text-text-primary mb-1.5">
                                         {exercise?.nameNL || se.exerciseId}
                                       </p>
                                       <div className="flex flex-wrap gap-1">
-                                        {completedSets.map((set, i) => (
+                                        {doneSets.map((set, i) => (
                                           <span key={i} className="text-xs px-2 py-1 bg-bg-input rounded-lg text-text-secondary">
                                             {set.weight !== null && set.weight > 0 ? `${set.weight}kg` : ''}
                                             {set.weight !== null && set.weight > 0 && set.reps !== null ? ' × ' : ''}
