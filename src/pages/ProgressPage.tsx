@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { TrendingUp, Activity, RefreshCw } from 'lucide-react'
+import { TrendingUp, Activity, RefreshCw, AlertCircle } from 'lucide-react'
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import Header from '../components/layout/Header'
 import PageWrapper from '../components/layout/PageWrapper'
@@ -27,7 +27,7 @@ const BACK_CATS = ['Shoulders', 'Back', 'Arms - Triceps', 'Glutes', 'Legs']
 export default function ProgressPage() {
   const { getProfileSessions, getExerciseHistory, getPersonalRecords } = useWorkouts()
   const { exercises, getExercise } = useExercises()
-  const { pullFromCloud } = useSync()
+  const { pullFromCloud, diagnoseSyncIssue, syncError, isSyncing, lastSyncAt } = useSync()
   const { exName } = useLanguage()
 
   const sessions = getProfileSessions()
@@ -36,7 +36,8 @@ export default function ProgressPage() {
   const [selectedExercise, setSelectedExercise] = useState<string>('')
   const [bodyView, setBodyView] = useState<'front' | 'back'>('front')
   const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null)
-  const [syncing, setSyncing] = useState(false)
+  const [diagnosisResult, setDiagnosisResult] = useState<string | null>(null)
+  const [diagnosing, setDiagnosing] = useState(false)
 
   // Sessions per week
   const weeklyFrequency = useMemo(() => {
@@ -87,10 +88,12 @@ export default function ProgressPage() {
       .slice(0, 5)
   }, [selectedMuscle, sessions, getExercise])
 
-  const handleSync = async () => {
-    setSyncing(true)
-    await pullFromCloud()
-    setSyncing(false)
+  const handleDiagnose = async () => {
+    setDiagnosing(true)
+    setDiagnosisResult(null)
+    const result = await diagnoseSyncIssue()
+    setDiagnosisResult(result)
+    setDiagnosing(false)
   }
 
   // Body diagram helpers
@@ -126,13 +129,19 @@ export default function ProgressPage() {
               Start met trainen om je voortgang bij te houden
             </p>
             <button
-              onClick={handleSync}
-              disabled={syncing}
+              onClick={pullFromCloud}
+              disabled={isSyncing}
               className="flex items-center gap-2 mx-auto px-4 py-2 bg-accent text-white rounded-xl text-sm cursor-pointer border-0"
             >
-              <RefreshCw size={14} className={syncing ? 'animate-spin' : ''} />
-              {syncing ? 'Syncing...' : 'Sync met cloud'}
+              <RefreshCw size={14} className={isSyncing ? 'animate-spin' : ''} />
+              {isSyncing ? 'Syncing...' : 'Sync met cloud'}
             </button>
+            {syncError && (
+              <div className="mt-3 flex items-start gap-2 text-xs text-red-400 bg-red-500/10 rounded-lg p-3 mx-auto max-w-xs">
+                <AlertCircle size={14} className="mt-0.5 shrink-0" />
+                <span>{syncError}</span>
+              </div>
+            )}
           </div>
         ) : (
           <>
@@ -150,15 +159,37 @@ export default function ProgressPage() {
               </div>
             </div>
 
-            {/* Sync button */}
-            <button
-              onClick={handleSync}
-              disabled={syncing}
-              className="flex items-center gap-1.5 text-xs text-text-muted mb-6 cursor-pointer bg-transparent border-0 p-0 hover:text-text-secondary transition-colors"
-            >
-              <RefreshCw size={11} className={syncing ? 'animate-spin' : ''} />
-              {syncing ? 'Syncing...' : 'Sync met cloud'}
-            </button>
+            {/* Sync button + error + diagnose */}
+            <div className="mb-6">
+              <div className="flex items-center gap-3 flex-wrap">
+                <button
+                  onClick={pullFromCloud}
+                  disabled={isSyncing}
+                  className="flex items-center gap-1.5 text-xs text-text-muted cursor-pointer bg-transparent border-0 p-0 hover:text-text-secondary transition-colors"
+                >
+                  <RefreshCw size={11} className={isSyncing ? 'animate-spin' : ''} />
+                  {isSyncing ? 'Syncing...' : lastSyncAt ? `Gesynchroniseerd ${lastSyncAt.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}` : 'Sync met cloud'}
+                </button>
+                {syncError && (
+                  <button
+                    onClick={handleDiagnose}
+                    disabled={diagnosing}
+                    className="flex items-center gap-1 text-xs text-red-400 cursor-pointer bg-transparent border-0 p-0 hover:text-red-300 transition-colors"
+                  >
+                    <AlertCircle size={11} />
+                    {diagnosing ? 'Diagnoseren...' : 'Sync fout — diagnose'}
+                  </button>
+                )}
+              </div>
+              {syncError && !diagnosisResult && (
+                <p className="text-xs text-red-400 mt-1">{syncError}</p>
+              )}
+              {diagnosisResult && (
+                <div className={`mt-2 text-xs rounded-lg p-3 ${diagnosisResult.startsWith('OK') ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
+                  {diagnosisResult}
+                </div>
+              )}
+            </div>
 
             {/* Trainingen per week */}
             {weeklyFrequency.length > 0 && (

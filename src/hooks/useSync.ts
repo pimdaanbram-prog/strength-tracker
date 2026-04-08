@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from 'react'
+import { useEffect, useCallback, useRef, useState } from 'react'
 import { supabase } from '../utils/supabase'
 import { useAppStore } from '../store/appStore'
 import type { UserProfile } from '../store/appStore'
@@ -76,20 +76,99 @@ function dbToSession(d: Record<string, unknown>): WorkoutSession {
 
 export function useSync() {
   const syncing = useRef(false)
+  const [syncError, setSyncError] = useState<string | null>(null)
+  const [isSyncing, setIsSyncing] = useState(false)
+  const [lastSyncAt, setLastSyncAt] = useState<Date | null>(null)
 
   const getAccountId = useCallback(async (): Promise<string | null> => {
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user }, error } = await supabase.auth.getUser()
+    if (error) {
+      console.error('Auth error:', error)
+      return null
+    }
     return user?.id ?? null
+  }, [])
+
+  // Run a diagnostic to identify the sync problem
+  const diagnoseSyncIssue = useCallback(async (): Promise<string> => {
+    // 1. Check env vars
+    const url = import.meta.env.VITE_SUPABASE_URL
+    const key = import.meta.env.VITE_SUPABASE_ANON_KEY
+    if (!url || !key) {
+      return `Supabase env vars ontbreken (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY). Voeg ze toe in Netlify → Site settings → Environment variables.`
+    }
+
+    // 2. Check auth
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return `Niet ingelogd of auth mislukt: ${authError?.message || 'geen gebruiker'}`
+    }
+
+    // 3. Test read from workout_sessions
+    const { data, error: readError } = await supabase
+      .from('workout_sessions')
+      .select('id')
+      .eq('account_id', user.id)
+      .limit(1)
+
+    if (readError) {
+      if (readError.message.includes('relation') || readError.message.includes('does not exist')) {
+        return `Tabel 'workout_sessions' bestaat niet in Supabase. Maak de tabellen aan via het SQL script.`
+      }
+      if (readError.code === 'PGRST301' || readError.message.includes('JWT')) {
+        return `Authenticatie mislukt bij lezen. Controleer de anon key in Supabase dashboard.`
+      }
+      if (readError.code === '42501' || readError.message.includes('policy')) {
+        return `RLS policy blokkeert lezen. Voeg een SELECT policy toe in Supabase → Authentication → Policies voor tabel 'workout_sessions'.`
+      }
+      return `Leesfout: ${readError.message} (code: ${readError.code})`
+    }
+
+    // 4. Test write to workout_sessions
+    const testId = `__sync_test_${user.id}`
+    const { error: writeError } = await supabase
+      .from('workout_sessions')
+      .upsert({
+        id: testId,
+        account_id: user.id,
+        profile_id: 'test',
+        date: new Date().toISOString().split('T')[0],
+        week_number: 1,
+        year: 2024,
+        day_label: 'test',
+        workout_name: '__sync_test__',
+        exercises: [],
+        duration_minutes: 0,
+        notes: '',
+        completed_at: new Date().toISOString(),
+      })
+
+    if (writeError) {
+      if (writeError.code === '42501' || writeError.message.includes('policy')) {
+        return `RLS policy blokkeert schrijven. Voeg een INSERT/UPDATE policy toe in Supabase → Authentication → Policies voor 'workout_sessions'.`
+      }
+      return `Schrijffout: ${writeError.message} (code: ${writeError.code})`
+    }
+
+    // Clean up test row
+    await supabase.from('workout_sessions').delete().eq('id', testId)
+
+    return `OK — Supabase verbinding werkt correct. ${data?.length ?? 0} sessies gevonden in cloud. Controleer of je op beide apparaten met hetzelfde account bent ingelogd.`
   }, [])
 
   // Pull all data from Supabase into localStorage + Zustand
   const pullFromCloud = useCallback(async () => {
     if (syncing.current) return
     syncing.current = true
+    setIsSyncing(true)
+    setSyncError(null)
 
     try {
       const accountId = await getAccountId()
-      if (!accountId) return
+      if (!accountId) {
+        setSyncError('Niet ingelogd')
+        return
+      }
 
       // Pull profiles
       const { data: dbProfiles, error: profileError } = await supabase
@@ -97,18 +176,18 @@ export function useSync() {
         .select('*')
         .eq('account_id', accountId)
 
-      if (!profileError && dbProfiles) {
+      if (profileError) {
+        setSyncError(`Profiel sync mislukt: ${profileError.message}`)
+        return
+      }
+
+      if (dbProfiles) {
         const profiles = dbProfiles.map(dbToProfile)
         const store = useAppStore.getState()
-
-        // Merge: cloud profiles win, but keep local-only ones
         const cloudIds = new Set(profiles.map(p => p.id))
         const localOnly = store.profiles.filter(p => !cloudIds.has(p.id))
         const merged = [...profiles, ...localOnly]
-
         useAppStore.setState({ profiles: merged })
-
-        // Push local-only profiles to cloud
         for (const p of localOnly) {
           await supabase.from('training_profiles').upsert(profileToDb(p, accountId))
         }
@@ -120,21 +199,19 @@ export function useSync() {
         .select('*')
         .eq('account_id', accountId)
 
-      if (!sessionError && dbSessions) {
+      if (sessionError) {
+        setSyncError(`Sessie sync mislukt: ${sessionError.message}`)
+        return
+      }
+
+      if (dbSessions) {
         const cloudSessions = dbSessions.map(dbToSession)
         const localSessions = getFromStorage<WorkoutSession[]>(STORAGE_KEYS.SESSIONS, [])
-
-        // Merge: combine unique sessions
         const cloudIds = new Set(cloudSessions.map(s => s.id))
         const localOnly = localSessions.filter(s => !cloudIds.has(s.id))
         const merged = [...cloudSessions, ...localOnly]
-
         setToStorage(STORAGE_KEYS.SESSIONS, merged)
-
-        // Trigger re-render in all components reading sessions
         useAppStore.getState().bumpSessionVersion()
-
-        // Push local-only sessions to cloud
         for (const s of localOnly) {
           await supabase.from('workout_sessions').upsert(sessionToDb(s, accountId))
         }
@@ -156,18 +233,20 @@ export function useSync() {
           feedback: d.feedback as WeekLog['feedback'],
         }))
         const localLogs = getFromStorage<WeekLog[]>(STORAGE_KEYS.WEEK_LOGS, [])
-
-        // Merge by unique key (profileId + weekNumber + year)
         const cloudKeys = new Set(cloudLogs.map(l => `${l.profileId}-${l.weekNumber}-${l.year}`))
         const localOnly = localLogs.filter(l => !cloudKeys.has(`${l.profileId}-${l.weekNumber}-${l.year}`))
         const merged = [...cloudLogs, ...localOnly]
-
         setToStorage(STORAGE_KEYS.WEEK_LOGS, merged)
       }
+
+      setLastSyncAt(new Date())
     } catch (e) {
-      console.warn('Sync pull failed (offline?):', e)
+      const msg = e instanceof Error ? e.message : String(e)
+      setSyncError(`Sync fout: ${msg}`)
+      console.error('Sync pull failed:', e)
     } finally {
       syncing.current = false
+      setIsSyncing(false)
     }
   }, [getAccountId])
 
@@ -176,9 +255,10 @@ export function useSync() {
     try {
       const accountId = await getAccountId()
       if (!accountId) return
-      await supabase.from('training_profiles').upsert(profileToDb(profile, accountId))
+      const { error } = await supabase.from('training_profiles').upsert(profileToDb(profile, accountId))
+      if (error) console.error('Push profile failed:', error)
     } catch (e) {
-      console.warn('Push profile failed:', e)
+      console.error('Push profile failed:', e)
     }
   }, [getAccountId])
 
@@ -187,7 +267,7 @@ export function useSync() {
     try {
       await supabase.from('training_profiles').delete().eq('id', id)
     } catch (e) {
-      console.warn('Delete profile failed:', e)
+      console.error('Delete profile failed:', e)
     }
   }, [])
 
@@ -196,18 +276,28 @@ export function useSync() {
     try {
       const accountId = await getAccountId()
       if (!accountId) return
-      await supabase.from('workout_sessions').upsert(sessionToDb(session, accountId))
+      const { error } = await supabase.from('workout_sessions').upsert(sessionToDb(session, accountId))
+      if (error) console.error('Push session failed:', error.message, error.code)
     } catch (e) {
-      console.warn('Push session failed:', e)
+      console.error('Push session failed:', e)
     }
   }, [getAccountId])
+
+  // Delete a session from cloud
+  const deleteSession = useCallback(async (sessionId: string) => {
+    try {
+      await supabase.from('workout_sessions').delete().eq('id', sessionId)
+    } catch (e) {
+      console.error('Delete session from cloud failed:', e)
+    }
+  }, [])
 
   // Push week feedback to cloud
   const pushWeekLog = useCallback(async (log: WeekLog) => {
     try {
       const accountId = await getAccountId()
       if (!accountId) return
-      await supabase.from('week_logs').upsert({
+      const { error } = await supabase.from('week_logs').upsert({
         account_id: accountId,
         profile_id: log.profileId,
         week_number: log.weekNumber,
@@ -216,12 +306,13 @@ export function useSync() {
         feedback_generated: log.feedbackGenerated,
         feedback: log.feedback,
       }, { onConflict: 'profile_id,week_number,year' })
+      if (error) console.error('Push week log failed:', error)
     } catch (e) {
-      console.warn('Push week log failed:', e)
+      console.error('Push week log failed:', e)
     }
   }, [getAccountId])
 
-  // Initial sync on mount + re-sync when app becomes visible (e.g. switching from laptop to phone)
+  // Initial sync on mount + re-sync when app becomes visible
   useEffect(() => {
     pullFromCloud()
     const handleVisibility = () => {
@@ -256,9 +347,7 @@ export function useSync() {
                 profiles: store.profiles.map(p => p.id === profile.id ? profile : p),
               })
             } else {
-              useAppStore.setState({
-                profiles: [...store.profiles, profile],
-              })
+              useAppStore.setState({ profiles: [...store.profiles, profile] })
             }
           }
           if (payload.eventType === 'DELETE') {
@@ -278,11 +367,8 @@ export function useSync() {
           if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
             const session = dbToSession(payload.new)
             const idx = sessions.findIndex(s => s.id === session.id)
-            if (idx >= 0) {
-              sessions[idx] = session
-            } else {
-              sessions.push(session)
-            }
+            if (idx >= 0) sessions[idx] = session
+            else sessions.push(session)
             setToStorage(STORAGE_KEYS.SESSIONS, sessions)
             useAppStore.getState().bumpSessionVersion()
           }
@@ -309,6 +395,11 @@ export function useSync() {
     pushProfile,
     deleteProfileFromCloud,
     pushSession,
+    deleteSession,
     pushWeekLog,
+    diagnoseSyncIssue,
+    syncError,
+    isSyncing,
+    lastSyncAt,
   }
 }
