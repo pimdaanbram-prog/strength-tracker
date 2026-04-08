@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Play, TrendingUp, Flame, Trophy, ChevronRight, Zap, Users, Plus, BookMarked, Clock } from 'lucide-react'
+import { Play, TrendingUp, Flame, Trophy, ChevronRight, Zap, Users, Plus, BookMarked, Clock, RefreshCw, AlertCircle } from 'lucide-react'
 
 const MONTHS_SHORT = ['Jan','Feb','Mrt','Apr','Mei','Jun','Jul','Aug','Sep','Okt','Nov','Dec']
 function formatShortDate(dateStr: string) {
@@ -13,6 +13,7 @@ import { useWorkouts } from '../hooks/useWorkouts'
 import { useExercises } from '../hooks/useExercises'
 import { usePlans } from '../hooks/usePlans'
 import { useLanguage } from '../hooks/useLanguage'
+import { useSync } from '../hooks/useSync'
 import { getDayLabel } from '../utils/weekUtils'
 import { workoutTemplates } from '../data/workoutTemplates'
 import Header from '../components/layout/Header'
@@ -27,6 +28,7 @@ export default function Dashboard() {
 
   const myPlans = getPlans()
   const { exName } = useLanguage()
+  const { pullFromCloud, isSyncing, syncError, lastSyncAt } = useSync()
 
   const weekCount = getThisWeekSessionCount()
   const streak = getStreak()
@@ -86,6 +88,24 @@ export default function Dashboard() {
             HEY {activeProfile?.name?.toUpperCase()}
           </h2>
           <p className="text-text-secondary">{dayLabel} — Klaar om te trainen?</p>
+        </div>
+
+        {/* Sync status */}
+        <div className="flex items-center gap-2 mb-4 text-xs">
+          <button
+            onClick={pullFromCloud}
+            disabled={isSyncing}
+            className="flex items-center gap-1 text-text-muted bg-transparent border-0 p-0 cursor-pointer hover:text-text-secondary transition-colors"
+          >
+            <RefreshCw size={10} className={isSyncing ? 'animate-spin' : ''} />
+            {isSyncing ? 'Syncing...' : lastSyncAt ? `Gesynchroniseerd ${lastSyncAt.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}` : 'Sync met cloud'}
+          </button>
+          {syncError && (
+            <span className="flex items-center gap-1 text-red-400">
+              <AlertCircle size={10} />
+              {syncError}
+            </span>
+          )}
         </div>
 
         {/* Stats Row */}

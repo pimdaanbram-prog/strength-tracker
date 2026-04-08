@@ -319,14 +319,26 @@ export function useSync() {
     }
   }, [getAccountId])
 
-  // Initial sync on mount + re-sync when app becomes visible
+  // Initial sync on mount + re-sync when app becomes visible + re-sync on sign-in
   useEffect(() => {
     pullFromCloud()
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') pullFromCloud()
     }
     document.addEventListener('visibilitychange', handleVisibility)
-    return () => document.removeEventListener('visibilitychange', handleVisibility)
+
+    // Also sync when user signs in (important for first open on new device)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN') {
+        syncing.current = false // reset guard so auth-triggered sync can run
+        pullFromCloud()
+      }
+    })
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility)
+      subscription.unsubscribe()
+    }
   }, [pullFromCloud])
 
   // Realtime subscriptions
