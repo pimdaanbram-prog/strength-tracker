@@ -187,7 +187,14 @@ export function useSync() {
         const cloudIds = new Set(profiles.map(p => p.id))
         const localOnly = store.profiles.filter(p => !cloudIds.has(p.id))
         const merged = [...profiles, ...localOnly]
-        useAppStore.setState({ profiles: merged })
+
+        // If activeProfileId is null or no longer valid, switch to first cloud profile
+        const activeStillValid = merged.some(p => p.id === store.activeProfileId)
+        useAppStore.setState({
+          profiles: merged,
+          activeProfileId: activeStillValid ? store.activeProfileId : (profiles[0]?.id ?? store.activeProfileId),
+        })
+
         for (const p of localOnly) {
           await supabase.from('training_profiles').upsert(profileToDb(p, accountId))
         }
