@@ -1,25 +1,32 @@
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --color-bg-primary: #0D0D0D;
-  --color-bg-secondary: #111111;
-  --color-bg-card: #1A1A1A;
-  --color-bg-input: #222222;
-  --color-border: #2A2A2A;
-  --color-border-light: #333333;
-  --color-text-primary: #FFFFFF;
-  --color-text-secondary: #9CA3AF;
-  --color-text-muted: #6B7280;
-  --color-accent: #3B82F6;
-  --color-accent-hover: #2563EB;
-  --color-success: #10B981;
-  --color-warning: #F59E0B;
-  --color-danger: #EF4444;
-  --color-glass: rgba(255, 255, 255, 0.05);
-  --color-glass-border: rgba(255, 255, 255, 0.1);
+  /* === PREMIUM DARK THEME === */
+  --color-bg-primary: #060606;
+  --color-bg-secondary: #0A0A0A;
+  --color-bg-card: #111111;
+  --color-bg-input: #181818;
+  --color-border: #1C1C1C;
+  --color-border-light: #282828;
+  --color-text-primary: #FAFAFA;
+  --color-text-secondary: #888888;
+  --color-text-muted: #444444;
+
+  /* Electric Orange — premium fitness accent */
+  --color-accent: #FF5500;
+  --color-accent-hover: #E64D00;
+  --color-accent-light: rgba(255, 85, 0, 0.12);
+
+  --color-success: #00E5A0;
+  --color-warning: #FFB300;
+  --color-danger: #FF3B3B;
+
+  --color-glass: rgba(255, 255, 255, 0.04);
+  --color-glass-border: rgba(255, 255, 255, 0.08);
+
   --font-heading: 'Bebas Neue', sans-serif;
-  --font-body: 'DM Sans', sans-serif;
+  --font-body: 'Space Grotesk', sans-serif;
 }
 
 * {
@@ -29,9 +36,9 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: #0D0D0D;
-  color: #FFFFFF;
-  font-family: 'DM Sans', sans-serif;
+  background-color: #060606;
+  color: #FAFAFA;
+  font-family: 'Space Grotesk', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -47,17 +54,32 @@ h1, h2, h3, h4 {
   letter-spacing: 0.05em;
 }
 
+/* Premium scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #111111;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
+  background: #222222;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
   background: #333333;
-  border-radius: 3px;
+}
+
+/* Hide scrollbar for horizontal swipe areas */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 input[type="number"]::-webkit-inner-spin-button,
@@ -68,4 +90,61 @@ input[type="number"]::-webkit-outer-spin-button {
 
 input[type="number"] {
   -moz-appearance: textfield;
+}
+
+/* Subtle grain overlay for premium texture */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.02;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Glow effects */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(255, 85, 0, 0.3); }
+  50% { box-shadow: 0 0 35px rgba(255, 85, 0, 0.5); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-4px); }
+}
+
+.glow-accent {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+.shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Premium gradient cards */
+.gradient-workout-a {
+  background: linear-gradient(135deg, #1a0a00 0%, #3d1500 50%, #FF5500 100%);
+}
+.gradient-workout-b {
+  background: linear-gradient(135deg, #000d1a 0%, #001f3d 50%, #0066FF 100%);
+}
+.gradient-workout-c {
+  background: linear-gradient(135deg, #0a0018 0%, #1a0035 50%, #7722FF 100%);
+}
+.gradient-workout-d {
+  background: linear-gradient(135deg, #001a10 0%, #003322 50%, #00CC66 100%);
+}
+.gradient-workout-e {
+  background: linear-gradient(135deg, #1a1500 0%, #332800 50%, #FFAA00 100%);
+}
+.gradient-workout-f {
+  background: linear-gradient(135deg, #1a000a 0%, #330014 50%, #FF0055 100%);
 }
