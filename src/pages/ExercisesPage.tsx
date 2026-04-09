@@ -1,23 +1,38 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, ChevronRight, Trophy } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import Header from '../components/layout/Header'
 import PageWrapper from '../components/layout/PageWrapper'
 import { useExercises } from '../hooks/useExercises'
 import { useWorkouts } from '../hooks/useWorkouts'
 import { useLanguage } from '../hooks/useLanguage'
 
-const categoryEmojis: Record<string, string> = {
-  'Borst': '🫁',
-  'Rug': '🔙',
-  'Schouders': '💪',
-  'Biceps': '💪',
-  'Triceps': '🦾',
-  'Benen': '🦵',
-  'Billen': '🍑',
-  'Core / Abs': '🎯',
-  'Full Body': '⚡',
+const CATEGORY_CONFIG: Record<string, { className: string; icon: string; label: string }> = {
+  'Chest':         { className: 'cat-chest',     icon: '🫁', label: 'Borst' },
+  'Back':          { className: 'cat-back',      icon: '🔙', label: 'Rug' },
+  'Shoulders':     { className: 'cat-shoulders', icon: '⚡', label: 'Schouders' },
+  'Arms - Biceps': { className: 'cat-arms',      icon: '💪', label: 'Biceps' },
+  'Arms - Triceps':{ className: 'cat-arms',      icon: '🦾', label: 'Triceps' },
+  'Legs':          { className: 'cat-legs',      icon: '🦵', label: 'Benen' },
+  'Glutes':        { className: 'cat-glutes',    icon: '🍑', label: 'Billen' },
+  'Core':          { className: 'cat-core',      icon: '🎯', label: 'Core' },
+  'Full Body':     { className: 'cat-full',      icon: '⚡', label: 'Full Body' },
+}
+
+const DIFFICULTY_STYLE = {
+  beginner:     { color: '#00E5A0', bg: 'rgba(0,229,160,0.1)',  label: 'Beginner' },
+  intermediate: { color: '#FFB300', bg: 'rgba(255,179,0,0.1)', label: 'Gemiddeld' },
+  advanced:     { color: '#FF3B3B', bg: 'rgba(255,59,59,0.1)', label: 'Gevorderd' },
+}
+
+const containerVariants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.04 } },
+}
+const itemVariants = {
+  hidden: { opacity: 0, y: 16 },
+  show:   { opacity: 1, y: 0,  transition: { type: 'spring' as const, damping: 24, stiffness: 280 } },
 }
 
 export default function ExercisesPage() {
@@ -35,14 +50,12 @@ export default function ExercisesPage() {
 
   const filtered = useMemo(() => {
     let result = exercises
-    if (activeCategory) {
-      result = exercisesByCategory[activeCategory] || []
-    }
+    if (activeCategory) result = exercisesByCategory[activeCategory] || []
     if (search) {
       const q = search.toLowerCase()
       result = result.filter(
         e => e.name.toLowerCase().includes(q) || e.nameNL.toLowerCase().includes(q) ||
-          e.musclesWorked.some(m => m.toLowerCase().includes(q))
+             e.musclesWorked.some(m => m.toLowerCase().includes(q))
       )
     }
     return result
@@ -52,100 +65,194 @@ export default function ExercisesPage() {
     <>
       <Header title="OEFENINGEN" />
       <PageWrapper>
-        {/* Search */}
-        <div className="flex items-center gap-2 bg-bg-input border border-border rounded-xl px-3 py-2.5 mb-4">
-          <Search size={16} className="text-text-muted" />
+
+        {/* ─── Stats strip ─────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: -16 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex gap-3 mb-5"
+        >
+          {[
+            { label: 'Oefeningen', value: exercises.length, color: '#FF5500' },
+            { label: 'Categorieën', value: categories.length, color: '#818CF8' },
+            { label: 'PR\'s gehaald', value: Object.keys(prs).length, color: '#00E5A0' },
+          ].map(({ label, value, color }) => (
+            <div key={label} className="flex-1 rounded-2xl p-3 text-center" style={{ background: '#111', border: '1px solid #1C1C1C' }}>
+              <p className="text-xl font-heading tracking-wider m-0" style={{ color }}>{value}</p>
+              <p className="text-[10px] m-0 mt-0.5" style={{ color: '#444' }}>{label}</p>
+            </div>
+          ))}
+        </motion.div>
+
+        {/* ─── Search ──────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="relative mb-4"
+        >
+          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: '#444' }} />
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Zoek oefening..."
-            className="flex-1 bg-transparent text-text-primary text-sm outline-none placeholder:text-text-muted"
+            placeholder="Zoek oefening, spiergroep..."
+            className="input-premium"
+            style={{ paddingLeft: 44 }}
           />
-        </div>
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer bg-transparent border-0 text-xs px-1.5 py-0.5 rounded-lg"
+              style={{ color: '#555', background: '#1C1C1C' }}
+            >✕</button>
+          )}
+        </motion.div>
 
-        {/* Categories */}
-        <div className="flex gap-2 overflow-x-auto pb-3 mb-4 no-scrollbar">
+        {/* ─── Category chips ───────────────────── */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.08 }}
+          className="flex gap-2 overflow-x-auto pb-3 mb-5 hide-scrollbar"
+        >
           <button
             onClick={() => setActiveCategory(null)}
-            className={`shrink-0 px-3 py-1.5 rounded-full text-xs transition-colors cursor-pointer ${
-              !activeCategory ? 'bg-accent text-white' : 'bg-bg-card text-text-muted border border-border hover:text-text-secondary'
-            }`}
+            className="shrink-0 px-4 py-2 rounded-full text-xs font-semibold cursor-pointer border-0 transition-all"
+            style={!activeCategory
+              ? { background: 'linear-gradient(135deg, #FF5500, #FF8833)', color: '#fff', boxShadow: '0 4px 12px rgba(255,85,0,0.3)' }
+              : { background: '#111', color: '#666', border: '1px solid #1C1C1C' }
+            }
           >
-            Alle ({exercises.length})
+            Alle
           </button>
-          {categories.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat === activeCategory ? null : cat)}
-              className={`shrink-0 px-3 py-1.5 rounded-full text-xs transition-colors cursor-pointer flex items-center gap-1 ${
-                activeCategory === cat
-                  ? 'bg-accent text-white'
-                  : 'bg-bg-card text-text-muted border border-border hover:text-text-secondary'
-              }`}
-            >
-              {categoryEmojis[cat] || '🏋️'} {cat}
-            </button>
-          ))}
-        </div>
-
-        {/* Exercise List */}
-        <div className="space-y-1">
-          {filtered.map((exercise, i) => {
-            const pr = prs[exercise.id]
-            const lastSession = pr ? getLastExerciseSets(exercise.id) : null
+          {categories.map(cat => {
+            const cfg = CATEGORY_CONFIG[cat]
+            const isActive = activeCategory === cat
             return (
-              <motion.button
-                key={exercise.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: Math.min(i * 0.02, 0.5) }}
-                onClick={() => navigate(`/exercises/${exercise.id}`)}
-                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-bg-card transition-colors cursor-pointer text-left bg-transparent border-0"
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat === activeCategory ? null : cat)}
+                className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold cursor-pointer border-0 transition-all"
+                style={isActive
+                  ? { background: 'linear-gradient(135deg, #FF5500, #FF8833)', color: '#fff', boxShadow: '0 4px 12px rgba(255,85,0,0.3)' }
+                  : { background: '#111', color: '#666', border: '1px solid #1C1C1C' }
+                }
               >
-                <div className="w-10 h-10 rounded-lg bg-bg-card border border-border flex items-center justify-center text-sm shrink-0">
-                  {categoryEmojis[exercise.category] || '🏋️'}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-text-primary font-medium truncate m-0">
-                    {exName(exercise)}
-                  </p>
-                  <p className="text-xs text-text-muted m-0 mt-0.5">
-                    {exercise.equipment} · {exercise.musclesWorked.slice(0, 2).join(', ')}
-                  </p>
-                  {lastSession && lastSession.maxWeight > 0 && (
-                    <p className="text-xs text-text-secondary m-0 mt-0.5">
-                      Laatste: {lastSession.maxWeight}kg × {lastSession.maxReps} · {lastSession.date.slice(5)}
-                    </p>
-                  )}
-                </div>
-                <div className="flex flex-col items-end gap-1 shrink-0">
-                  {pr && (
-                    <div className="flex items-center gap-1">
-                      <Trophy size={11} className="text-warning" />
-                      <span className="text-xs font-semibold text-warning">{pr.weight}kg</span>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-1.5">
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${
-                      exercise.difficulty === 'beginner' ? 'bg-success/15 text-success' :
-                      exercise.difficulty === 'intermediate' ? 'bg-warning/15 text-warning' :
-                      'bg-danger/15 text-danger'
-                    }`}>
-                      {exercise.difficulty}
-                    </span>
-                    <ChevronRight size={14} className="text-text-muted" />
-                  </div>
-                </div>
-              </motion.button>
+                {cfg?.icon || '🏋️'} {cfg?.label || cat}
+              </button>
             )
           })}
-        </div>
+        </motion.div>
 
-        {filtered.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-text-muted">Geen oefeningen gevonden</p>
-          </div>
+        {/* ─── Category hero (when selected) ───── */}
+        <AnimatePresence>
+          {activeCategory && CATEGORY_CONFIG[activeCategory] && (
+            <motion.div
+              key={activeCategory}
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-4 overflow-hidden"
+            >
+              <div
+                className={`rounded-2xl p-5 relative overflow-hidden ${CATEGORY_CONFIG[activeCategory].className}`}
+              >
+                <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, rgba(0,0,0,0.6), transparent)' }} />
+                <div className="relative">
+                  <p className="text-4xl mb-1">{CATEGORY_CONFIG[activeCategory].icon}</p>
+                  <h3 className="text-3xl tracking-wider m-0">{CATEGORY_CONFIG[activeCategory].label}</h3>
+                  <p className="text-xs m-0 mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                    {filtered.length} oefeningen
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ─── Exercise list ────────────────────── */}
+        {filtered.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-16"
+          >
+            <div className="text-5xl mb-4">🔍</div>
+            <p className="font-semibold mb-1" style={{ color: '#888' }}>Geen oefeningen gevonden</p>
+            <p className="text-sm" style={{ color: '#444' }}>Probeer een andere zoekterm</p>
+          </motion.div>
+        ) : (
+          <motion.div
+            key={`${activeCategory}-${search}`}
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+            className="space-y-2"
+          >
+            {filtered.map(exercise => {
+              const pr = prs[exercise.id]
+              const lastSession = pr ? getLastExerciseSets(exercise.id) : null
+              const diff = DIFFICULTY_STYLE[exercise.difficulty]
+              const cat = CATEGORY_CONFIG[exercise.category]
+
+              return (
+                <motion.button
+                  key={exercise.id}
+                  variants={itemVariants}
+                  whileHover={{ x: 4 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => navigate(`/exercises/${exercise.id}`)}
+                  className="w-full flex items-center gap-3 p-3.5 rounded-2xl cursor-pointer border-0 text-left transition-colors"
+                  style={{ background: '#111', border: '1px solid #1C1C1C' }}
+                >
+                  {/* Category color swatch */}
+                  <div
+                    className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 text-lg ${cat?.className || 'gradient-workout-a'}`}
+                    style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.4)' }}
+                  >
+                    {cat?.icon || '🏋️'}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate m-0" style={{ color: '#FAFAFA' }}>
+                      {exName(exercise)}
+                    </p>
+                    <p className="text-xs m-0 mt-0.5 truncate" style={{ color: '#555' }}>
+                      {exercise.equipment} · {exercise.musclesWorked.slice(0, 2).join(', ')}
+                    </p>
+                    {lastSession && lastSession.maxWeight > 0 && (
+                      <p className="text-xs m-0 mt-0.5" style={{ color: '#666' }}>
+                        Laatste: <span style={{ color: '#888' }}>{lastSession.maxWeight}kg × {lastSession.maxReps}</span>
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col items-end gap-1.5 shrink-0">
+                    {pr && (
+                      <div className="flex items-center gap-1">
+                        <Trophy size={11} style={{ color: '#FFB300' }} />
+                        <span className="text-xs font-bold" style={{ color: '#FFB300' }}>{pr.weight}kg</span>
+                      </div>
+                    )}
+                    <span
+                      className="text-[10px] px-2 py-0.5 rounded-full font-semibold"
+                      style={{ background: diff.bg, color: diff.color }}
+                    >
+                      {diff.label}
+                    </span>
+                    {exercise.isCompound && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(255,179,0,0.1)', color: '#FFB300' }}>
+                        Compound
+                      </span>
+                    )}
+                  </div>
+
+                  <ChevronRight size={14} style={{ color: '#333', marginLeft: 2 }} />
+                </motion.button>
+              )
+            })}
+          </motion.div>
         )}
       </PageWrapper>
     </>

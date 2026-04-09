@@ -12,59 +12,71 @@ interface ModalProps {
 
 export default function Modal({ isOpen, onClose, title, children }: ModalProps) {
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
-    return () => {
-      document.body.style.overflow = ''
-    }
+    document.body.style.overflow = isOpen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
   }, [isOpen])
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        >
+        <>
           {/* Backdrop */}
           <motion.div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={onClose}
+            key="backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50"
+            style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(10px)' }}
+            onClick={onClose}
           />
 
-          {/* Content */}
+          {/* Bottom sheet */}
           <motion.div
-            className="relative bg-bg-card border border-border rounded-2xl
-                       w-full max-w-md max-h-[90vh] overflow-y-auto
-                       shadow-2xl z-10"
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.95, opacity: 0 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+            key="sheet"
+            initial={{ y: '100%', opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: '100%', opacity: 0 }}
+            transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+            className="fixed bottom-0 left-1/2 z-50 w-full max-w-lg overflow-hidden"
+            style={{
+              transform: 'translateX(-50%)',
+              background: '#111',
+              border: '1px solid rgba(255,255,255,0.07)',
+              borderBottom: 'none',
+              borderRadius: '28px 28px 0 0',
+              boxShadow: '0 -24px 64px rgba(0,0,0,0.7)',
+            }}
           >
+            {/* Drag handle */}
+            <div className="flex justify-center pt-3 pb-2">
+              <div className="w-10 h-1 rounded-full" style={{ background: '#2A2A2A' }} />
+            </div>
+
+            {/* Title row */}
             {title && (
-              <div className="flex items-center justify-between p-5 border-b border-border">
-                <h3 className="text-lg font-semibold text-text-primary">{title}</h3>
+              <div
+                className="flex items-center justify-between px-5 py-4"
+                style={{ borderBottom: '1px solid #1C1C1C' }}
+              >
+                <h2 className="text-lg tracking-wider m-0">{title.toUpperCase()}</h2>
                 <button
                   onClick={onClose}
-                  className="p-1 rounded-lg hover:bg-white/5 text-text-muted
-                             hover:text-text-primary transition-colors cursor-pointer"
+                  className="w-8 h-8 rounded-xl flex items-center justify-center cursor-pointer border-0"
+                  style={{ background: '#1C1C1C', color: '#666' }}
                 >
-                  <X size={20} />
+                  <X size={14} />
                 </button>
               </div>
             )}
-            <div className="p-5">{children}</div>
+
+            {/* Content */}
+            <div className="px-5 py-5" style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}>
+              {children}
+            </div>
           </motion.div>
-        </motion.div>
+        </>
       )}
     </AnimatePresence>
   )

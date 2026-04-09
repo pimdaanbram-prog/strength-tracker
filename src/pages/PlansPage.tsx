@@ -1,13 +1,22 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Plus, Play, Pencil, Trash2, Users, Dumbbell, ChevronRight } from 'lucide-react'
+import { Plus, Play, Pencil, Trash2, Users, BookMarked, ChevronRight } from 'lucide-react'
 import Header from '../components/layout/Header'
 import PageWrapper from '../components/layout/PageWrapper'
 import { usePlans } from '../hooks/usePlans'
 import { useExercises } from '../hooks/useExercises'
 import { useAppStore } from '../store/appStore'
 import { useLanguage } from '../hooks/useLanguage'
+
+const PLAN_GRADIENTS = [
+  'gradient-workout-a',
+  'gradient-workout-b',
+  'gradient-workout-c',
+  'gradient-workout-d',
+  'gradient-workout-e',
+  'gradient-workout-f',
+]
 
 export default function PlansPage() {
   const navigate = useNavigate()
@@ -24,126 +33,159 @@ export default function PlansPage() {
     setPlans(getPlans())
   }
 
-  const handleStartSolo = (planId: string) => {
-    navigate('/workout', { state: { planId } })
-  }
-
-  const handleStartSamen = (planId: string) => {
-    navigate('/workout', { state: { planId, samen: true } })
-  }
-
   return (
     <>
-      <Header title="MIJN TRAININGEN" />
+      <Header title="MIJN PLANNEN" />
       <PageWrapper>
-        {/* Create new */}
+
+        {/* ─── Create new CTA ──────────────────────── */}
         <motion.button
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.99 }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
           onClick={() => navigate('/plans/new')}
-          className="w-full flex items-center gap-3 p-4 mb-6 bg-accent/10 border border-accent/30 rounded-xl hover:border-accent transition-colors cursor-pointer text-left"
+          className="w-full flex items-center gap-3 p-4 mb-6 rounded-2xl cursor-pointer border-0 text-left relative overflow-hidden"
+          style={{ background: 'rgba(255,85,0,0.08)', border: '1px solid rgba(255,85,0,0.2)' }}
         >
-          <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center shrink-0">
-            <Plus size={20} className="text-accent" />
+          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, #FF5500, transparent)' }} />
+          <div
+            className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
+            style={{ background: 'rgba(255,85,0,0.15)', border: '1px solid rgba(255,85,0,0.25)' }}
+          >
+            <Plus size={20} style={{ color: '#FF5500' }} />
           </div>
-          <div>
-            <p className="text-sm font-semibold text-text-primary m-0">Nieuw trainingsplan</p>
-            <p className="text-xs text-text-muted m-0 mt-0.5">Stel zelf oefeningen samen</p>
+          <div className="flex-1">
+            <p className="text-sm font-semibold m-0" style={{ color: '#FAFAFA' }}>Nieuw Trainingsplan</p>
+            <p className="text-xs m-0 mt-0.5" style={{ color: '#555' }}>Stel zelf oefeningen samen</p>
           </div>
-          <ChevronRight size={16} className="text-text-muted ml-auto" />
+          <ChevronRight size={16} style={{ color: '#333' }} />
         </motion.button>
 
-        {/* Plans list */}
+        {/* ─── Plans list ──────────────────────────── */}
         {plans.length === 0 ? (
           <div className="text-center py-16">
-            <span className="text-5xl mb-4 block">📋</span>
-            <h3 className="text-xl tracking-wider mb-2">GEEN PLANNEN</h3>
-            <p className="text-text-secondary text-sm mb-6">
-              Maak je eerste trainingsplan — kies oefeningen en sla op voor later
-            </p>
-            <button
-              onClick={() => navigate('/plans/new')}
-              className="px-6 py-3 bg-accent text-white rounded-xl font-semibold cursor-pointer"
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: 'spring', damping: 18 }}
             >
-              Plan maken
-            </button>
+              <div className="text-6xl mb-4">📋</div>
+              <h3 className="text-2xl tracking-wider mb-2">GEEN PLANNEN</h3>
+              <p className="text-sm mb-6" style={{ color: '#555' }}>
+                Maak je eerste plan — kies oefeningen en sla op voor later
+              </p>
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={() => navigate('/plans/new')}
+                className="px-6 py-3 text-white rounded-2xl font-semibold cursor-pointer border-0"
+                style={{ background: 'linear-gradient(135deg, #FF5500, #FF8833)', boxShadow: '0 8px 24px rgba(255,85,0,0.3)' }}
+              >
+                Plan Maken
+              </motion.button>
+            </motion.div>
           </div>
         ) : (
-          <div className="space-y-3">
-            <p className="text-xs text-text-muted tracking-wider mb-2">OPGESLAGEN PLANNEN ({plans.length})</p>
+          <div className="space-y-4">
+            <p className="text-xs uppercase tracking-widest m-0 mb-1" style={{ color: '#333', letterSpacing: '0.12em' }}>
+              Opgeslagen plannen — {plans.length}
+            </p>
+
             {plans.map((plan, i) => (
               <motion.div
                 key={plan.id}
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="bg-bg-card border border-border rounded-xl overflow-hidden"
+                transition={{ delay: i * 0.06, type: 'spring', damping: 24 }}
+                className="rounded-3xl overflow-hidden"
+                style={{ background: '#111', border: '1px solid #1C1C1C' }}
               >
-                {/* Plan header */}
-                <div className="p-4 pb-3">
-                  <div className="flex items-start justify-between mb-2">
+                {/* Gradient hero strip */}
+                <div className={`relative h-24 ${PLAN_GRADIENTS[i % PLAN_GRADIENTS.length]}`}>
+                  <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, rgba(0,0,0,0.6), rgba(0,0,0,0.2))' }} />
+                  <div className="absolute bottom-0 left-0 right-0 h-12" style={{ background: 'linear-gradient(to top, #111, transparent)' }} />
+
+                  <div className="absolute inset-0 flex items-center px-4 gap-3">
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                      style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)' }}
+                    >
+                      <BookMarked size={18} style={{ color: '#fff' }} />
+                    </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-base font-semibold text-text-primary m-0 truncate">{plan.name}</h3>
-                      <p className="text-xs text-text-muted m-0 mt-0.5">
+                      <h3 className="text-base font-bold m-0 text-white truncate">{plan.name}</h3>
+                      <p className="text-xs m-0 mt-0.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
                         {plan.exercises.length} oefeningen
-                        {plan.lastUsedAt && (
-                          <span> · Laatst: {new Date(plan.lastUsedAt).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}</span>
-                        )}
+                        {plan.lastUsedAt && ` · ${new Date(plan.lastUsedAt).toLocaleDateString('nl-NL',{day:'numeric',month:'short'})}`}
                       </p>
                     </div>
-                    <div className="flex items-center gap-1 shrink-0 ml-2">
+                    {/* Edit + delete */}
+                    <div className="flex items-center gap-1 shrink-0">
                       <button
                         onClick={() => navigate(`/plans/${plan.id}/edit`)}
-                        className="p-1.5 text-text-muted hover:text-text-secondary transition-colors cursor-pointer bg-transparent border-0"
+                        className="p-2 rounded-xl cursor-pointer bg-transparent border-0 transition-colors"
+                        style={{ color: 'rgba(255,255,255,0.4)' }}
+                        onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
+                        onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}
                       >
                         <Pencil size={14} />
                       </button>
                       <button
                         onClick={() => handleDelete(plan.id, plan.name)}
-                        className="p-1.5 text-danger/50 hover:text-danger transition-colors cursor-pointer bg-transparent border-0"
+                        className="p-2 rounded-xl cursor-pointer bg-transparent border-0 transition-colors"
+                        style={{ color: 'rgba(255,59,59,0.4)' }}
+                        onMouseEnter={e => (e.currentTarget.style.color = '#FF3B3B')}
+                        onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,59,59,0.4)')}
                       >
                         <Trash2 size={14} />
                       </button>
                     </div>
                   </div>
+                </div>
 
-                  {/* Exercise previews */}
-                  <div className="flex flex-wrap gap-1 mb-3">
+                {/* Exercise tags */}
+                <div className="px-4 pt-3 pb-3">
+                  <div className="flex flex-wrap gap-1.5 mb-3">
                     {plan.exercises.slice(0, 5).map(pe => {
                       const ex = getExercise(pe.exerciseId)
                       return ex ? (
-                        <span key={pe.exerciseId} className="text-xs px-2 py-0.5 bg-bg-input rounded text-text-secondary">
+                        <span
+                          key={pe.exerciseId}
+                          className="text-xs px-2.5 py-1 rounded-full"
+                          style={{ background: '#181818', color: '#666', border: '1px solid #222' }}
+                        >
                           {exName(ex)}
                         </span>
                       ) : null
                     })}
                     {plan.exercises.length > 5 && (
-                      <span className="text-xs text-text-muted">+{plan.exercises.length - 5} meer</span>
+                      <span className="text-xs px-2 py-1" style={{ color: '#444' }}>
+                        +{plan.exercises.length - 5} meer
+                      </span>
                     )}
                   </div>
 
                   {/* Action buttons */}
                   <div className="flex gap-2">
-                    <button
-                      onClick={() => handleStartSolo(plan.id)}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-accent hover:bg-accent-hover text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => navigate('/workout', { state: { planId: plan.id } })}
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-white text-xs font-bold rounded-xl cursor-pointer border-0"
+                      style={{ background: 'linear-gradient(135deg, #FF5500, #FF8833)', boxShadow: '0 4px 12px rgba(255,85,0,0.25)' }}
                     >
-                      <Play size={13} /> Solo starten
-                    </button>
+                      <Play size={13} fill="#fff" strokeWidth={0} />
+                      Solo starten
+                    </motion.button>
                     {profiles.length >= 2 && (
-                      <button
-                        onClick={() => handleStartSamen(plan.id)}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-bg-input hover:bg-white/10 text-text-primary text-xs font-semibold rounded-lg transition-colors cursor-pointer border border-border"
+                      <motion.button
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => navigate('/workout', { state: { planId: plan.id, samen: true } })}
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold rounded-xl cursor-pointer border-0"
+                        style={{ background: '#181818', color: '#888', border: '1px solid #222' }}
                       >
-                        <Users size={13} /> Samen
-                      </button>
+                        <Users size={13} />
+                        Samen
+                      </motion.button>
                     )}
-                    <button
-                      onClick={() => navigate(`/plans/${plan.id}/edit`)}
-                      className="p-2 bg-bg-input hover:bg-white/10 text-text-muted rounded-lg transition-colors cursor-pointer border border-border"
-                    >
-                      <Dumbbell size={13} />
-                    </button>
                   </div>
                 </div>
               </motion.div>

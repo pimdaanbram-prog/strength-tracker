@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { TrendingUp, TrendingDown, Minus, Star, Target, ArrowUp, RefreshCw } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { TrendingUp, TrendingDown, Minus, Star, Target, ArrowUp, RefreshCw, Zap } from 'lucide-react'
 import Header from '../components/layout/Header'
 import PageWrapper from '../components/layout/PageWrapper'
 import { useWeekFeedback } from '../hooks/useWeekFeedback'
@@ -9,11 +9,48 @@ import { useLanguage } from '../hooks/useLanguage'
 import { getWeekNumber } from '../utils/weekUtils'
 import type { WeekFeedback as WeekFeedbackType } from '../hooks/useWorkouts'
 
+function ScoreRing({ score }: { score: number }) {
+  const color = score >= 7 ? '#00E5A0' : score >= 4 ? '#FFB300' : '#FF3B3B'
+  const r = 44
+  const circ = 2 * Math.PI * r
+  const progress = (score / 10) * circ
+
+  return (
+    <div className="relative flex items-center justify-center" style={{ width: 120, height: 120 }}>
+      <svg width="120" height="120" style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx="60" cy="60" r={r} fill="none" stroke="#1C1C1C" strokeWidth="8" />
+        <motion.circle
+          cx="60" cy="60" r={r} fill="none"
+          stroke={color} strokeWidth="8"
+          strokeLinecap="round"
+          strokeDasharray={circ}
+          initial={{ strokeDashoffset: circ }}
+          animate={{ strokeDashoffset: circ - progress }}
+          transition={{ duration: 1.2, ease: 'easeOut', delay: 0.3 }}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <motion.p
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.5, type: 'spring', damping: 16 }}
+          className="text-4xl font-heading tracking-wider m-0"
+          style={{ color }}
+        >
+          {score}
+        </motion.p>
+        <p className="text-[10px] m-0 uppercase tracking-widest" style={{ color: '#444' }}>/ 10</p>
+      </div>
+    </div>
+  )
+}
+
 export default function WeekFeedback() {
   const { generateCurrentWeekFeedback, getLatestFeedback } = useWeekFeedback()
   const { getExercise } = useExercises()
   const { exName } = useLanguage()
   const [feedback, setFeedback] = useState<WeekFeedbackType | null>(null)
+  const [generating, setGenerating] = useState(false)
 
   useEffect(() => {
     const latest = getLatestFeedback()
@@ -21,160 +58,253 @@ export default function WeekFeedback() {
   }, [getLatestFeedback])
 
   const handleGenerate = () => {
-    const fb = generateCurrentWeekFeedback()
-    setFeedback(fb)
+    setGenerating(true)
+    setTimeout(() => {
+      const fb = generateCurrentWeekFeedback()
+      setFeedback(fb)
+      setGenerating(false)
+    }, 600)
   }
 
-  const now = new Date()
-  const weekNumber = getWeekNumber(now)
+  const weekNumber = getWeekNumber(new Date())
 
   const statusIcon = (status: string) => {
     switch (status) {
-      case 'improved': return <TrendingUp size={14} className="text-success" />
-      case 'regressed': return <TrendingDown size={14} className="text-danger" />
-      case 'new': return <Star size={14} className="text-accent" />
-      default: return <Minus size={14} className="text-text-muted" />
+      case 'improved':  return <TrendingUp size={14} style={{ color: '#00E5A0' }} />
+      case 'regressed': return <TrendingDown size={14} style={{ color: '#FF3B3B' }} />
+      case 'new':       return <Star size={14} style={{ color: '#FF5500' }} />
+      default:          return <Minus size={14} style={{ color: '#444' }} />
     }
   }
 
   return (
     <>
-      <Header title="FEEDBACK" showBack />
+      <Header title="WEEK FEEDBACK" showBack />
       <PageWrapper>
-        <div className="text-center mb-6">
-          <h2 className="text-3xl tracking-wider mb-1">WEEK {weekNumber}</h2>
-          <p className="text-text-secondary text-sm">Wekelijks voortgangsrapport</p>
-        </div>
 
-        <button
-          onClick={handleGenerate}
-          className="w-full py-3 bg-accent hover:bg-accent-hover text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer mb-6"
+        {/* ─── Week header ─────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-6"
         >
-          <RefreshCw size={16} /> Genereer Feedback
-        </button>
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-3" style={{ background: 'rgba(255,85,0,0.1)', border: '1px solid rgba(255,85,0,0.2)' }}>
+            <Zap size={12} style={{ color: '#FF5500' }} />
+            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#FF5500', letterSpacing: '0.1em' }}>Week {weekNumber}</span>
+          </div>
+          <h2 className="text-3xl tracking-wider m-0">VOORTGANGSRAPPORT</h2>
+          <p className="text-sm mt-1 m-0" style={{ color: '#555' }}>Automatische analyse van je week</p>
+        </motion.div>
 
-        {feedback ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-4"
-          >
-            {/* Score */}
-            <div className="bg-bg-card border border-border rounded-xl p-6 text-center">
-              <p className="text-sm text-text-muted mb-2 m-0">Score</p>
-              <p className="text-5xl font-heading tracking-wider m-0" style={{
-                color: feedback.overallScore >= 7 ? '#10B981' : feedback.overallScore >= 4 ? '#F59E0B' : '#EF4444'
-              }}>
-                {feedback.overallScore}/10
-              </p>
-            </div>
+        {/* ─── Generate button ─────────────────────── */}
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={handleGenerate}
+          disabled={generating}
+          className="w-full py-4 rounded-2xl flex items-center justify-center gap-2 cursor-pointer border-0 font-semibold text-white mb-6"
+          style={{
+            background: generating ? '#333' : 'linear-gradient(135deg, #FF5500, #FF8833)',
+            boxShadow: generating ? 'none' : '0 8px 24px rgba(255,85,0,0.3)',
+            fontSize: 15,
+          }}
+        >
+          <RefreshCw size={16} className={generating ? 'animate-spin' : ''} />
+          {generating ? 'Analyseren...' : feedback ? 'Vernieuwen' : 'Genereer Feedback'}
+        </motion.button>
 
-            {/* Summary */}
-            <div className="bg-bg-card border border-border rounded-xl p-4">
-              <p className="text-sm text-text-primary m-0">{feedback.summary}</p>
-            </div>
-
-            {/* Strengths */}
-            {feedback.strengths.length > 0 && (
-              <div>
-                <h3 className="text-sm tracking-wider text-success mb-2 m-0">STERKE PUNTEN</h3>
-                <div className="space-y-1">
-                  {feedback.strengths.map((s, i) => (
-                    <div key={i} className="flex items-center gap-2 p-3 bg-success/10 border border-success/20 rounded-xl">
-                      <TrendingUp size={14} className="text-success shrink-0" />
-                      <p className="text-sm text-text-secondary m-0">{s}</p>
-                    </div>
-                  ))}
+        {/* ─── Feedback content ────────────────────── */}
+        <AnimatePresence mode="wait">
+          {feedback ? (
+            <motion.div
+              key="feedback"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ type: 'spring', damping: 24 }}
+              className="space-y-4"
+            >
+              {/* Score card */}
+              <div
+                className="rounded-3xl p-6 text-center relative overflow-hidden"
+                style={{ background: '#111', border: '1px solid #1C1C1C' }}
+              >
+                <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, #FF5500, transparent)' }} />
+                <p className="text-xs font-semibold uppercase tracking-widest mb-4 m-0" style={{ color: '#444', letterSpacing: '0.12em' }}>Score van de week</p>
+                <div className="flex justify-center mb-4">
+                  <ScoreRing score={feedback.overallScore} />
                 </div>
+                <p className="text-sm leading-relaxed m-0" style={{ color: '#888' }}>{feedback.summary}</p>
               </div>
-            )}
 
-            {/* Improvements */}
-            {feedback.improvements.length > 0 && (
-              <div>
-                <h3 className="text-sm tracking-wider text-warning mb-2 m-0">VERBETERPUNTEN</h3>
-                <div className="space-y-1">
-                  {feedback.improvements.map((s, i) => (
-                    <div key={i} className="flex items-center gap-2 p-3 bg-warning/10 border border-warning/20 rounded-xl">
-                      <Target size={14} className="text-warning shrink-0" />
-                      <p className="text-sm text-text-secondary m-0">{s}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Exercise Progress */}
-            {feedback.progressNotes.length > 0 && (
-              <div>
-                <h3 className="text-sm tracking-wider text-text-primary mb-2 m-0">OEFENING DETAILS</h3>
-                <div className="space-y-2">
-                  {feedback.progressNotes.map((note, i) => {
-                    const exercise = getExercise(note.exerciseId)
-                    return (
+              {/* Strengths */}
+              {feedback.strengths.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ type: 'spring', damping: 24 }}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-1 h-4 rounded-full" style={{ background: '#00E5A0' }} />
+                    <p className="text-xs font-bold uppercase tracking-widest m-0" style={{ color: '#00E5A0', letterSpacing: '0.1em' }}>Sterke punten</p>
+                  </div>
+                  <div className="space-y-2">
+                    {feedback.strengths.map((s, i) => (
                       <motion.div
                         key={i}
-                        initial={{ opacity: 0, x: -10 }}
+                        initial={{ opacity: 0, x: -12 }}
                         animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.05 }}
-                        className="bg-bg-card border border-border rounded-xl p-3"
+                        transition={{ delay: i * 0.08 }}
+                        className="flex gap-3 p-3.5 rounded-2xl"
+                        style={{ background: 'rgba(0,229,160,0.06)', border: '1px solid rgba(0,229,160,0.12)' }}
                       >
-                        <div className="flex items-center gap-2 mb-1">
-                          {statusIcon(note.progressStatus)}
-                          <span className="text-sm font-medium text-text-primary">
-                            {exName(exercise) || note.exerciseId}
-                          </span>
-                        </div>
-                        <p className="text-xs text-text-muted m-0">{note.note}</p>
-                        {note.previousBest > 0 && (
-                          <p className="text-xs text-text-muted mt-1 m-0">
-                            {note.previousBest}kg → {note.currentBest}kg
-                          </p>
-                        )}
+                        <TrendingUp size={15} className="shrink-0 mt-0.5" style={{ color: '#00E5A0' }} />
+                        <p className="text-sm m-0 leading-relaxed" style={{ color: '#AAA' }}>{s}</p>
                       </motion.div>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
+                    ))}
+                  </div>
+                </motion.div>
+              )}
 
-            {/* Recommendations */}
-            {feedback.nextWeekRecommendations.length > 0 && (
-              <div>
-                <h3 className="text-sm tracking-wider text-accent mb-2 m-0">AANBEVELINGEN VOLGENDE WEEK</h3>
-                <div className="space-y-2">
-                  {feedback.nextWeekRecommendations.map((rec, i) => {
-                    const exercise = getExercise(rec.exerciseId)
-                    return (
-                      <div key={i} className="bg-accent/10 border border-accent/20 rounded-xl p-3">
-                        <div className="flex items-center gap-2 mb-1">
-                          <ArrowUp size={14} className="text-accent" />
-                          <span className="text-sm font-medium text-text-primary">
-                            {exName(exercise) || rec.exerciseId}
+              {/* Improvements */}
+              {feedback.improvements.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ type: 'spring', damping: 24 }}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-1 h-4 rounded-full" style={{ background: '#FFB300' }} />
+                    <p className="text-xs font-bold uppercase tracking-widest m-0" style={{ color: '#FFB300', letterSpacing: '0.1em' }}>Verbeterpunten</p>
+                  </div>
+                  <div className="space-y-2">
+                    {feedback.improvements.map((s, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, x: -12 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.08 }}
+                        className="flex gap-3 p-3.5 rounded-2xl"
+                        style={{ background: 'rgba(255,179,0,0.06)', border: '1px solid rgba(255,179,0,0.12)' }}
+                      >
+                        <Target size={15} className="shrink-0 mt-0.5" style={{ color: '#FFB300' }} />
+                        <p className="text-sm m-0 leading-relaxed" style={{ color: '#AAA' }}>{s}</p>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Exercise progress notes */}
+              {feedback.progressNotes.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ type: 'spring', damping: 24 }}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-1 h-4 rounded-full" style={{ background: '#818CF8' }} />
+                    <p className="text-xs font-bold uppercase tracking-widest m-0" style={{ color: '#818CF8', letterSpacing: '0.1em' }}>Oefening details</p>
+                  </div>
+                  <div className="space-y-2">
+                    {feedback.progressNotes.map((note, i) => {
+                      const exercise = getExercise(note.exerciseId)
+                      return (
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, x: -12 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.06 }}
+                          className="p-3.5 rounded-2xl"
+                          style={{ background: '#111', border: '1px solid #1C1C1C' }}
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            {statusIcon(note.progressStatus)}
+                            <span className="text-sm font-semibold" style={{ color: '#FAFAFA' }}>
+                              {exName(exercise) || note.exerciseId}
+                            </span>
+                          </div>
+                          <p className="text-xs m-0" style={{ color: '#555' }}>{note.note}</p>
+                          {note.previousBest > 0 && (
+                            <p className="text-xs mt-1 m-0 font-medium" style={{ color: '#444' }}>
+                              {note.previousBest}kg →{' '}
+                              <span style={{ color: note.currentBest > note.previousBest ? '#00E5A0' : '#FF3B3B' }}>
+                                {note.currentBest}kg
+                              </span>
+                            </p>
+                          )}
+                        </motion.div>
+                      )
+                    })}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Next week recommendations */}
+              {feedback.nextWeekRecommendations.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ type: 'spring', damping: 24 }}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-1 h-4 rounded-full" style={{ background: '#FF5500' }} />
+                    <p className="text-xs font-bold uppercase tracking-widest m-0" style={{ color: '#FF5500', letterSpacing: '0.1em' }}>Aanbevelingen volgende week</p>
+                  </div>
+                  <div className="space-y-2">
+                    {feedback.nextWeekRecommendations.map((rec, i) => {
+                      const exercise = getExercise(rec.exerciseId)
+                      return (
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, x: -12 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.06 }}
+                          className="flex items-center gap-3 p-3.5 rounded-2xl relative overflow-hidden"
+                          style={{ background: 'rgba(255,85,0,0.06)', border: '1px solid rgba(255,85,0,0.15)' }}
+                        >
+                          <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(255,85,0,0.15)' }}>
+                            <ArrowUp size={14} style={{ color: '#FF5500' }} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold m-0 truncate" style={{ color: '#FAFAFA' }}>
+                              {exName(exercise) || rec.exerciseId}
+                            </p>
+                            <p className="text-xs m-0 mt-0.5" style={{ color: '#555' }}>{rec.reason}</p>
+                          </div>
+                          <span className="text-sm font-bold shrink-0" style={{ color: '#FF5500' }}>
+                            {rec.recommendedWeight}kg
                           </span>
-                          <span className="text-sm text-accent ml-auto font-bold">{rec.recommendedWeight}kg</span>
-                        </div>
-                        <p className="text-xs text-text-muted m-0">{rec.reason}</p>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
+                        </motion.div>
+                      )
+                    })}
+                  </div>
+                </motion.div>
+              )}
 
-            <p className="text-xs text-text-muted text-center pt-2 m-0">
-              Gegenereerd op {new Date(feedback.generatedAt).toLocaleString('nl-NL')}
-            </p>
-          </motion.div>
-        ) : (
-          <div className="text-center py-12">
-            <span className="text-5xl mb-4 block">📊</span>
-            <h3 className="text-xl tracking-wider mb-2">GEEN FEEDBACK</h3>
-            <p className="text-text-secondary text-sm">
-              Klik op de knop hierboven om feedback te genereren voor deze week
-            </p>
-          </div>
-        )}
+              <p className="text-xs text-center pt-2 m-0" style={{ color: '#333' }}>
+                Gegenereerd op {new Date(feedback.generatedAt).toLocaleString('nl-NL')}
+              </p>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="empty"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-12"
+            >
+              <div className="text-6xl mb-4">📊</div>
+              <h3 className="text-2xl tracking-wider mb-2">GEEN FEEDBACK</h3>
+              <p className="text-sm" style={{ color: '#555' }}>
+                Klik op de knop hierboven om je weekfeedback te genereren
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </PageWrapper>
     </>
   )

@@ -11,35 +11,56 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   fullWidth?: boolean
 }
 
-const variantClasses: Record<Variant, string> = {
-  primary: 'bg-accent hover:bg-accent-hover text-white shadow-lg shadow-accent/20',
-  secondary: 'bg-bg-card hover:bg-bg-input text-text-primary border border-border',
-  danger: 'bg-danger/10 hover:bg-danger/20 text-danger border border-danger/30',
-  ghost: 'bg-transparent hover:bg-white/5 text-text-secondary hover:text-text-primary',
+const variantStyles: Record<Variant, React.CSSProperties> = {
+  primary: {
+    background: 'linear-gradient(135deg, #FF5500, #FF8833)',
+    color: '#fff',
+    boxShadow: '0 6px 20px rgba(255,85,0,0.3)',
+    border: 'none',
+  },
+  secondary: {
+    background: '#111',
+    color: '#FAFAFA',
+    border: '1px solid #1C1C1C',
+    boxShadow: 'none',
+  },
+  danger: {
+    background: 'rgba(255,59,59,0.1)',
+    color: '#FF3B3B',
+    border: '1px solid rgba(255,59,59,0.2)',
+    boxShadow: 'none',
+  },
+  ghost: {
+    background: 'transparent',
+    color: '#888',
+    border: 'none',
+    boxShadow: 'none',
+  },
 }
 
 const sizeClasses: Record<Size, string> = {
-  sm: 'px-3 py-1.5 text-sm rounded-lg',
-  md: 'px-5 py-2.5 text-sm rounded-xl',
-  lg: 'px-6 py-3 text-base rounded-xl',
+  sm: 'px-3 py-1.5 text-xs rounded-xl',
+  md: 'px-5 py-2.5 text-sm rounded-2xl',
+  lg: 'px-6 py-3.5 text-base rounded-2xl',
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = 'primary', size = 'md', fullWidth, className = '', children, disabled, ...props }, ref) => {
+  ({ variant = 'primary', size = 'md', fullWidth, className = '', children, disabled, style, ...props }, ref) => {
     return (
       <motion.button
         ref={ref}
         whileTap={{ scale: disabled ? 1 : 0.97 }}
+        whileHover={{ scale: disabled ? 1 : 1.02 }}
         className={`
-          inline-flex items-center justify-center gap-2 font-medium
-          transition-colors duration-200 cursor-pointer
-          disabled:opacity-50 disabled:cursor-not-allowed
-          ${variantClasses[variant]}
+          inline-flex items-center justify-center gap-2 font-semibold
+          transition-opacity duration-200 cursor-pointer
+          disabled:opacity-40 disabled:cursor-not-allowed
           ${sizeClasses[size]}
           ${fullWidth ? 'w-full' : ''}
           ${className}
         `}
         disabled={disabled}
+        style={{ ...variantStyles[variant], fontFamily: 'inherit', ...style }}
         {...(props as any)}
       >
         {children}
@@ -49,5 +70,4 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 )
 
 Button.displayName = 'Button'
-
 export default Button
