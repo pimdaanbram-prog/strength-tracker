@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronDown, ChevronUp, Timer, Trash2, MessageSquare, TrendingUp, TrendingDown, Minus } from 'lucide-react'
+import { ChevronDown, ChevronUp, Timer, Trash2, MessageSquare, TrendingUp, TrendingDown, Minus, Plus } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import SetLogger from './SetLogger'
 import type { SessionExercise, SetLog } from '../../hooks/useWorkouts'
@@ -12,14 +12,12 @@ interface LastSession {
   maxWeight: number
   maxReps: number
 }
-
 interface SmartRecommendation {
   weight: number
   reps: string
   trend: 'up' | 'same' | 'down' | 'new'
   note: string
 }
-
 interface ExerciseCardProps {
   exercise: Exercise
   sessionExercise: SessionExercise
@@ -32,14 +30,8 @@ interface ExerciseCardProps {
 }
 
 export default function ExerciseCard({
-  exercise,
-  sessionExercise,
-  recommendedWeight,
-  lastSession,
-  smartRecommendation,
-  onUpdate,
-  onRemove,
-  onStartRest,
+  exercise, sessionExercise, recommendedWeight, lastSession,
+  smartRecommendation, onUpdate, onRemove, onStartRest,
 }: ExerciseCardProps) {
   const [expanded, setExpanded] = useState(true)
   const [showNotes, setShowNotes] = useState(false)
@@ -47,15 +39,14 @@ export default function ExerciseCard({
 
   const completedSets = sessionExercise.sets.filter(s => s.completed).length
   const totalSets = sessionExercise.sets.length
+  const allDone = completedSets === totalSets && totalSets > 0
 
   const handleSetChange = (index: number, updated: SetLog) => {
     const newSets = [...sessionExercise.sets]
     newSets[index] = updated
-
     if (updated.completed && !sessionExercise.sets[index].completed) {
       onStartRest(exercise.restSeconds)
     }
-
     onUpdate({ ...sessionExercise, sets: newSets })
   }
 
@@ -72,71 +63,84 @@ export default function ExerciseCard({
     onUpdate({ ...sessionExercise, sets: [...sessionExercise.sets, newSet] })
   }
 
-  const trendIcon = smartRecommendation?.trend === 'up'
-    ? <TrendingUp size={12} className="text-success shrink-0" />
-    : smartRecommendation?.trend === 'down'
-    ? <TrendingDown size={12} className="text-warning shrink-0" />
-    : <Minus size={12} className="text-accent shrink-0" />
-
-  const trendColor = smartRecommendation?.trend === 'up'
-    ? 'text-success'
-    : smartRecommendation?.trend === 'down'
-    ? 'text-warning'
-    : 'text-accent'
+  const trendColor =
+    smartRecommendation?.trend === 'up' ? '#00E5A0' :
+    smartRecommendation?.trend === 'down' ? '#FFB300' : '#FF5500'
 
   return (
-    <div className="bg-bg-card border border-border rounded-xl overflow-hidden">
-      {/* Header */}
+    <div
+      className="rounded-2xl overflow-hidden"
+      style={{
+        background: '#111',
+        border: allDone ? '1px solid rgba(0,229,160,0.2)' : '1px solid #1C1C1C',
+        boxShadow: allDone ? '0 0 16px rgba(0,229,160,0.08)' : 'none',
+      }}
+    >
+      {/* Header — full tap area */}
       <div
-        className="flex items-center gap-3 p-4 cursor-pointer hover:bg-white/5 transition-colors"
+        className="flex items-center gap-3 p-4 cursor-pointer transition-colors active:bg-white/5"
         onClick={() => setExpanded(!expanded)}
       >
+        {/* Progress indicator */}
+        <div
+          className="w-1.5 self-stretch rounded-full shrink-0"
+          style={{ background: allDone ? '#00E5A0' : '#1C1C1C', minHeight: 32 }}
+        />
+
         <div className="flex-1 min-w-0">
-          <h4 className="text-sm font-semibold text-text-primary m-0 truncate font-body">
+          <h4 className="text-sm font-semibold m-0 truncate" style={{ color: '#FAFAFA' }}>
             {exName(exercise)}
           </h4>
           <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1">
-            <span className="text-xs text-text-muted">{exercise.category}</span>
+            <span className="text-xs" style={{ color: '#555' }}>{exercise.category}</span>
             {lastSession && lastSession.maxWeight > 0 && (
-              <span className="text-xs text-text-secondary">
-                Vorige: {lastSession.maxWeight}kg × {lastSession.maxReps}
+              <span className="text-xs" style={{ color: '#666' }}>
+                Vorige: {lastSession.maxWeight}kg×{lastSession.maxReps}
               </span>
             )}
             {smartRecommendation && (
-              <span className={`text-xs flex items-center gap-0.5 ${trendColor}`}>
-                {trendIcon}
+              <span className="text-xs flex items-center gap-0.5 font-medium" style={{ color: trendColor }}>
+                {smartRecommendation.trend === 'up' ? <TrendingUp size={11} /> :
+                 smartRecommendation.trend === 'down' ? <TrendingDown size={11} /> :
+                 <Minus size={11} />}
                 {smartRecommendation.weight}kg · {smartRecommendation.reps}
               </span>
             )}
             {!smartRecommendation && recommendedWeight !== null && (
-              <span className="text-xs text-accent">
+              <span className="text-xs font-medium" style={{ color: '#FF5500' }}>
                 Aanbevolen: {recommendedWeight}kg
               </span>
             )}
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className={`text-xs px-2 py-0.5 rounded-full ${
-            completedSets === totalSets && totalSets > 0
-              ? 'bg-success/20 text-success'
-              : 'bg-bg-input text-text-muted'
-          }`}>
+        <div className="flex items-center gap-2 shrink-0">
+          <span
+            className="text-xs px-2.5 py-1 rounded-full font-semibold"
+            style={allDone
+              ? { background: 'rgba(0,229,160,0.15)', color: '#00E5A0' }
+              : { background: '#1C1C1C', color: '#555' }
+            }
+          >
             {completedSets}/{totalSets}
           </span>
-          {expanded ? <ChevronUp size={16} className="text-text-muted" /> : <ChevronDown size={16} className="text-text-muted" />}
+          {expanded
+            ? <ChevronUp size={16} style={{ color: '#444' }} />
+            : <ChevronDown size={16} style={{ color: '#444' }} />
+          }
         </div>
       </div>
 
-      {/* Smart tip banner */}
+      {/* Smart tip */}
       {smartRecommendation && expanded && (
-        <div className={`mx-4 mb-2 px-3 py-2 rounded-lg text-xs ${
-          smartRecommendation.trend === 'up'
-            ? 'bg-success/10 border border-success/20 text-success'
-            : smartRecommendation.trend === 'down'
-            ? 'bg-warning/10 border border-warning/20 text-warning'
-            : 'bg-accent/10 border border-accent/20 text-accent'
-        }`}>
+        <div
+          className="mx-4 mb-2 px-3 py-2.5 rounded-xl text-xs"
+          style={{
+            background: `${trendColor}10`,
+            border: `1px solid ${trendColor}25`,
+            color: trendColor,
+          }}
+        >
           {smartRecommendation.note}
         </div>
       )}
@@ -148,7 +152,7 @@ export default function ExerciseCard({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.18 }}
             className="overflow-hidden"
           >
             <div className="px-4 pb-4 space-y-2">
@@ -161,39 +165,59 @@ export default function ExerciseCard({
                 />
               ))}
 
-              <div className="flex items-center gap-2 pt-2">
+              {/* Action row — proper touch targets */}
+              <div className="flex items-center gap-1 pt-1 flex-wrap">
+                {/* Add set */}
                 <button
                   onClick={addSet}
-                  className="text-xs text-accent hover:text-accent-hover transition-colors cursor-pointer"
+                  className="flex items-center gap-1 px-3 h-9 rounded-xl text-xs font-semibold cursor-pointer border-0 transition-colors"
+                  style={{ background: 'rgba(255,85,0,0.1)', color: '#FF5500' }}
                 >
-                  + Set toevoegen
+                  <Plus size={13} /> Set
                 </button>
+
+                {/* Rest timer */}
                 <button
                   onClick={() => onStartRest(exercise.restSeconds)}
-                  className="text-xs text-text-muted hover:text-text-secondary transition-colors flex items-center gap-1 cursor-pointer"
+                  className="flex items-center gap-1 px-3 h-9 rounded-xl text-xs font-semibold cursor-pointer border-0 transition-colors"
+                  style={{ background: '#181818', color: '#666' }}
                 >
-                  <Timer size={12} /> Rust ({exercise.restSeconds}s)
+                  <Timer size={13} /> {exercise.restSeconds}s
                 </button>
+
+                {/* Notes */}
                 <button
                   onClick={() => setShowNotes(!showNotes)}
-                  className="text-xs text-text-muted hover:text-text-secondary transition-colors flex items-center gap-1 cursor-pointer"
+                  className="flex items-center gap-1 px-3 h-9 rounded-xl text-xs font-semibold cursor-pointer border-0 transition-colors"
+                  style={{ background: '#181818', color: showNotes ? '#FF5500' : '#666' }}
                 >
-                  <MessageSquare size={12} /> Notities
+                  <MessageSquare size={13} />
+                  Notities
                 </button>
+
+                {/* Delete — push to right */}
                 <button
                   onClick={onRemove}
-                  className="text-xs text-danger/60 hover:text-danger transition-colors ml-auto cursor-pointer"
+                  className="ml-auto w-9 h-9 rounded-xl flex items-center justify-center cursor-pointer border-0 transition-colors"
+                  style={{ color: 'rgba(255,59,59,0.4)', background: 'transparent' }}
+                  onTouchStart={e => (e.currentTarget.style.color = '#FF3B3B')}
+                  onTouchEnd={e => (e.currentTarget.style.color = 'rgba(255,59,59,0.4)')}
+                  onMouseEnter={e => (e.currentTarget.style.color = '#FF3B3B')}
+                  onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,59,59,0.4)')}
                 >
-                  <Trash2 size={12} />
+                  <Trash2 size={15} />
                 </button>
               </div>
 
               {showNotes && (
-                <textarea
+                <motion.textarea
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 72 }}
                   value={sessionExercise.notes}
                   onChange={e => onUpdate({ ...sessionExercise, notes: e.target.value })}
                   placeholder="Notities voor deze oefening..."
-                  className="w-full bg-bg-input border border-border rounded-lg p-2 text-sm text-text-primary outline-none resize-none h-16 placeholder:text-text-muted"
+                  className="w-full rounded-xl p-3 text-sm outline-none resize-none placeholder:text-text-muted"
+                  style={{ background: '#181818', border: '1px solid #1C1C1C', color: '#FAFAFA', fontFamily: 'inherit' }}
                 />
               )}
             </div>

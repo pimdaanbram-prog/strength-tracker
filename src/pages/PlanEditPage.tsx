@@ -87,10 +87,12 @@ export default function PlanEditPage() {
           <label className="block text-xs text-text-muted mb-1.5 tracking-wider">NAAM</label>
           <input
             type="text"
+            inputMode="text"
+            autoComplete="off"
             value={name}
             onChange={e => { setName(e.target.value); setError('') }}
             placeholder="Bijv. Push dag, Benen + Billen, ..."
-            className="w-full bg-bg-input border border-border rounded-xl px-4 py-3 text-text-primary text-base outline-none placeholder:text-text-muted focus:border-accent transition-colors"
+            className="w-full bg-bg-input border border-border rounded-xl px-4 py-3.5 text-text-primary text-base outline-none placeholder:text-text-muted focus:border-accent transition-colors"
           />
         </div>
 
@@ -122,28 +124,33 @@ export default function PlanEditPage() {
                       <p className="text-sm text-text-primary font-medium truncate m-0">{exName(exercise)}</p>
                       <p className="text-xs text-text-muted m-0 mt-0.5">{exercise.category} · {exercise.equipment}</p>
                     </div>
-                    {/* Sets stepper */}
-                    <div className="flex items-center gap-2 shrink-0">
+                    {/* Sets stepper — 44px touch targets */}
+                    <div className="flex items-center gap-1.5 shrink-0">
                       <button
                         onClick={() => handleSetCount(i, pe.sets - 1)}
-                        className="w-7 h-7 rounded-lg bg-bg-input text-text-primary text-sm flex items-center justify-center cursor-pointer border-0 hover:bg-white/10"
+                        className="w-9 h-9 rounded-xl flex items-center justify-center cursor-pointer border-0 text-base font-bold"
+                        style={{ background: '#1C1C1C', color: '#888' }}
                       >
                         −
                       </button>
-                      <span className="text-sm text-text-primary w-6 text-center">{pe.sets}</span>
+                      <span className="text-sm font-semibold w-7 text-center" style={{ color: '#FAFAFA' }}>{pe.sets}</span>
                       <button
                         onClick={() => handleSetCount(i, pe.sets + 1)}
-                        className="w-7 h-7 rounded-lg bg-bg-input text-text-primary text-sm flex items-center justify-center cursor-pointer border-0 hover:bg-white/10"
+                        className="w-9 h-9 rounded-xl flex items-center justify-center cursor-pointer border-0 text-base font-bold"
+                        style={{ background: '#1C1C1C', color: '#888' }}
                       >
                         +
                       </button>
-                      <span className="text-xs text-text-muted">sets</span>
+                      <span className="text-xs" style={{ color: '#444' }}>sets</span>
                     </div>
                     <button
                       onClick={() => handleRemove(i)}
-                      className="p-1.5 text-danger/50 hover:text-danger transition-colors cursor-pointer bg-transparent border-0 shrink-0"
+                      className="w-9 h-9 rounded-xl flex items-center justify-center cursor-pointer bg-transparent border-0 shrink-0 transition-colors"
+                      style={{ color: 'rgba(255,59,59,0.4)' }}
+                      onMouseEnter={e => (e.currentTarget.style.color = '#FF3B3B')}
+                      onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,59,59,0.4)')}
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={16} />
                     </button>
                   </motion.div>
                 )
