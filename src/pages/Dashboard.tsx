@@ -19,6 +19,7 @@ import { useExercises } from '../hooks/useExercises'
 import { usePlans } from '../hooks/usePlans'
 import { useLanguage } from '../hooks/useLanguage'
 import { useSync } from '../hooks/useSync'
+import { useGamification } from '../hooks/useGamification'
 import { getDayLabel } from '../utils/weekUtils'
 import { workoutTemplates } from '../data/workoutTemplates'
 import Header from '../components/layout/Header'
@@ -71,6 +72,7 @@ export default function Dashboard() {
   const myPlans = getPlans()
   const { exName } = useLanguage()
   const { pullFromCloud, isSyncing, syncError, lastSyncAt } = useSync()
+  const { profileXP, currentLevel } = useGamification()
 
   const weekCount = getThisWeekSessionCount()
   const streak = getStreak()
@@ -163,6 +165,23 @@ export default function Dashboard() {
             />
 
             <div className="relative">
+              {/* XP / Level badge */}
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate('/achievements')}
+                className="absolute top-0 right-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-full cursor-pointer border-0"
+                style={{
+                  background: 'rgba(255,179,0,0.1)',
+                  border: '1px solid rgba(255,179,0,0.2)',
+                }}
+              >
+                <Trophy size={11} style={{ color: '#FFB300' }} />
+                <span className="text-[11px] font-bold" style={{ color: '#FFB300' }}>
+                  LVL {currentLevel.level}
+                </span>
+                <span className="text-[10px]" style={{ color: '#555' }}>· {profileXP} XP</span>
+              </motion.button>
+
               <p className="text-[11px] font-bold uppercase tracking-widest mb-2" style={{ color: '#444444', letterSpacing: '0.15em' }}>
                 {dayLabel}
               </p>
