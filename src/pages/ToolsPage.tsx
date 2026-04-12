@@ -335,7 +335,7 @@ export default function ToolsPage() {
 
   return (
     <>
-      <Header title="TOOLS" />
+      <Header title="TOOLS" showBack />
       <PageWrapper>
 
         {/* Hero */}

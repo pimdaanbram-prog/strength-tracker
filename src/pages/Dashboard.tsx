@@ -4,7 +4,8 @@ import { motion, type Variants } from 'framer-motion'
 import {
   Play, TrendingUp, Flame, Trophy, ChevronRight,
   Zap, Users, Plus, BookMarked, Clock, RefreshCw,
-  AlertCircle, ArrowRight, BarChart3
+  AlertCircle, ArrowRight, BarChart3,
+  Search, Ruler, Wrench, Settings, Palette,
 } from 'lucide-react'
 
 const MONTHS_SHORT = ['Jan','Feb','Mrt','Apr','Mei','Jun','Jul','Aug','Sep','Okt','Nov','Dec']
@@ -235,6 +236,45 @@ export default function Dashboard() {
                 </p>
               </motion.div>
             ))}
+          </motion.div>
+
+          {/* ─── SNELLE LINKS ───────────────────────────────────── */}
+          <motion.div variants={itemVariants} className="mb-8">
+            <SectionLabel>Snelle links</SectionLabel>
+            <div className="grid grid-cols-4 gap-2">
+              {[
+                { to: '/exercises',    icon: Search,  label: 'Oefeningen', color: '#4A8FFF'  },
+                { to: '/measurements', icon: Ruler,   label: 'Metingen',   color: '#06b6d4'  },
+                { to: '/tools',        icon: Wrench,  label: 'Tools',      color: '#00C060'  },
+                { to: '/themes',       icon: Palette, label: "Thema's",    color: '#A855F7'  },
+                { to: '/achievements', icon: Trophy,  label: 'Badges',     color: '#FFB300'  },
+                { to: '/plans',        icon: BookMarked, label: 'Plannen', color: '#00E5A0'  },
+                { to: '/profiles',     icon: Users,   label: 'Profielen',  color: '#FF5500'  },
+                { to: '/settings',     icon: Settings, label: 'Instellingen', color: '#888888' },
+              ].map(({ to, icon: Icon, label, color }) => (
+                <motion.button
+                  key={to}
+                  whileHover={{ scale: 1.06, y: -2 }}
+                  whileTap={{ scale: 0.94 }}
+                  onClick={() => navigate(to)}
+                  className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-2xl cursor-pointer border-0"
+                  style={{ background: '#111111', border: '1px solid #1C1C1C' }}
+                >
+                  <div
+                    className="w-9 h-9 rounded-xl flex items-center justify-center"
+                    style={{ background: `${color}18` }}
+                  >
+                    <Icon size={17} style={{ color }} />
+                  </div>
+                  <span
+                    className="text-[9px] font-semibold text-center leading-tight"
+                    style={{ color: '#666666' }}
+                  >
+                    {label}
+                  </span>
+                </motion.button>
+              ))}
+            </div>
           </motion.div>
 
           {/* ─── TODAY / QUICK START ────────────────────────────── */}

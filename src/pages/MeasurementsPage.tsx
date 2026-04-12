@@ -316,7 +316,7 @@ export default function MeasurementsPage() {
   // ─── Render ────────────────────────────────────────────────────────────────
   return (
     <>
-      <Header title="METINGEN" />
+      <Header title="METINGEN" showBack />
       <PageWrapper>
 
         {/* Hero */}

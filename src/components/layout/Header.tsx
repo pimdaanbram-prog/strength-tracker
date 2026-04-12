@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { ArrowLeft, LogOut, Zap } from 'lucide-react'
+import { ArrowLeft, LogOut, Zap, Settings } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import ProfileSwitcher from '../profile/ProfileSwitcher'
 import { useAuthContext } from '../../contexts/AuthContext'
@@ -90,6 +90,19 @@ export default function Header({ title, showBack = false, showProfile = true }: 
           </motion.button>
 
           {showProfile && <ProfileSwitcher />}
+
+          {/* Settings (home only) */}
+          {isHome && (
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={() => navigate('/settings')}
+              className="w-8 h-8 rounded-xl flex items-center justify-center cursor-pointer bg-transparent border-0"
+              style={{ color: '#444444' }}
+              title="Instellingen"
+            >
+              <Settings size={16} />
+            </motion.button>
+          )}
 
           {/* Logout menu (home only) */}
           {isHome && (
