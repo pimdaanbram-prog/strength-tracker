@@ -11,6 +11,8 @@ import WorkoutBuilder from '../components/workout/WorkoutBuilder'
 import RestTimer from '../components/workout/RestTimer'
 import { useWorkouts } from '../hooks/useWorkouts'
 import type { SessionExercise, SetLog } from '../hooks/useWorkouts'
+import { useGamification } from '../hooks/useGamification'
+import { useToast } from '../contexts/ToastContext'
 import { useExercises } from '../hooks/useExercises'
 import { useProfiles } from '../hooks/useProfiles'
 import { useAppStore } from '../store/appStore'
@@ -28,7 +30,9 @@ type WorkoutMode = 'choose' | 'solo' | 'samen-select' | 'samen'
 export default function WorkoutPage() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { saveSession, saveSessionForProfile, getLastExerciseSets, getSmartRecommendation } = useWorkouts()
+  const { saveSession, saveSessionForProfile, getLastExerciseSets, getSmartRecommendation, getPersonalRecords } = useWorkouts()
+  const { awardWorkoutXP } = useGamification()
+  const { showAchievement } = useToast()
   const { getExercise } = useExercises()
   const { activeProfile } = useProfiles()
   const allProfiles = useAppStore(s => s.profiles)
@@ -261,8 +265,30 @@ export default function WorkoutPage() {
     const now = new Date()
     const durationMinutes = Math.round(timer.seconds / 60)
 
+    // Snapshot existing PRs BEFORE saving so the new session doesn't inflate the comparison
+    const existingPRs = getPersonalRecords()
+    const prMap: Record<string, number> = {}
+    for (const pr of existingPRs) prMap[pr.exerciseId] = pr.weight
+
+    const findNewPRExerciseIds = (exList: SessionExercise[]): string[] =>
+      exList.reduce<string[]>((acc, ex) => {
+        const maxW = Math.max(
+          0,
+          ...ex.sets
+            .filter(s => s.weight !== null && s.weight > 0 && (s.completed || (s.reps !== null && s.reps > 0)))
+            .map(s => s.weight!)
+        )
+        if (maxW > 0 && (prMap[ex.exerciseId] == null || maxW > prMap[ex.exerciseId])) {
+          acc.push(ex.exerciseId)
+        }
+        return acc
+      }, [])
+
     if (mode === 'solo') {
       if (exercises.length === 0) return
+
+      const newPRIds = findNewPRExerciseIds(exercises)
+
       saveSession({
         date: toISODateString(now),
         dayLabel: getDayLabel(now),
@@ -272,9 +298,17 @@ export default function WorkoutPage() {
         notes,
         completedAt: now.toISOString(),
       })
+
+      for (const id of newPRIds) {
+        const ex = getExercise(id)
+        showAchievement('Nieuw PR!', ex ? exName(ex) : '')
+      }
+
+      awardWorkoutXP(durationMinutes, newPRIds.length > 0)
     } else if (mode === 'samen') {
       if (samenExerciseOrder.length === 0) return
-      // Save one session per participant
+
+      let anyPR = false
       for (const participant of samenParticipants) {
         const participantExercises = samenExercises[participant.id] || []
         saveSessionForProfile(participant.id, {
@@ -286,7 +320,15 @@ export default function WorkoutPage() {
           notes,
           completedAt: now.toISOString(),
         })
+        const newPRIds = findNewPRExerciseIds(participantExercises)
+        if (newPRIds.length > 0) anyPR = true
+        for (const id of newPRIds) {
+          const ex = getExercise(id)
+          showAchievement('Nieuw PR!', `${participant.name} — ${ex ? exName(ex) : ''}`)
+        }
       }
+
+      awardWorkoutXP(durationMinutes, anyPR)
     }
 
     timer.reset()
