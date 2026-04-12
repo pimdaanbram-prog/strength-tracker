@@ -21,6 +21,7 @@ import PlanEditPage from './pages/PlanEditPage'
 import ThemePage from './pages/ThemePage'
 import AchievementsPage from './pages/AchievementsPage'
 import ToolsPage from './pages/ToolsPage'
+import MeasurementsPage from './pages/MeasurementsPage'
 import { useSync } from './hooks/useSync'
 import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
@@ -114,6 +115,7 @@ function MainApp() {
           <Route path="/themes" element={<ThemePage />} />
           <Route path="/achievements" element={<AchievementsPage />} />
           <Route path="/tools" element={<ToolsPage />} />
+          <Route path="/measurements" element={<MeasurementsPage />} />
         </Routes>
       </AnimatePresence>
       <BottomNav />
