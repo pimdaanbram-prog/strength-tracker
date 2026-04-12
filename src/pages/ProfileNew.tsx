@@ -213,6 +213,7 @@ export default function ProfileNew() {
               <Input
                 label="Leeftijd"
                 type="number"
+                inputMode="numeric"
                 value={age}
                 onChange={(e) => setAge(e.target.value)}
                 placeholder="25"
@@ -231,6 +232,7 @@ export default function ProfileNew() {
               <Input
                 label="Gewicht (kg)"
                 type="number"
+                inputMode="decimal"
                 value={weight}
                 onChange={(e) => setWeight(e.target.value)}
                 placeholder="75"
@@ -240,6 +242,7 @@ export default function ProfileNew() {
               <Input
                 label="Lengte (cm)"
                 type="number"
+                inputMode="decimal"
                 value={height}
                 onChange={(e) => setHeight(e.target.value)}
                 placeholder="175"

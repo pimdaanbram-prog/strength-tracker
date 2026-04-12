@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import type { UnlockedAchievement } from '../data/achievements'
 
 export interface UserProfile {
   id: string
@@ -14,6 +15,48 @@ export interface UserProfile {
   createdAt: string
   avatar: string
   color: string
+  // Gamification (per profile)
+  xp?: number
+  unlockedAchievements?: UnlockedAchievement[]
+}
+
+export interface BodyWeight {
+  date: string   // YYYY-MM-DD
+  weight: number // kg
+  note?: string
+}
+
+export interface BodyMeasurement {
+  date: string
+  chest?: number
+  waist?: number
+  hips?: number
+  leftArm?: number
+  rightArm?: number
+  leftThigh?: number
+  rightThigh?: number
+  leftCalf?: number
+  rightCalf?: number
+  neck?: number
+  bodyFatPercent?: number
+  note?: string
+}
+
+// App-wide settings (not per-profile)
+export interface AppSettings {
+  defaultRestSeconds: number      // 90
+  weightStep: number              // 2.5
+  weightUnit: 'kg' | 'lbs'
+  soundEnabled: boolean
+  hapticEnabled: boolean
+}
+
+const DEFAULT_SETTINGS: AppSettings = {
+  defaultRestSeconds: 90,
+  weightStep: 2.5,
+  weightUnit: 'kg',
+  soundEnabled: true,
+  hapticEnabled: true,
 }
 
 interface AppState {
@@ -21,6 +64,7 @@ interface AppState {
   activeProfileId: string | null
   sessionVersion: number
   language: 'nl' | 'en'
+  settings: AppSettings
 
   // Computed
   getActiveProfile: () => UserProfile | null
@@ -32,6 +76,13 @@ interface AppState {
   setActiveProfile: (id: string | null) => void
   bumpSessionVersion: () => void
   setLanguage: (lang: 'nl' | 'en') => void
+  updateSettings: (updates: Partial<AppSettings>) => void
+
+  // Gamification
+  addXP: (profileId: string, amount: number) => void
+  unlockAchievement: (profileId: string, achievementId: string) => boolean  // returns true if newly unlocked
+  getProfileXP: (profileId: string) => number
+  getProfileAchievements: (profileId: string) => UnlockedAchievement[]
 }
 
 export const useAppStore = create<AppState>()(
@@ -41,6 +92,7 @@ export const useAppStore = create<AppState>()(
       activeProfileId: null,
       sessionVersion: 0,
       language: 'nl',
+      settings: DEFAULT_SETTINGS,
 
       getActiveProfile: () => {
         const { profiles, activeProfileId } = get()
@@ -78,6 +130,50 @@ export const useAppStore = create<AppState>()(
         set((state) => ({ sessionVersion: state.sessionVersion + 1 })),
 
       setLanguage: (lang) => set({ language: lang }),
+
+      updateSettings: (updates) =>
+        set((state) => ({ settings: { ...state.settings, ...updates } })),
+
+      // Gamification
+      addXP: (profileId, amount) =>
+        set((state) => ({
+          profiles: state.profiles.map((p) =>
+            p.id === profileId
+              ? { ...p, xp: (p.xp ?? 0) + amount }
+              : p
+          ),
+        })),
+
+      unlockAchievement: (profileId, achievementId) => {
+        const profile = get().profiles.find(p => p.id === profileId)
+        if (!profile) return false
+        const already = (profile.unlockedAchievements ?? []).some(a => a.id === achievementId)
+        if (already) return false
+        set((state) => ({
+          profiles: state.profiles.map((p) =>
+            p.id === profileId
+              ? {
+                  ...p,
+                  unlockedAchievements: [
+                    ...(p.unlockedAchievements ?? []),
+                    { id: achievementId, unlockedAt: new Date().toISOString() },
+                  ],
+                }
+              : p
+          ),
+        }))
+        return true
+      },
+
+      getProfileXP: (profileId) => {
+        const profile = get().profiles.find(p => p.id === profileId)
+        return profile?.xp ?? 0
+      },
+
+      getProfileAchievements: (profileId) => {
+        const profile = get().profiles.find(p => p.id === profileId)
+        return profile?.unlockedAchievements ?? []
+      },
     }),
     {
       name: 'strength-tracker-profiles',
@@ -85,7 +181,7 @@ export const useAppStore = create<AppState>()(
         profiles: state.profiles,
         activeProfileId: state.activeProfileId,
         language: state.language,
-        // sessionVersion is intentionally NOT persisted
+        settings: state.settings,
       }),
     }
   )

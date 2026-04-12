@@ -378,6 +378,8 @@ export default function WorkoutPage() {
         {/* Workout name */}
         <input
           type="text"
+          inputMode="text"
+          autoComplete="off"
           value={workoutName}
           onChange={e => setWorkoutName(e.target.value)}
           className="w-full bg-transparent text-2xl font-heading tracking-wider text-text-primary outline-none mb-1"
