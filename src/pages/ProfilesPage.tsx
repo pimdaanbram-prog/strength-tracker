@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useProfiles } from '../hooks/useProfiles'
 import { motion } from 'framer-motion'
-import { Plus, Users, CheckCircle, Trash2 } from 'lucide-react'
+import { Plus, Users, CheckCircle, Trash2, Settings, Wrench, Ruler, Trophy } from 'lucide-react'
 import Header from '../components/layout/Header'
 import PageWrapper from '../components/layout/PageWrapper'
 import Modal from '../components/ui/Modal'
@@ -179,6 +179,36 @@ export default function ProfilesPage() {
             <p className="text-sm mb-6" style={{ color: '#555' }}>Maak je eerste profiel aan om te beginnen</p>
           </div>
         )}
+
+        {/* Quick links */}
+        <div className="grid grid-cols-2 gap-3 mb-5">
+          {[
+            { to: '/measurements', icon: Ruler,   label: 'Metingen',    sub: 'Gewicht & lichaam', color: '#4A8FFF' },
+            { to: '/tools',        icon: Wrench,  label: 'Tools',       sub: 'Calculators',       color: '#00E5A0' },
+            { to: '/achievements', icon: Trophy,  label: 'Achievements', sub: 'XP & badges',      color: '#FFB300' },
+            { to: '/settings',     icon: Settings, label: 'Instellingen', sub: 'App & data',      color: '#888' },
+          ].map(({ to, icon: Icon, label, sub, color }) => (
+            <motion.button
+              key={to}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => navigate(to)}
+              className="flex items-center gap-3 p-4 rounded-2xl text-left cursor-pointer border-0"
+              style={{ background: '#111', border: '1px solid #1C1C1C' }}
+            >
+              <div
+                className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                style={{ background: `${color}15` }}
+              >
+                <Icon size={18} style={{ color }} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold m-0 text-white truncate">{label}</p>
+                <p className="text-[10px] m-0 truncate" style={{ color: '#555' }}>{sub}</p>
+              </div>
+            </motion.button>
+          ))}
+        </div>
 
         {/* Add button */}
         <motion.button
