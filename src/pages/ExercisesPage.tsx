@@ -77,9 +77,9 @@ export default function ExercisesPage() {
             { label: 'Categorieën', value: categories.length, color: '#818CF8' },
             { label: 'PR\'s gehaald', value: Object.keys(prs).length, color: '#00E5A0' },
           ].map(({ label, value, color }) => (
-            <div key={label} className="flex-1 rounded-2xl p-3 text-center" style={{ background: '#111', border: '1px solid #1C1C1C' }}>
+            <div key={label} className="flex-1 rounded-2xl p-3 text-center" style={{ background: 'var(--theme-bg-card)', border: '1px solid var(--theme-border)' }}>
               <p className="text-xl font-heading tracking-wider m-0" style={{ color }}>{value}</p>
-              <p className="text-[10px] m-0 mt-0.5" style={{ color: '#444' }}>{label}</p>
+              <p className="text-[10px] m-0 mt-0.5" style={{ color: 'var(--theme-text-muted)' }}>{label}</p>
             </div>
           ))}
         </motion.div>
@@ -91,7 +91,7 @@ export default function ExercisesPage() {
           transition={{ delay: 0.05 }}
           className="relative mb-4"
         >
-          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: '#444' }} />
+          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: 'var(--theme-text-muted)' }} />
           <input
             type="text"
             value={search}
@@ -104,7 +104,7 @@ export default function ExercisesPage() {
             <button
               onClick={() => setSearch('')}
               className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer bg-transparent border-0 text-xs px-1.5 py-0.5 rounded-lg"
-              style={{ color: '#555', background: '#1C1C1C' }}
+              style={{ color: 'var(--theme-text-secondary)', background: 'var(--theme-border)' }}
             >✕</button>
           )}
         </motion.div>
@@ -120,8 +120,8 @@ export default function ExercisesPage() {
             onClick={() => setActiveCategory(null)}
             className="shrink-0 px-4 py-2 rounded-full text-xs font-semibold cursor-pointer border-0 transition-all"
             style={!activeCategory
-              ? { background: 'linear-gradient(135deg, #FF5500, #FF8833)', color: '#fff', boxShadow: '0 4px 12px rgba(255,85,0,0.3)' }
-              : { background: '#111', color: '#666', border: '1px solid #1C1C1C' }
+              ? { background: 'linear-gradient(135deg, var(--theme-accent), var(--theme-gradient-text-to))', color: '#fff', boxShadow: 'var(--theme-accent-glow) 0 4px 12px' }
+              : { background: 'var(--theme-bg-card)', color: 'var(--theme-text-secondary)', border: '1px solid var(--theme-border)' }
             }
           >
             Alle
@@ -135,8 +135,8 @@ export default function ExercisesPage() {
                 onClick={() => setActiveCategory(cat === activeCategory ? null : cat)}
                 className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold cursor-pointer border-0 transition-all"
                 style={isActive
-                  ? { background: 'linear-gradient(135deg, #FF5500, #FF8833)', color: '#fff', boxShadow: '0 4px 12px rgba(255,85,0,0.3)' }
-                  : { background: '#111', color: '#666', border: '1px solid #1C1C1C' }
+                  ? { background: 'linear-gradient(135deg, var(--theme-accent), var(--theme-gradient-text-to))', color: '#fff', boxShadow: 'var(--theme-accent-glow) 0 4px 12px' }
+                  : { background: 'var(--theme-bg-card)', color: 'var(--theme-text-secondary)', border: '1px solid var(--theme-border)' }
                 }
               >
                 {cfg?.icon || '🏋️'} {cfg?.label || cat}
@@ -179,8 +179,8 @@ export default function ExercisesPage() {
             className="text-center py-16"
           >
             <div className="text-5xl mb-4">🔍</div>
-            <p className="font-semibold mb-1" style={{ color: '#888' }}>Geen oefeningen gevonden</p>
-            <p className="text-sm" style={{ color: '#444' }}>Probeer een andere zoekterm</p>
+            <p className="font-semibold mb-1" style={{ color: 'var(--theme-text-secondary)' }}>Geen oefeningen gevonden</p>
+            <p className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>Probeer een andere zoekterm</p>
           </motion.div>
         ) : (
           <motion.div
@@ -204,7 +204,7 @@ export default function ExercisesPage() {
                   whileTap={{ scale: 0.98 }}
                   onClick={() => navigate(`/exercises/${exercise.id}`)}
                   className="w-full flex items-center gap-3 p-3.5 rounded-2xl cursor-pointer border-0 text-left transition-colors"
-                  style={{ background: '#111', border: '1px solid #1C1C1C' }}
+                  style={{ background: 'var(--theme-bg-card)', border: '1px solid var(--theme-border)' }}
                 >
                   {/* Category color swatch */}
                   <div
@@ -215,15 +215,15 @@ export default function ExercisesPage() {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate m-0" style={{ color: '#FAFAFA' }}>
+                    <p className="text-sm font-semibold truncate m-0" style={{ color: 'var(--theme-text-primary)' }}>
                       {exName(exercise)}
                     </p>
-                    <p className="text-xs m-0 mt-0.5 truncate" style={{ color: '#555' }}>
+                    <p className="text-xs m-0 mt-0.5 truncate" style={{ color: 'var(--theme-text-secondary)' }}>
                       {exercise.equipment} · {exercise.musclesWorked.slice(0, 2).join(', ')}
                     </p>
                     {lastSession && lastSession.maxWeight > 0 && (
-                      <p className="text-xs m-0 mt-0.5" style={{ color: '#666' }}>
-                        Laatste: <span style={{ color: '#888' }}>{lastSession.maxWeight}kg × {lastSession.maxReps}</span>
+                      <p className="text-xs m-0 mt-0.5" style={{ color: 'var(--theme-text-secondary)' }}>
+                        Laatste: <span style={{ color: 'var(--theme-text-secondary)' }}>{lastSession.maxWeight}kg × {lastSession.maxReps}</span>
                       </p>
                     )}
                   </div>
@@ -231,8 +231,8 @@ export default function ExercisesPage() {
                   <div className="flex flex-col items-end gap-1.5 shrink-0">
                     {pr && (
                       <div className="flex items-center gap-1">
-                        <Trophy size={11} style={{ color: '#FFB300' }} />
-                        <span className="text-xs font-bold" style={{ color: '#FFB300' }}>{pr.weight}kg</span>
+                        <Trophy size={11} style={{ color: 'var(--theme-warning)' }} />
+                        <span className="text-xs font-bold" style={{ color: 'var(--theme-warning)' }}>{pr.weight}kg</span>
                       </div>
                     )}
                     <span
@@ -248,7 +248,7 @@ export default function ExercisesPage() {
                     )}
                   </div>
 
-                  <ChevronRight size={14} style={{ color: '#333', marginLeft: 2 }} />
+                  <ChevronRight size={14} style={{ color: 'var(--theme-text-muted)', marginLeft: 2 }} />
                 </motion.button>
               )
             })}

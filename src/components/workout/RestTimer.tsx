@@ -25,8 +25,8 @@ export default function RestTimer({ duration, onClose }: RestTimerProps) {
         transition={{ type: 'spring', damping: 26, stiffness: 300 }}
         className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl p-6 text-center relative"
         style={{
-          background: '#111',
-          border: '1px solid rgba(255,255,255,0.07)',
+          background: 'var(--theme-bg-card)',
+          border: '1px solid var(--theme-glass-border)',
           borderBottom: 'none',
           paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))',
           boxShadow: '0 -20px 60px rgba(0,0,0,0.6)',
@@ -34,7 +34,7 @@ export default function RestTimer({ duration, onClose }: RestTimerProps) {
       >
         {/* Drag handle */}
         <div className="flex justify-center mb-4 sm:hidden">
-          <div className="w-10 h-1 rounded-full" style={{ background: '#333' }} />
+          <div className="w-10 h-1 rounded-full" style={{ background: 'var(--theme-border-subtle)' }} />
         </div>
 
         {/* Header */}
@@ -44,7 +44,7 @@ export default function RestTimer({ duration, onClose }: RestTimerProps) {
           <button
             onClick={onClose}
             className="w-11 h-11 rounded-xl flex items-center justify-center cursor-pointer border-0"
-            style={{ background: '#1C1C1C', color: '#666' }}
+            style={{ background: 'var(--theme-border)', color: 'var(--theme-text-secondary)' }}
           >
             <X size={18} />
           </button>
@@ -53,11 +53,11 @@ export default function RestTimer({ duration, onClose }: RestTimerProps) {
         {/* Progress ring — responsive size */}
         <div className="relative mx-auto mb-6" style={{ width: 176, height: 176 }}>
           <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
-            <circle cx="60" cy="60" r="54" fill="none" stroke="#1C1C1C" strokeWidth="8" />
+            <circle cx="60" cy="60" r="54" fill="none" stroke="var(--theme-border)" strokeWidth="8" />
             <motion.circle
               cx="60" cy="60" r="54"
               fill="none"
-              stroke={isFinished ? '#00E5A0' : '#FF5500'}
+              stroke={isFinished ? 'var(--theme-success)' : 'var(--theme-accent)'}
               strokeWidth="8"
               strokeLinecap="round"
               strokeDasharray={`${2 * Math.PI * 54}`}
@@ -68,12 +68,12 @@ export default function RestTimer({ duration, onClose }: RestTimerProps) {
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span
               className="text-4xl font-heading tracking-wider"
-              style={{ color: isFinished ? '#00E5A0' : '#FAFAFA' }}
+              style={{ color: isFinished ? 'var(--theme-success)' : 'var(--theme-text-primary)' }}
             >
               {isFinished ? 'KLAAR!' : formatTime()}
             </span>
             {!isFinished && (
-              <span className="text-xs mt-1" style={{ color: '#444' }}>seconden</span>
+              <span className="text-xs mt-1" style={{ color: 'var(--theme-text-muted)' }}>seconden</span>
             )}
           </div>
         </div>
@@ -86,8 +86,8 @@ export default function RestTimer({ duration, onClose }: RestTimerProps) {
               onClick={isRunning ? pause : start}
               className="w-14 h-14 rounded-full flex items-center justify-center cursor-pointer border-0"
               style={{
-                background: 'linear-gradient(135deg, #FF5500, #FF8833)',
-                boxShadow: '0 6px 20px rgba(255,85,0,0.4)',
+                background: 'linear-gradient(135deg, var(--theme-accent), var(--theme-gradient-text-to))',
+                boxShadow: '0 6px 20px var(--theme-accent-glow)',
               }}
             >
               {isRunning
@@ -100,9 +100,9 @@ export default function RestTimer({ duration, onClose }: RestTimerProps) {
             whileTap={{ scale: 0.93 }}
             onClick={() => reset(duration)}
             className="w-14 h-14 rounded-full flex items-center justify-center cursor-pointer border-0"
-            style={{ background: '#1C1C1C' }}
+            style={{ background: 'var(--theme-border)' }}
           >
-            <RotateCcw size={22} style={{ color: '#888' }} />
+            <RotateCcw size={22} style={{ color: 'var(--theme-text-secondary)' }} />
           </motion.button>
           {isFinished && (
             <motion.button
@@ -121,7 +121,7 @@ export default function RestTimer({ duration, onClose }: RestTimerProps) {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-sm"
-            style={{ color: '#00E5A0' }}
+            style={{ color: 'var(--theme-success)' }}
           >
             Rusttijd voorbij — pak je volgende set!
           </motion.p>

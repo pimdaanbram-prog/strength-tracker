@@ -13,26 +13,26 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<Variant, React.CSSProperties> = {
   primary: {
-    background: 'linear-gradient(135deg, #FF5500, #FF8833)',
+    background: 'linear-gradient(135deg, var(--theme-accent), var(--theme-gradient-text-to))',
     color: '#fff',
-    boxShadow: '0 6px 20px rgba(255,85,0,0.3)',
+    boxShadow: '0 6px 20px var(--theme-accent-glow)',
     border: 'none',
   },
   secondary: {
-    background: '#111',
-    color: '#FAFAFA',
-    border: '1px solid #1C1C1C',
+    background: 'var(--theme-bg-card)',
+    color: 'var(--theme-text-primary)',
+    border: '1px solid var(--theme-border)',
     boxShadow: 'none',
   },
   danger: {
     background: 'rgba(255,59,59,0.1)',
-    color: '#FF3B3B',
+    color: 'var(--theme-error)',
     border: '1px solid rgba(255,59,59,0.2)',
     boxShadow: 'none',
   },
   ghost: {
     background: 'transparent',
-    color: '#888',
+    color: 'var(--theme-text-secondary)',
     border: 'none',
     boxShadow: 'none',
   },

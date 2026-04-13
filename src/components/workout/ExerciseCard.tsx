@@ -71,8 +71,8 @@ export default function ExerciseCard({
     <div
       className="rounded-2xl overflow-hidden"
       style={{
-        background: '#111',
-        border: allDone ? '1px solid rgba(0,229,160,0.2)' : '1px solid #1C1C1C',
+        background: 'var(--theme-bg-card)',
+        border: allDone ? '1px solid rgba(0,229,160,0.2)' : '1px solid var(--theme-border)',
         boxShadow: allDone ? '0 0 16px rgba(0,229,160,0.08)' : 'none',
       }}
     >
@@ -84,17 +84,17 @@ export default function ExerciseCard({
         {/* Progress indicator */}
         <div
           className="w-1.5 self-stretch rounded-full shrink-0"
-          style={{ background: allDone ? '#00E5A0' : '#1C1C1C', minHeight: 32 }}
+          style={{ background: allDone ? 'var(--theme-success)' : 'var(--theme-border)', minHeight: 32 }}
         />
 
         <div className="flex-1 min-w-0">
-          <h4 className="text-sm font-semibold m-0 truncate" style={{ color: '#FAFAFA' }}>
+          <h4 className="text-sm font-semibold m-0 truncate" style={{ color: 'var(--theme-text-primary)' }}>
             {exName(exercise)}
           </h4>
           <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1">
-            <span className="text-xs" style={{ color: '#555' }}>{exercise.category}</span>
+            <span className="text-xs" style={{ color: 'var(--theme-text-secondary)' }}>{exercise.category}</span>
             {lastSession && lastSession.maxWeight > 0 && (
-              <span className="text-xs" style={{ color: '#666' }}>
+              <span className="text-xs" style={{ color: 'var(--theme-text-secondary)' }}>
                 Vorige: {lastSession.maxWeight}kg×{lastSession.maxReps}
               </span>
             )}
@@ -107,7 +107,7 @@ export default function ExerciseCard({
               </span>
             )}
             {!smartRecommendation && recommendedWeight !== null && (
-              <span className="text-xs font-medium" style={{ color: '#FF5500' }}>
+              <span className="text-xs font-medium" style={{ color: 'var(--theme-accent)' }}>
                 Aanbevolen: {recommendedWeight}kg
               </span>
             )}
@@ -118,15 +118,15 @@ export default function ExerciseCard({
           <span
             className="text-xs px-2.5 py-1 rounded-full font-semibold"
             style={allDone
-              ? { background: 'rgba(0,229,160,0.15)', color: '#00E5A0' }
-              : { background: '#1C1C1C', color: '#555' }
+              ? { background: 'rgba(0,229,160,0.15)', color: 'var(--theme-success)' }
+              : { background: 'var(--theme-border)', color: 'var(--theme-text-secondary)' }
             }
           >
             {completedSets}/{totalSets}
           </span>
           {expanded
-            ? <ChevronUp size={16} style={{ color: '#444' }} />
-            : <ChevronDown size={16} style={{ color: '#444' }} />
+            ? <ChevronUp size={16} style={{ color: 'var(--theme-text-muted)' }} />
+            : <ChevronDown size={16} style={{ color: 'var(--theme-text-muted)' }} />
           }
         </div>
       </div>
@@ -171,7 +171,7 @@ export default function ExerciseCard({
                 <button
                   onClick={addSet}
                   className="flex items-center gap-1 px-3 h-9 rounded-xl text-xs font-semibold cursor-pointer border-0 transition-colors"
-                  style={{ background: 'rgba(255,85,0,0.1)', color: '#FF5500' }}
+                  style={{ background: 'var(--theme-accent-muted)', color: 'var(--theme-accent)' }}
                 >
                   <Plus size={13} /> Set
                 </button>
@@ -180,7 +180,7 @@ export default function ExerciseCard({
                 <button
                   onClick={() => onStartRest(exercise.restSeconds)}
                   className="flex items-center gap-1 px-3 h-9 rounded-xl text-xs font-semibold cursor-pointer border-0 transition-colors"
-                  style={{ background: '#181818', color: '#666' }}
+                  style={{ background: 'var(--theme-bg-input)', color: 'var(--theme-text-secondary)' }}
                 >
                   <Timer size={13} /> {exercise.restSeconds}s
                 </button>
@@ -189,7 +189,7 @@ export default function ExerciseCard({
                 <button
                   onClick={() => setShowNotes(!showNotes)}
                   className="flex items-center gap-1 px-3 h-9 rounded-xl text-xs font-semibold cursor-pointer border-0 transition-colors"
-                  style={{ background: '#181818', color: showNotes ? '#FF5500' : '#666' }}
+                  style={{ background: 'var(--theme-bg-input)', color: showNotes ? 'var(--theme-accent)' : 'var(--theme-text-secondary)' }}
                 >
                   <MessageSquare size={13} />
                   Notities
@@ -217,7 +217,7 @@ export default function ExerciseCard({
                   onChange={e => onUpdate({ ...sessionExercise, notes: e.target.value })}
                   placeholder="Notities voor deze oefening..."
                   className="w-full rounded-xl p-3 text-sm outline-none resize-none placeholder:text-text-muted"
-                  style={{ background: '#181818', border: '1px solid #1C1C1C', color: '#FAFAFA', fontFamily: 'inherit' }}
+                  style={{ background: 'var(--theme-bg-input)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)', fontFamily: 'inherit' }}
                 />
               )}
             </div>

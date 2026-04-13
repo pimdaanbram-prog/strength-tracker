@@ -36,9 +36,9 @@ const CARD_GRADIENTS = [
 ]
 
 const STAT_COLORS = {
-  week: { color: '#FF5500', bg: 'rgba(255,85,0,0.12)', glow: 'rgba(255,85,0,0.3)' },
+  week: { color: 'var(--theme-accent)', bg: 'var(--theme-accent-muted)', glow: 'var(--theme-accent-glow)' },
   streak: { color: '#FFB300', bg: 'rgba(255,179,0,0.12)', glow: 'rgba(255,179,0,0.3)' },
-  prs: { color: '#00E5A0', bg: 'rgba(0,229,160,0.12)', glow: 'rgba(0,229,160,0.3)' },
+  prs: { color: 'var(--theme-success)', bg: 'rgba(0,229,160,0.12)', glow: 'rgba(0,229,160,0.3)' },
 }
 
 const containerVariants: Variants = {
@@ -56,8 +56,8 @@ const itemVariants: Variants = {
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2 mb-3">
-      <div className="w-0.5 h-4 rounded-full" style={{ backgroundColor: '#FF5500' }} />
-      <span className="text-[11px] font-bold tracking-widest uppercase" style={{ color: '#888888', letterSpacing: '0.12em' }}>
+      <div className="w-0.5 h-4 rounded-full" style={{ backgroundColor: 'var(--theme-accent)' }} />
+      <span className="text-[11px] font-bold tracking-widest uppercase" style={{ color: 'var(--theme-text-secondary)', letterSpacing: '0.12em' }}>
         {children}
       </span>
     </div>
@@ -117,8 +117,8 @@ export default function Dashboard() {
                 <Zap size={44} fill="#FFFFFF" strokeWidth={0} />
               </motion.div>
 
-              <h1 className="text-5xl tracking-widest mb-2" style={{ color: '#FAFAFA' }}>STRENGTH</h1>
-              <p className="text-base mb-8" style={{ color: '#666666', lineHeight: 1.6 }}>
+              <h1 className="text-5xl tracking-widest mb-2" style={{ color: 'var(--theme-text-primary)' }}>STRENGTH</h1>
+              <p className="text-base mb-8" style={{ color: 'var(--theme-text-secondary)', lineHeight: 1.6 }}>
                 Volg je trainingen, meet je vooruitgang,<br />word sterker.
               </p>
               <motion.button
@@ -165,16 +165,16 @@ export default function Dashboard() {
             />
 
             <div className="relative">
-              <p className="text-[11px] font-bold uppercase tracking-widest mb-2" style={{ color: '#444444', letterSpacing: '0.15em' }}>
+              <p className="text-[11px] font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--theme-text-muted)', letterSpacing: '0.15em' }}>
                 {dayLabel}
               </p>
-              <h2 className="text-5xl tracking-wider leading-none mb-0.5" style={{ color: '#FAFAFA' }}>
+              <h2 className="text-5xl tracking-wider leading-none mb-0.5" style={{ color: 'var(--theme-text-primary)' }}>
                 HEY
               </h2>
-              <h2 className="text-5xl tracking-wider leading-none mb-3" style={{ color: '#FF5500' }}>
+              <h2 className="text-5xl tracking-wider leading-none mb-3" style={{ color: 'var(--theme-accent)' }}>
                 {activeProfile?.name?.toUpperCase()}
               </h2>
-              <p className="text-sm" style={{ color: '#666666' }}>Klaar om te trainen?</p>
+              <p className="text-sm" style={{ color: 'var(--theme-text-secondary)' }}>Klaar om te trainen?</p>
 
               {/* Sync row */}
               <div className="flex items-center gap-2 mt-3">
@@ -182,7 +182,7 @@ export default function Dashboard() {
                   onClick={pullFromCloud}
                   disabled={isSyncing}
                   className="flex items-center gap-1.5 cursor-pointer bg-transparent border-0 p-0 transition-opacity"
-                  style={{ color: '#444444', fontSize: 11, opacity: isSyncing ? 0.6 : 1 }}
+                  style={{ color: 'var(--theme-text-muted)', fontSize: 11, opacity: isSyncing ? 0.6 : 1 }}
                 >
                   <RefreshCw size={10} className={isSyncing ? 'animate-spin' : ''} />
                   {isSyncing
@@ -192,7 +192,7 @@ export default function Dashboard() {
                     : 'Sync cloud'}
                 </button>
                 {syncError && (
-                  <span className="flex items-center gap-1 text-[10px]" style={{ color: '#FF3B3B' }}>
+                  <span className="flex items-center gap-1 text-[10px]" style={{ color: 'var(--theme-error)' }}>
                     <AlertCircle size={10} /> {syncError}
                   </span>
                 )}
@@ -218,8 +218,8 @@ export default function Dashboard() {
                 whileTap={{ scale: 0.97 }}
                 className="relative overflow-hidden rounded-2xl p-4 text-center cursor-default"
                 style={{
-                  background: '#111111',
-                  border: '1px solid #1C1C1C',
+                  background: 'var(--theme-bg-card)',
+                  border: '1px solid var(--theme-border)',
                   boxShadow: `0 0 0 1px ${bg}`,
                 }}
               >
@@ -234,10 +234,10 @@ export default function Dashboard() {
                 >
                   <Icon size={18} style={{ color }} />
                 </div>
-                <p className="text-3xl font-heading tracking-wider m-0 leading-none" style={{ color: '#FAFAFA' }}>
+                <p className="text-3xl font-heading tracking-wider m-0 leading-none" style={{ color: 'var(--theme-text-primary)' }}>
                   {value}
                 </p>
-                <p className="text-[10px] font-semibold uppercase tracking-wider mt-1 m-0" style={{ color: '#444444', letterSpacing: '0.1em' }}>
+                <p className="text-[10px] font-semibold uppercase tracking-wider mt-1 m-0" style={{ color: 'var(--theme-text-muted)', letterSpacing: '0.1em' }}>
                   {label}
                 </p>
               </motion.div>
@@ -264,7 +264,7 @@ export default function Dashboard() {
                   whileTap={{ scale: 0.94 }}
                   onClick={() => navigate(to)}
                   className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-2xl cursor-pointer border-0"
-                  style={{ background: '#111111', border: '1px solid #1C1C1C' }}
+                  style={{ background: 'var(--theme-bg-card)', border: '1px solid var(--theme-border)' }}
                 >
                   <div
                     className="w-9 h-9 rounded-xl flex items-center justify-center"
@@ -274,7 +274,7 @@ export default function Dashboard() {
                   </div>
                   <span
                     className="text-[9px] font-semibold text-center leading-tight"
-                    style={{ color: '#666666' }}
+                    style={{ color: 'var(--theme-text-secondary)' }}
                   >
                     {label}
                   </span>
@@ -315,7 +315,7 @@ export default function Dashboard() {
 
                   {/* Info */}
                   <div className="absolute bottom-4 left-4 right-4">
-                    <p className="text-white text-sm font-medium m-0 mb-1" style={{ color: '#999999' }}>
+                    <p className="text-white text-sm font-medium m-0 mb-1" style={{ color: 'rgba(255,255,255,0.65)' }}>
                       AANBEVOLEN VOOR VANDAAG
                     </p>
                     <p className="text-white text-xl font-heading tracking-wider m-0">
@@ -335,13 +335,13 @@ export default function Dashboard() {
                 style={{ background: 'rgba(0,229,160,0.08)', border: '1px solid rgba(0,229,160,0.15)' }}
               >
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(0,229,160,0.15)' }}>
-                  <Trophy size={18} style={{ color: '#00E5A0' }} />
+                  <Trophy size={18} style={{ color: 'var(--theme-success)' }} />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold m-0" style={{ color: '#00E5A0' }}>
+                  <p className="text-sm font-semibold m-0" style={{ color: 'var(--theme-success)' }}>
                     Vandaag getraind!
                   </p>
-                  <p className="text-xs m-0 mt-0.5" style={{ color: '#444444' }}>
+                  <p className="text-xs m-0 mt-0.5" style={{ color: 'var(--theme-text-secondary)' }}>
                     {todaySessions.length} training{todaySessions.length > 1 ? 'en' : ''} voltooid
                   </p>
                 </div>
@@ -357,7 +357,7 @@ export default function Dashboard() {
                 <button
                   onClick={() => navigate('/history')}
                   className="flex items-center gap-1 text-xs cursor-pointer bg-transparent border-0 font-semibold"
-                  style={{ color: '#FF5500' }}
+                  style={{ color: 'var(--theme-accent)' }}
                 >
                   Alle {sessions.length} <ArrowRight size={12} />
                 </button>
@@ -373,23 +373,23 @@ export default function Dashboard() {
                     whileTap={{ scale: 0.98 }}
                     onClick={() => navigate('/history')}
                     className="w-full flex items-center gap-3 p-3 rounded-2xl text-left cursor-pointer border-0 transition-colors"
-                    style={{ background: '#111111', border: '1px solid #1C1C1C' }}
+                    style={{ background: 'var(--theme-bg-card)', border: '1px solid var(--theme-border)' }}
                   >
                     <div
                       className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                      style={{ background: 'rgba(255,85,0,0.1)', border: '1px solid rgba(255,85,0,0.15)' }}
+                      style={{ background: 'var(--theme-accent-muted)', border: '1px solid var(--theme-accent)' }}
                     >
-                      <Clock size={15} style={{ color: '#FF5500' }} />
+                      <Clock size={15} style={{ color: 'var(--theme-accent)' }} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium m-0 truncate" style={{ color: '#FAFAFA' }}>
+                      <p className="text-sm font-medium m-0 truncate" style={{ color: 'var(--theme-text-primary)' }}>
                         {session.workoutName}
                       </p>
-                      <p className="text-xs m-0 mt-0.5" style={{ color: '#555555' }}>
+                      <p className="text-xs m-0 mt-0.5" style={{ color: 'var(--theme-text-secondary)' }}>
                         {formatShortDate(session.date)} · {session.exercises.length} oef. · {session.durationMinutes} min
                       </p>
                     </div>
-                    <ChevronRight size={14} style={{ color: '#333333' }} />
+                    <ChevronRight size={14} style={{ color: 'var(--theme-text-muted)' }} />
                   </motion.button>
                 ))}
               </div>
@@ -403,7 +403,7 @@ export default function Dashboard() {
               <button
                 onClick={() => navigate('/plans')}
                 className="flex items-center gap-1 text-xs cursor-pointer bg-transparent border-0 font-semibold"
-                style={{ color: '#FF5500' }}
+                style={{ color: 'var(--theme-accent)' }}
               >
                 Alles <ArrowRight size={12} />
               </button>
@@ -416,19 +416,19 @@ export default function Dashboard() {
                 onClick={() => navigate('/plans/new')}
                 className="w-full flex items-center gap-4 p-4 rounded-2xl cursor-pointer border-0 text-left"
                 style={{
-                  background: '#111111',
-                  border: '1px dashed #282828',
+                  background: 'var(--theme-bg-card)',
+                  border: '1px dashed var(--theme-border-subtle)',
                 }}
               >
                 <div
                   className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                  style={{ background: 'rgba(255,85,0,0.1)' }}
+                  style={{ background: 'var(--theme-accent-muted)' }}
                 >
-                  <Plus size={18} style={{ color: '#FF5500' }} />
+                  <Plus size={18} style={{ color: 'var(--theme-accent)' }} />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold m-0" style={{ color: '#FAFAFA' }}>Maak je eerste plan</p>
-                  <p className="text-xs m-0 mt-0.5" style={{ color: '#555555' }}>Stel oefeningen samen en sla op</p>
+                  <p className="text-sm font-semibold m-0" style={{ color: 'var(--theme-text-primary)' }}>Maak je eerste plan</p>
+                  <p className="text-xs m-0 mt-0.5" style={{ color: 'var(--theme-text-secondary)' }}>Stel oefeningen samen en sla op</p>
                 </div>
               </motion.button>
             ) : (
@@ -440,17 +440,17 @@ export default function Dashboard() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.05 }}
                     className="flex items-center gap-3 p-3 rounded-2xl"
-                    style={{ background: '#111111', border: '1px solid #1C1C1C' }}
+                    style={{ background: 'var(--theme-bg-card)', border: '1px solid var(--theme-border)' }}
                   >
                     <div
                       className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                      style={{ background: 'rgba(255,85,0,0.1)' }}
+                      style={{ background: 'var(--theme-accent-muted)' }}
                     >
-                      <BookMarked size={16} style={{ color: '#FF5500' }} />
+                      <BookMarked size={16} style={{ color: 'var(--theme-accent)' }} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold m-0 truncate" style={{ color: '#FAFAFA' }}>{plan.name}</p>
-                      <p className="text-xs m-0 mt-0.5" style={{ color: '#555555' }}>{plan.exercises.length} oefeningen</p>
+                      <p className="text-sm font-semibold m-0 truncate" style={{ color: 'var(--theme-text-primary)' }}>{plan.name}</p>
+                      <p className="text-xs m-0 mt-0.5" style={{ color: 'var(--theme-text-secondary)' }}>{plan.exercises.length} oefeningen</p>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
                       {profiles.length >= 2 && (
@@ -458,7 +458,7 @@ export default function Dashboard() {
                           whileTap={{ scale: 0.9 }}
                           onClick={() => navigate('/workout', { state: { planId: plan.id, samen: true } })}
                           className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer border-0"
-                          style={{ background: 'rgba(255,255,255,0.05)', color: '#666666' }}
+                          style={{ background: 'var(--theme-glass)', color: 'var(--theme-text-muted)' }}
                           title="Samen trainen"
                         >
                           <Users size={13} />
@@ -468,7 +468,7 @@ export default function Dashboard() {
                         whileTap={{ scale: 0.9 }}
                         onClick={() => navigate('/workout', { state: { planId: plan.id } })}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl cursor-pointer border-0 text-xs font-bold text-white"
-                        style={{ background: 'linear-gradient(135deg, #FF5500, #FF8833)' }}
+                        style={{ background: 'linear-gradient(135deg, var(--theme-accent), var(--theme-gradient-text-to))' }}
                       >
                         <Play size={11} fill="#fff" strokeWidth={0} /> Start
                       </motion.button>
@@ -479,7 +479,7 @@ export default function Dashboard() {
                   <button
                     onClick={() => navigate('/plans')}
                     className="w-full text-xs py-2 text-center cursor-pointer bg-transparent border-0"
-                    style={{ color: '#444444' }}
+                    style={{ color: 'var(--theme-text-muted)' }}
                   >
                     +{myPlans.length - 3} meer plannen
                   </button>
@@ -495,7 +495,7 @@ export default function Dashboard() {
               <button
                 onClick={() => navigate('/workout')}
                 className="flex items-center gap-1 text-xs cursor-pointer bg-transparent border-0 font-semibold"
-                style={{ color: '#FF5500' }}
+                style={{ color: 'var(--theme-accent)' }}
               >
                 Eigen <ArrowRight size={12} />
               </button>
@@ -576,25 +576,25 @@ export default function Dashboard() {
                 style={{
                   width: 180,
                   minHeight: 220,
-                  background: '#111111',
-                  border: '1px dashed #282828',
+                  background: 'var(--theme-bg-card)',
+                  border: '1px dashed var(--theme-border-subtle)',
                 }}
               >
                 <div
                   className="w-12 h-12 rounded-2xl flex items-center justify-center"
-                  style={{ background: 'rgba(255,85,0,0.1)' }}
+                  style={{ background: 'var(--theme-accent-muted)' }}
                 >
-                  <Plus size={22} style={{ color: '#FF5500' }} />
+                  <Plus size={22} style={{ color: 'var(--theme-accent)' }} />
                 </div>
                 <div className="text-center px-4">
-                  <p className="text-sm font-semibold m-0" style={{ color: '#FAFAFA' }}>Eigen training</p>
-                  <p className="text-xs m-0 mt-1" style={{ color: '#444444' }}>Zelf samenstellen</p>
+                  <p className="text-sm font-semibold m-0" style={{ color: 'var(--theme-text-primary)' }}>Eigen training</p>
+                  <p className="text-xs m-0 mt-1" style={{ color: 'var(--theme-text-secondary)' }}>Zelf samenstellen</p>
                 </div>
               </motion.button>
             </div>
 
             {/* Swipe hint */}
-            <p className="text-center text-[10px] mt-2" style={{ color: '#333333' }}>
+            <p className="text-center text-[10px] mt-2" style={{ color: 'var(--theme-text-muted)' }}>
               ← swipe voor meer →
             </p>
           </motion.div>
@@ -607,26 +607,26 @@ export default function Dashboard() {
                 whileTap={{ scale: 0.98 }}
                 onClick={() => navigate('/workout', { state: { samen: true } })}
                 className="w-full flex items-center gap-4 p-4 rounded-2xl cursor-pointer border-0 text-left overflow-hidden relative"
-                style={{ background: '#111111', border: '1px solid #1C1C1C' }}
+                style={{ background: 'var(--theme-bg-card)', border: '1px solid var(--theme-border)' }}
               >
                 {/* Background accent */}
                 <div
                   className="absolute right-0 top-0 bottom-0 w-32 pointer-events-none"
-                  style={{ background: 'linear-gradient(to left, rgba(255,85,0,0.05), transparent)' }}
+                  style={{ background: 'linear-gradient(to left, var(--theme-accent-muted), transparent)' }}
                 />
                 <div
                   className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
-                  style={{ background: 'rgba(255,85,0,0.12)', border: '1px solid rgba(255,85,0,0.2)' }}
+                  style={{ background: 'var(--theme-accent-muted)', border: '1px solid var(--theme-accent-glow)' }}
                 >
-                  <Users size={22} style={{ color: '#FF5500' }} />
+                  <Users size={22} style={{ color: 'var(--theme-accent)' }} />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-bold m-0" style={{ color: '#FAFAFA' }}>Samen Trainen</p>
-                  <p className="text-xs m-0 mt-0.5" style={{ color: '#555555' }}>
+                  <p className="text-sm font-bold m-0" style={{ color: 'var(--theme-text-primary)' }}>Samen Trainen</p>
+                  <p className="text-xs m-0 mt-0.5" style={{ color: 'var(--theme-text-secondary)' }}>
                     Train met {profiles.length} profielen tegelijk
                   </p>
                 </div>
-                <ChevronRight size={16} style={{ color: '#333333' }} />
+                <ChevronRight size={16} style={{ color: 'var(--theme-text-muted)' }} />
               </motion.button>
             </motion.div>
           )}
@@ -645,25 +645,25 @@ export default function Dashboard() {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.07 }}
                       className="flex items-center gap-3 p-3 rounded-2xl"
-                      style={{ background: '#111111', border: '1px solid rgba(0,229,160,0.1)' }}
+                      style={{ background: 'var(--theme-bg-card)', border: '1px solid rgba(0,229,160,0.15)' }}
                     >
                       <div
                         className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                         style={{ background: 'rgba(0,229,160,0.1)' }}
                       >
-                        <TrendingUp size={16} style={{ color: '#00E5A0' }} />
+                        <TrendingUp size={16} style={{ color: 'var(--theme-success)' }} />
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm font-semibold m-0" style={{ color: '#FAFAFA' }}>
+                        <p className="text-sm font-semibold m-0" style={{ color: 'var(--theme-text-primary)' }}>
                           {exName(exercise) || pr.exerciseId}
                         </p>
-                        <p className="text-xs m-0 mt-0.5" style={{ color: '#444444' }}>{pr.date}</p>
+                        <p className="text-xs m-0 mt-0.5" style={{ color: 'var(--theme-text-secondary)' }}>{pr.date}</p>
                       </div>
                       <div className="text-right">
-                        <span className="text-base font-bold font-heading" style={{ color: '#00E5A0' }}>
+                        <span className="text-base font-bold font-heading" style={{ color: 'var(--theme-success)' }}>
                           {pr.weight}
                         </span>
-                        <span className="text-xs ml-0.5" style={{ color: '#444444' }}>kg</span>
+                        <span className="text-xs ml-0.5" style={{ color: 'var(--theme-text-secondary)' }}>kg</span>
                       </div>
                     </motion.div>
                   )
@@ -691,8 +691,8 @@ export default function Dashboard() {
                 <BarChart3 size={20} style={{ color: '#818CF8' }} />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-bold m-0" style={{ color: '#FAFAFA' }}>Wekelijkse Feedback</p>
-                <p className="text-xs m-0 mt-0.5" style={{ color: '#555555' }}>Bekijk je voortgang en aanbevelingen</p>
+                <p className="text-sm font-bold m-0" style={{ color: 'var(--theme-text-primary)' }}>Wekelijkse Feedback</p>
+                <p className="text-xs m-0 mt-0.5" style={{ color: 'var(--theme-text-secondary)' }}>Bekijk je voortgang en aanbevelingen</p>
               </div>
               <ArrowRight size={16} style={{ color: '#818CF8' }} />
             </motion.button>

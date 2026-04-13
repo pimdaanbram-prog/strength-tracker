@@ -39,7 +39,7 @@ function ScoreRing({ score }: { score: number }) {
         >
           {score}
         </motion.p>
-        <p className="text-[10px] m-0 uppercase tracking-widest" style={{ color: '#444' }}>/ 10</p>
+        <p className="text-[10px] m-0 uppercase tracking-widest" style={{ color: 'var(--theme-text-muted)' }}>/ 10</p>
       </div>
     </div>
   )
@@ -70,10 +70,10 @@ export default function WeekFeedback() {
 
   const statusIcon = (status: string) => {
     switch (status) {
-      case 'improved':  return <TrendingUp size={14} style={{ color: '#00E5A0' }} />
-      case 'regressed': return <TrendingDown size={14} style={{ color: '#FF3B3B' }} />
-      case 'new':       return <Star size={14} style={{ color: '#FF5500' }} />
-      default:          return <Minus size={14} style={{ color: '#444' }} />
+      case 'improved':  return <TrendingUp size={14} style={{ color: 'var(--theme-success)' }} />
+      case 'regressed': return <TrendingDown size={14} style={{ color: 'var(--theme-error)' }} />
+      case 'new':       return <Star size={14} style={{ color: 'var(--theme-accent)' }} />
+      default:          return <Minus size={14} style={{ color: 'var(--theme-text-muted)' }} />
     }
   }
 
@@ -89,11 +89,11 @@ export default function WeekFeedback() {
           className="text-center mb-6"
         >
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-3" style={{ background: 'rgba(255,85,0,0.1)', border: '1px solid rgba(255,85,0,0.2)' }}>
-            <Zap size={12} style={{ color: '#FF5500' }} />
-            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#FF5500', letterSpacing: '0.1em' }}>Week {weekNumber}</span>
+            <Zap size={12} style={{ color: 'var(--theme-accent)' }} />
+            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--theme-accent)', letterSpacing: '0.1em' }}>Week {weekNumber}</span>
           </div>
           <h2 className="text-3xl tracking-wider m-0">VOORTGANGSRAPPORT</h2>
-          <p className="text-sm mt-1 m-0" style={{ color: '#555' }}>Automatische analyse van je week</p>
+          <p className="text-sm mt-1 m-0" style={{ color: 'var(--theme-text-secondary)' }}>Automatische analyse van je week</p>
         </motion.div>
 
         {/* ─── Generate button ─────────────────────── */}
@@ -104,8 +104,8 @@ export default function WeekFeedback() {
           disabled={generating}
           className="w-full py-4 rounded-2xl flex items-center justify-center gap-2 cursor-pointer border-0 font-semibold text-white mb-6"
           style={{
-            background: generating ? '#333' : 'linear-gradient(135deg, #FF5500, #FF8833)',
-            boxShadow: generating ? 'none' : '0 8px 24px rgba(255,85,0,0.3)',
+            background: generating ? 'var(--theme-bg-input)' : 'linear-gradient(135deg, var(--theme-accent), var(--theme-gradient-text-to))',
+            boxShadow: generating ? 'none' : '0 8px 24px var(--theme-accent-glow)',
             fontSize: 15,
           }}
         >
@@ -127,14 +127,14 @@ export default function WeekFeedback() {
               {/* Score card */}
               <div
                 className="rounded-3xl p-6 text-center relative overflow-hidden"
-                style={{ background: '#111', border: '1px solid #1C1C1C' }}
+                style={{ background: 'var(--theme-bg-card)', border: '1px solid var(--theme-border)' }}
               >
-                <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, #FF5500, transparent)' }} />
-                <p className="text-xs font-semibold uppercase tracking-widest mb-4 m-0" style={{ color: '#444', letterSpacing: '0.12em' }}>Score van de week</p>
+                <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, var(--theme-accent), transparent)' }} />
+                <p className="text-xs font-semibold uppercase tracking-widest mb-4 m-0" style={{ color: 'var(--theme-text-muted)', letterSpacing: '0.12em' }}>Score van de week</p>
                 <div className="flex justify-center mb-4">
                   <ScoreRing score={feedback.overallScore} />
                 </div>
-                <p className="text-sm leading-relaxed m-0" style={{ color: '#888' }}>{feedback.summary}</p>
+                <p className="text-sm leading-relaxed m-0" style={{ color: 'var(--theme-text-secondary)' }}>{feedback.summary}</p>
               </div>
 
               {/* Strengths */}
@@ -146,8 +146,8 @@ export default function WeekFeedback() {
                   transition={{ type: 'spring', damping: 24 }}
                 >
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-1 h-4 rounded-full" style={{ background: '#00E5A0' }} />
-                    <p className="text-xs font-bold uppercase tracking-widest m-0" style={{ color: '#00E5A0', letterSpacing: '0.1em' }}>Sterke punten</p>
+                    <div className="w-1 h-4 rounded-full" style={{ background: 'var(--theme-success)' }} />
+                    <p className="text-xs font-bold uppercase tracking-widest m-0" style={{ color: 'var(--theme-success)', letterSpacing: '0.1em' }}>Sterke punten</p>
                   </div>
                   <div className="space-y-2">
                     {feedback.strengths.map((s, i) => (
@@ -159,8 +159,8 @@ export default function WeekFeedback() {
                         className="flex gap-3 p-3.5 rounded-2xl"
                         style={{ background: 'rgba(0,229,160,0.06)', border: '1px solid rgba(0,229,160,0.12)' }}
                       >
-                        <TrendingUp size={15} className="shrink-0 mt-0.5" style={{ color: '#00E5A0' }} />
-                        <p className="text-sm m-0 leading-relaxed" style={{ color: '#AAA' }}>{s}</p>
+                        <TrendingUp size={15} className="shrink-0 mt-0.5" style={{ color: 'var(--theme-success)' }} />
+                        <p className="text-sm m-0 leading-relaxed" style={{ color: 'var(--theme-text-secondary)' }}>{s}</p>
                       </motion.div>
                     ))}
                   </div>
@@ -176,8 +176,8 @@ export default function WeekFeedback() {
                   transition={{ type: 'spring', damping: 24 }}
                 >
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-1 h-4 rounded-full" style={{ background: '#FFB300' }} />
-                    <p className="text-xs font-bold uppercase tracking-widest m-0" style={{ color: '#FFB300', letterSpacing: '0.1em' }}>Verbeterpunten</p>
+                    <div className="w-1 h-4 rounded-full" style={{ background: 'var(--theme-warning)' }} />
+                    <p className="text-xs font-bold uppercase tracking-widest m-0" style={{ color: 'var(--theme-warning)', letterSpacing: '0.1em' }}>Verbeterpunten</p>
                   </div>
                   <div className="space-y-2">
                     {feedback.improvements.map((s, i) => (
@@ -189,8 +189,8 @@ export default function WeekFeedback() {
                         className="flex gap-3 p-3.5 rounded-2xl"
                         style={{ background: 'rgba(255,179,0,0.06)', border: '1px solid rgba(255,179,0,0.12)' }}
                       >
-                        <Target size={15} className="shrink-0 mt-0.5" style={{ color: '#FFB300' }} />
-                        <p className="text-sm m-0 leading-relaxed" style={{ color: '#AAA' }}>{s}</p>
+                        <Target size={15} className="shrink-0 mt-0.5" style={{ color: 'var(--theme-warning)' }} />
+                        <p className="text-sm m-0 leading-relaxed" style={{ color: 'var(--theme-text-secondary)' }}>{s}</p>
                       </motion.div>
                     ))}
                   </div>
@@ -219,19 +219,19 @@ export default function WeekFeedback() {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: i * 0.06 }}
                           className="p-3.5 rounded-2xl"
-                          style={{ background: '#111', border: '1px solid #1C1C1C' }}
+                          style={{ background: 'var(--theme-bg-card)', border: '1px solid var(--theme-border)' }}
                         >
                           <div className="flex items-center gap-2 mb-1">
                             {statusIcon(note.progressStatus)}
-                            <span className="text-sm font-semibold" style={{ color: '#FAFAFA' }}>
+                            <span className="text-sm font-semibold" style={{ color: 'var(--theme-text-primary)' }}>
                               {exName(exercise) || note.exerciseId}
                             </span>
                           </div>
-                          <p className="text-xs m-0" style={{ color: '#555' }}>{note.note}</p>
+                          <p className="text-xs m-0" style={{ color: 'var(--theme-text-secondary)' }}>{note.note}</p>
                           {note.previousBest > 0 && (
-                            <p className="text-xs mt-1 m-0 font-medium" style={{ color: '#444' }}>
+                            <p className="text-xs mt-1 m-0 font-medium" style={{ color: 'var(--theme-text-muted)' }}>
                               {note.previousBest}kg →{' '}
-                              <span style={{ color: note.currentBest > note.previousBest ? '#00E5A0' : '#FF3B3B' }}>
+                              <span style={{ color: note.currentBest > note.previousBest ? 'var(--theme-success)' : 'var(--theme-error)' }}>
                                 {note.currentBest}kg
                               </span>
                             </p>
@@ -252,8 +252,8 @@ export default function WeekFeedback() {
                   transition={{ type: 'spring', damping: 24 }}
                 >
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-1 h-4 rounded-full" style={{ background: '#FF5500' }} />
-                    <p className="text-xs font-bold uppercase tracking-widest m-0" style={{ color: '#FF5500', letterSpacing: '0.1em' }}>Aanbevelingen volgende week</p>
+                    <div className="w-1 h-4 rounded-full" style={{ background: 'var(--theme-accent)' }} />
+                    <p className="text-xs font-bold uppercase tracking-widest m-0" style={{ color: 'var(--theme-accent)', letterSpacing: '0.1em' }}>Aanbevelingen volgende week</p>
                   </div>
                   <div className="space-y-2">
                     {feedback.nextWeekRecommendations.map((rec, i) => {
@@ -265,18 +265,18 @@ export default function WeekFeedback() {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: i * 0.06 }}
                           className="flex items-center gap-3 p-3.5 rounded-2xl relative overflow-hidden"
-                          style={{ background: 'rgba(255,85,0,0.06)', border: '1px solid rgba(255,85,0,0.15)' }}
+                          style={{ background: 'var(--theme-accent-muted)', border: '1px solid var(--theme-accent-glow)' }}
                         >
-                          <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(255,85,0,0.15)' }}>
-                            <ArrowUp size={14} style={{ color: '#FF5500' }} />
+                          <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'var(--theme-accent-muted)' }}>
+                            <ArrowUp size={14} style={{ color: 'var(--theme-accent)' }} />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold m-0 truncate" style={{ color: '#FAFAFA' }}>
+                            <p className="text-sm font-semibold m-0 truncate" style={{ color: 'var(--theme-text-primary)' }}>
                               {exName(exercise) || rec.exerciseId}
                             </p>
-                            <p className="text-xs m-0 mt-0.5" style={{ color: '#555' }}>{rec.reason}</p>
+                            <p className="text-xs m-0 mt-0.5" style={{ color: 'var(--theme-text-secondary)' }}>{rec.reason}</p>
                           </div>
-                          <span className="text-sm font-bold shrink-0" style={{ color: '#FF5500' }}>
+                          <span className="text-sm font-bold shrink-0" style={{ color: 'var(--theme-accent)' }}>
                             {rec.recommendedWeight}kg
                           </span>
                         </motion.div>
@@ -286,7 +286,7 @@ export default function WeekFeedback() {
                 </motion.div>
               )}
 
-              <p className="text-xs text-center pt-2 m-0" style={{ color: '#333' }}>
+              <p className="text-xs text-center pt-2 m-0" style={{ color: 'var(--theme-text-muted)' }}>
                 Gegenereerd op {new Date(feedback.generatedAt).toLocaleString('nl-NL')}
               </p>
             </motion.div>
@@ -299,7 +299,7 @@ export default function WeekFeedback() {
             >
               <div className="text-6xl mb-4">📊</div>
               <h3 className="text-2xl tracking-wider mb-2">GEEN FEEDBACK</h3>
-              <p className="text-sm" style={{ color: '#555' }}>
+              <p className="text-sm" style={{ color: 'var(--theme-text-secondary)' }}>
                 Klik op de knop hierboven om je weekfeedback te genereren
               </p>
             </motion.div>

@@ -48,7 +48,7 @@ export default function ExerciseDetail() {
         <PageWrapper>
           <div className="text-center py-16">
             <div className="text-5xl mb-4">❓</div>
-            <p style={{ color: '#666' }}>Oefening niet gevonden</p>
+            <p style={{ color: 'var(--theme-text-secondary)' }}>Oefening niet gevonden</p>
           </div>
         </PageWrapper>
       </>
@@ -114,15 +114,15 @@ export default function ExerciseDetail() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
           className="rounded-2xl p-4 mb-4"
-          style={{ background: '#111', border: '1px solid #1C1C1C' }}
+          style={{ background: 'var(--theme-bg-card)', border: '1px solid var(--theme-border)' }}
         >
           <div className="flex items-center gap-2 mb-3">
-            <Target size={14} style={{ color: '#FF5500' }} />
-            <p className="text-xs font-semibold uppercase tracking-widest m-0" style={{ color: '#666', letterSpacing: '0.1em' }}>Spiergroepen</p>
+            <Target size={14} style={{ color: 'var(--theme-accent)' }} />
+            <p className="text-xs font-semibold uppercase tracking-widest m-0" style={{ color: 'var(--theme-text-secondary)', letterSpacing: '0.1em' }}>Spiergroepen</p>
           </div>
           <div className="flex flex-wrap gap-1.5">
             {exercise.musclesWorked.map(m => (
-              <span key={m} className="text-xs px-2.5 py-1 rounded-full capitalize" style={{ background: '#181818', color: '#888', border: '1px solid #222' }}>
+              <span key={m} className="text-xs px-2.5 py-1 rounded-full capitalize" style={{ background: 'var(--theme-bg-input)', color: 'var(--theme-text-secondary)', border: '1px solid var(--theme-border)' }}>
                 {m}
               </span>
             ))}
@@ -138,13 +138,13 @@ export default function ExerciseDetail() {
             className="rounded-2xl p-4 mb-4 relative overflow-hidden"
             style={{ background: 'rgba(255,85,0,0.08)', border: '1px solid rgba(255,85,0,0.2)' }}
           >
-            <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, #FF5500, transparent)' }} />
+            <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, var(--theme-accent), transparent)' }} />
             <div className="flex items-center gap-2 mb-2">
-              <Zap size={14} style={{ color: '#FF5500' }} />
-              <p className="text-xs font-semibold uppercase tracking-widest m-0" style={{ color: '#FF5500', letterSpacing: '0.1em' }}>Aanbevolen voor jou</p>
+              <Zap size={14} style={{ color: 'var(--theme-accent)' }} />
+              <p className="text-xs font-semibold uppercase tracking-widest m-0" style={{ color: 'var(--theme-accent)', letterSpacing: '0.1em' }}>Aanbevolen voor jou</p>
             </div>
             <p className="text-4xl font-heading tracking-wider m-0">{recommended} <span className="text-2xl">KG</span></p>
-            <p className="text-xs mt-1 m-0" style={{ color: '#666' }}>
+            <p className="text-xs mt-1 m-0" style={{ color: 'var(--theme-text-secondary)' }}>
               {exercise.defaultSets} sets · {exercise.defaultReps} reps · {exercise.restSeconds}s rust
             </p>
           </motion.div>
@@ -158,7 +158,7 @@ export default function ExerciseDetail() {
           transition={{ delay: 0.1 }}
           className="mb-4"
         >
-          <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: '#444', letterSpacing: '0.1em' }}>Video Tutorial</p>
+          <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--theme-text-muted)', letterSpacing: '0.1em' }}>Video Tutorial</p>
           <a
             href={youtubeSearch}
             target="_blank"
@@ -208,8 +208,8 @@ export default function ExerciseDetail() {
               onClick={() => setActiveTab(tab.key)}
               className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold shrink-0 transition-all cursor-pointer border-0"
               style={activeTab === tab.key
-                ? { background: 'linear-gradient(135deg, #FF5500, #FF8833)', color: '#fff', boxShadow: '0 4px 12px rgba(255,85,0,0.3)' }
-                : { background: '#111', color: '#555', border: '1px solid #1C1C1C' }
+                ? { background: 'linear-gradient(135deg, var(--theme-accent), var(--theme-gradient-text-to))', color: '#fff', boxShadow: 'var(--theme-accent-glow) 0 4px 12px' }
+                : { background: 'var(--theme-bg-card)', color: 'var(--theme-text-secondary)', border: '1px solid var(--theme-border)' }
               }
             >
               <tab.icon size={12} />
@@ -237,15 +237,15 @@ export default function ExerciseDetail() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.06, type: 'spring', damping: 24 }}
                     className="flex gap-3 p-3.5 rounded-2xl"
-                    style={{ background: '#111', border: '1px solid #1C1C1C' }}
+                    style={{ background: 'var(--theme-bg-card)', border: '1px solid var(--theme-border)' }}
                   >
                     <span
                       className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5"
-                      style={{ background: 'rgba(255,85,0,0.15)', color: '#FF5500', minWidth: 24 }}
+                      style={{ background: 'var(--theme-accent-muted)', color: 'var(--theme-accent)', minWidth: 24 }}
                     >
                       {i + 1}
                     </span>
-                    <p className="text-sm m-0 leading-relaxed" style={{ color: '#AAA' }}>{step}</p>
+                    <p className="text-sm m-0 leading-relaxed" style={{ color: 'var(--theme-text-secondary)' }}>{step}</p>
                   </motion.div>
                 ))}
               </div>
@@ -262,8 +262,8 @@ export default function ExerciseDetail() {
                     className="flex gap-3 p-3.5 rounded-2xl"
                     style={{ background: 'rgba(255,179,0,0.05)', border: '1px solid rgba(255,179,0,0.12)' }}
                   >
-                    <Lightbulb size={16} className="shrink-0 mt-0.5" style={{ color: '#FFB300' }} />
-                    <p className="text-sm m-0 leading-relaxed" style={{ color: '#AAA' }}>{tip}</p>
+                    <Lightbulb size={16} className="shrink-0 mt-0.5" style={{ color: 'var(--theme-warning)' }} />
+                    <p className="text-sm m-0 leading-relaxed" style={{ color: 'var(--theme-text-secondary)' }}>{tip}</p>
                   </motion.div>
                 ))}
               </div>
@@ -280,8 +280,8 @@ export default function ExerciseDetail() {
                     className="flex gap-3 p-3.5 rounded-2xl"
                     style={{ background: 'rgba(255,59,59,0.05)', border: '1px solid rgba(255,59,59,0.12)' }}
                   >
-                    <AlertTriangle size={16} className="shrink-0 mt-0.5" style={{ color: '#FF3B3B' }} />
-                    <p className="text-sm m-0 leading-relaxed" style={{ color: '#AAA' }}>{mistake}</p>
+                    <AlertTriangle size={16} className="shrink-0 mt-0.5" style={{ color: 'var(--theme-error)' }} />
+                    <p className="text-sm m-0 leading-relaxed" style={{ color: 'var(--theme-text-secondary)' }}>{mistake}</p>
                   </motion.div>
                 ))}
               </div>
@@ -293,9 +293,9 @@ export default function ExerciseDetail() {
                   <>
                     <div
                       className="rounded-2xl p-4 mb-3"
-                      style={{ background: '#111', border: '1px solid #1C1C1C' }}
+                      style={{ background: 'var(--theme-bg-card)', border: '1px solid var(--theme-border)' }}
                     >
-                      <p className="text-xs font-semibold uppercase tracking-widest mb-3 m-0" style={{ color: '#444', letterSpacing: '0.1em' }}>
+                      <p className="text-xs font-semibold uppercase tracking-widest mb-3 m-0" style={{ color: 'var(--theme-text-muted)', letterSpacing: '0.1em' }}>
                         Gewicht progressie (kg)
                       </p>
                       <div className="h-48">
@@ -303,20 +303,20 @@ export default function ExerciseDetail() {
                           <AreaChart data={history} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                             <defs>
                               <linearGradient id="weightGrad" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#FF5500" stopOpacity={0.3} />
-                                <stop offset="95%" stopColor="#FF5500" stopOpacity={0} />
+                                <stop offset="5%" stopColor="var(--theme-accent)" stopOpacity={0.3} />
+                                <stop offset="95%" stopColor="var(--theme-accent)" stopOpacity={0} />
                               </linearGradient>
                             </defs>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#1C1C1C" />
-                            <XAxis dataKey="date" tick={{ fill: '#444', fontSize: 10 }} tickFormatter={v => v.slice(5).replace('-', '/')} />
-                            <YAxis tick={{ fill: '#444', fontSize: 10 }} width={36} unit="kg" />
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--theme-border)" />
+                            <XAxis dataKey="date" tick={{ fill: 'var(--theme-text-muted)', fontSize: 10 }} tickFormatter={v => v.slice(5).replace('-', '/')} />
+                            <YAxis tick={{ fill: 'var(--theme-text-muted)', fontSize: 10 }} width={36} unit="kg" />
                             <Tooltip
-                              contentStyle={{ background: '#181818', border: '1px solid #282828', borderRadius: 12 }}
-                              labelStyle={{ color: '#888' }}
-                              itemStyle={{ color: '#FF5500' }}
+                              contentStyle={{ background: 'var(--theme-bg-input)', border: '1px solid var(--theme-border-subtle)', borderRadius: 12 }}
+                              labelStyle={{ color: 'var(--theme-text-secondary)' }}
+                              itemStyle={{ color: 'var(--theme-accent)' }}
                               formatter={(v) => [`${v}kg`, 'Max gewicht']}
                             />
-                            <Area type="monotone" dataKey="maxWeight" stroke="#FF5500" strokeWidth={2} fill="url(#weightGrad)" dot={{ fill: '#FF5500', r: 4, strokeWidth: 0 }} activeDot={{ r: 6 }} />
+                            <Area type="monotone" dataKey="maxWeight" stroke="var(--theme-accent)" strokeWidth={2} fill="url(#weightGrad)" dot={{ fill: 'var(--theme-accent)', r: 4, strokeWidth: 0 }} activeDot={{ r: 6 }} />
                           </AreaChart>
                         </ResponsiveContainer>
                       </div>
@@ -327,10 +327,10 @@ export default function ExerciseDetail() {
                         <div
                           key={i}
                           className="flex items-center justify-between px-3 py-2.5 rounded-xl"
-                          style={{ background: i === 0 ? 'rgba(255,85,0,0.06)' : '#111', border: `1px solid ${i === 0 ? 'rgba(255,85,0,0.15)' : '#1C1C1C'}` }}
+                          style={{ background: i === 0 ? 'var(--theme-accent-muted)' : 'var(--theme-bg-card)', border: `1px solid ${i === 0 ? 'var(--theme-accent-glow)' : 'var(--theme-border)'}` }}
                         >
-                          <span className="text-xs" style={{ color: '#555' }}>{h.date}</span>
-                          <span className="text-sm font-semibold" style={{ color: i === 0 ? '#FF5500' : '#888' }}>
+                          <span className="text-xs" style={{ color: 'var(--theme-text-secondary)' }}>{h.date}</span>
+                          <span className="text-sm font-semibold" style={{ color: i === 0 ? 'var(--theme-accent)' : 'var(--theme-text-secondary)' }}>
                             {h.maxWeight}kg × {h.maxReps}
                           </span>
                         </div>
@@ -338,15 +338,15 @@ export default function ExerciseDetail() {
                     </div>
                   </>
                 ) : history.length === 1 ? (
-                  <div className="rounded-2xl p-5 text-center" style={{ background: '#111', border: '1px solid #1C1C1C' }}>
-                    <TrendingUp size={28} className="mx-auto mb-3" style={{ color: '#333' }} />
-                    <p className="text-sm font-semibold m-0" style={{ color: '#888' }}>Eerste sessie: {history[0].maxWeight}kg × {history[0].maxReps} reps</p>
-                    <p className="text-xs mt-1 m-0" style={{ color: '#444' }}>Train nog een keer voor een progressiegrafiek</p>
+                  <div className="rounded-2xl p-5 text-center" style={{ background: 'var(--theme-bg-card)', border: '1px solid var(--theme-border)' }}>
+                    <TrendingUp size={28} className="mx-auto mb-3" style={{ color: 'var(--theme-text-muted)' }} />
+                    <p className="text-sm font-semibold m-0" style={{ color: 'var(--theme-text-secondary)' }}>Eerste sessie: {history[0].maxWeight}kg × {history[0].maxReps} reps</p>
+                    <p className="text-xs mt-1 m-0" style={{ color: 'var(--theme-text-muted)' }}>Train nog een keer voor een progressiegrafiek</p>
                   </div>
                 ) : (
-                  <div className="rounded-2xl p-5 text-center" style={{ background: '#111', border: '1px solid #1C1C1C' }}>
-                    <TrendingUp size={28} className="mx-auto mb-3" style={{ color: '#333' }} />
-                    <p className="text-sm m-0" style={{ color: '#555' }}>Nog geen geschiedenis voor deze oefening</p>
+                  <div className="rounded-2xl p-5 text-center" style={{ background: 'var(--theme-bg-card)', border: '1px solid var(--theme-border)' }}>
+                    <TrendingUp size={28} className="mx-auto mb-3" style={{ color: 'var(--theme-text-muted)' }} />
+                    <p className="text-sm m-0" style={{ color: 'var(--theme-text-secondary)' }}>Nog geen geschiedenis voor deze oefening</p>
                   </div>
                 )}
               </div>
@@ -361,8 +361,8 @@ export default function ExerciseDetail() {
           onClick={() => navigate('/workout', { state: { addExercise: exercise.id } })}
           className="w-full py-4 rounded-2xl flex items-center justify-center gap-2 cursor-pointer border-0 font-semibold text-white"
           style={{
-            background: 'linear-gradient(135deg, #FF5500, #FF8833)',
-            boxShadow: '0 8px 24px rgba(255,85,0,0.35)',
+            background: 'linear-gradient(135deg, var(--theme-accent), var(--theme-gradient-text-to))',
+            boxShadow: '0 8px 24px var(--theme-accent-glow)',
             fontSize: 16,
           }}
         >

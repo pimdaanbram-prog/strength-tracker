@@ -46,18 +46,18 @@ export default function PlansPage() {
           className="w-full flex items-center gap-3 p-4 mb-6 rounded-2xl cursor-pointer border-0 text-left relative overflow-hidden"
           style={{ background: 'rgba(255,85,0,0.08)', border: '1px solid rgba(255,85,0,0.2)' }}
         >
-          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, #FF5500, transparent)' }} />
+          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, var(--theme-accent), transparent)' }} />
           <div
             className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
-            style={{ background: 'rgba(255,85,0,0.15)', border: '1px solid rgba(255,85,0,0.25)' }}
+            style={{ background: 'var(--theme-accent-muted)', border: '1px solid var(--theme-accent-glow)' }}
           >
-            <Plus size={20} style={{ color: '#FF5500' }} />
+            <Plus size={20} style={{ color: 'var(--theme-accent)' }} />
           </div>
           <div className="flex-1">
-            <p className="text-sm font-semibold m-0" style={{ color: '#FAFAFA' }}>Nieuw Trainingsplan</p>
-            <p className="text-xs m-0 mt-0.5" style={{ color: '#555' }}>Stel zelf oefeningen samen</p>
+            <p className="text-sm font-semibold m-0" style={{ color: 'var(--theme-text-primary)' }}>Nieuw Trainingsplan</p>
+            <p className="text-xs m-0 mt-0.5" style={{ color: 'var(--theme-text-secondary)' }}>Stel zelf oefeningen samen</p>
           </div>
-          <ChevronRight size={16} style={{ color: '#333' }} />
+          <ChevronRight size={16} style={{ color: 'var(--theme-text-muted)' }} />
         </motion.button>
 
         {/* ─── Plans list ──────────────────────────── */}
@@ -70,14 +70,14 @@ export default function PlansPage() {
             >
               <div className="text-6xl mb-4">📋</div>
               <h3 className="text-2xl tracking-wider mb-2">GEEN PLANNEN</h3>
-              <p className="text-sm mb-6" style={{ color: '#555' }}>
+              <p className="text-sm mb-6" style={{ color: 'var(--theme-text-secondary)' }}>
                 Maak je eerste plan — kies oefeningen en sla op voor later
               </p>
               <motion.button
                 whileTap={{ scale: 0.97 }}
                 onClick={() => navigate('/plans/new')}
                 className="px-6 py-3 text-white rounded-2xl font-semibold cursor-pointer border-0"
-                style={{ background: 'linear-gradient(135deg, #FF5500, #FF8833)', boxShadow: '0 8px 24px rgba(255,85,0,0.3)' }}
+                style={{ background: 'linear-gradient(135deg, var(--theme-accent), var(--theme-gradient-text-to))', boxShadow: '0 8px 24px var(--theme-accent-glow)' }}
               >
                 Plan Maken
               </motion.button>
@@ -85,7 +85,7 @@ export default function PlansPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            <p className="text-xs uppercase tracking-widest m-0 mb-1" style={{ color: '#333', letterSpacing: '0.12em' }}>
+            <p className="text-xs uppercase tracking-widest m-0 mb-1" style={{ color: 'var(--theme-text-muted)', letterSpacing: '0.12em' }}>
               Opgeslagen plannen — {plans.length}
             </p>
 
@@ -96,12 +96,12 @@ export default function PlansPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.06, type: 'spring', damping: 24 }}
                 className="rounded-3xl overflow-hidden"
-                style={{ background: '#111', border: '1px solid #1C1C1C' }}
+                style={{ background: 'var(--theme-bg-card)', border: '1px solid var(--theme-border)' }}
               >
                 {/* Gradient hero strip */}
                 <div className={`relative h-24 ${PLAN_GRADIENTS[i % PLAN_GRADIENTS.length]}`}>
                   <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, rgba(0,0,0,0.6), rgba(0,0,0,0.2))' }} />
-                  <div className="absolute bottom-0 left-0 right-0 h-12" style={{ background: 'linear-gradient(to top, #111, transparent)' }} />
+                  <div className="absolute bottom-0 left-0 right-0 h-12" style={{ background: 'linear-gradient(to top, var(--theme-bg-card), transparent)' }} />
 
                   <div className="absolute inset-0 flex items-center px-4 gap-3">
                     <div
@@ -150,14 +150,14 @@ export default function PlansPage() {
                         <span
                           key={pe.exerciseId}
                           className="text-xs px-2.5 py-1 rounded-full"
-                          style={{ background: '#181818', color: '#666', border: '1px solid #222' }}
+                          style={{ background: 'var(--theme-bg-input)', color: 'var(--theme-text-secondary)', border: '1px solid var(--theme-border)' }}
                         >
                           {exName(ex)}
                         </span>
                       ) : null
                     })}
                     {plan.exercises.length > 5 && (
-                      <span className="text-xs px-2 py-1" style={{ color: '#444' }}>
+                      <span className="text-xs px-2 py-1" style={{ color: 'var(--theme-text-muted)' }}>
                         +{plan.exercises.length - 5} meer
                       </span>
                     )}
@@ -170,7 +170,7 @@ export default function PlansPage() {
                       whileTap={{ scale: 0.97 }}
                       onClick={() => navigate('/workout', { state: { planId: plan.id } })}
                       className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-white text-xs font-bold rounded-xl cursor-pointer border-0"
-                      style={{ background: 'linear-gradient(135deg, #FF5500, #FF8833)', boxShadow: '0 4px 12px rgba(255,85,0,0.25)' }}
+                      style={{ background: 'linear-gradient(135deg, var(--theme-accent), var(--theme-gradient-text-to))', boxShadow: '0 4px 12px var(--theme-accent-glow)' }}
                     >
                       <Play size={13} fill="#fff" strokeWidth={0} />
                       Solo starten
@@ -180,7 +180,7 @@ export default function PlansPage() {
                         whileTap={{ scale: 0.97 }}
                         onClick={() => navigate('/workout', { state: { planId: plan.id, samen: true } })}
                         className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold rounded-xl cursor-pointer border-0"
-                        style={{ background: '#181818', color: '#888', border: '1px solid #222' }}
+                        style={{ background: 'var(--theme-bg-input)', color: 'var(--theme-text-secondary)', border: '1px solid var(--theme-border)' }}
                       >
                         <Users size={13} />
                         Samen

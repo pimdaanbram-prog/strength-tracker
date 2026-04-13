@@ -129,19 +129,19 @@ export default function PlanEditPage() {
                       <button
                         onClick={() => handleSetCount(i, pe.sets - 1)}
                         className="w-9 h-9 rounded-xl flex items-center justify-center cursor-pointer border-0 text-base font-bold"
-                        style={{ background: '#1C1C1C', color: '#888' }}
+                        style={{ background: 'var(--theme-border)', color: 'var(--theme-text-secondary)' }}
                       >
                         −
                       </button>
-                      <span className="text-sm font-semibold w-7 text-center" style={{ color: '#FAFAFA' }}>{pe.sets}</span>
+                      <span className="text-sm font-semibold w-7 text-center" style={{ color: 'var(--theme-text-primary)' }}>{pe.sets}</span>
                       <button
                         onClick={() => handleSetCount(i, pe.sets + 1)}
                         className="w-9 h-9 rounded-xl flex items-center justify-center cursor-pointer border-0 text-base font-bold"
-                        style={{ background: '#1C1C1C', color: '#888' }}
+                        style={{ background: 'var(--theme-border)', color: 'var(--theme-text-secondary)' }}
                       >
                         +
                       </button>
-                      <span className="text-xs" style={{ color: '#444' }}>sets</span>
+                      <span className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>sets</span>
                     </div>
                     <button
                       onClick={() => handleRemove(i)}

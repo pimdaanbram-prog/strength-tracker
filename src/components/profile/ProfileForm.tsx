@@ -37,8 +37,8 @@ export function EmojiPicker({ emojis, selected, onSelect }: EmojiPickerProps) {
             }
           `}
           style={selected === emoji
-            ? { background: 'rgba(255,85,0,0.15)', borderColor: '#FF5500' }
-            : { background: '#181818' }
+            ? { background: 'var(--theme-accent-muted)', borderColor: 'var(--theme-accent)' }
+            : { background: 'var(--theme-bg-input)' }
           }
         >
           {emoji}
@@ -66,8 +66,8 @@ export function OptionCard({ title, description, icon, selected, onSelect }: Opt
       <div
         className="w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-colors duration-200"
         style={selected
-          ? { borderColor: '#FF5500', background: '#FF5500' }
-          : { borderColor: '#282828', background: 'transparent' }
+          ? { borderColor: 'var(--theme-accent)', background: 'var(--theme-accent)' }
+          : { borderColor: 'var(--theme-border-subtle)', background: 'transparent' }
         }
       >
         {selected && <div className="w-2 h-2 rounded-full bg-white" />}
@@ -85,8 +85,8 @@ export function Chip({ label, selected, onToggle, color }: ChipProps) {
       onClick={onToggle}
       className="px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer border"
       style={selected
-        ? { background: color || '#FF5500', borderColor: color || '#FF5500', color: '#fff' }
-        : { background: '#181818', borderColor: '#1C1C1C', color: '#888' }
+        ? { background: color || 'var(--theme-accent)', borderColor: color || 'var(--theme-accent)', color: '#fff' }
+        : { background: 'var(--theme-bg-input)', borderColor: 'var(--theme-border)', color: 'var(--theme-text-secondary)' }
       }
     >
       {label}

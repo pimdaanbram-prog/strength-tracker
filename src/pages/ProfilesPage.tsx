@@ -37,8 +37,8 @@ function PremiumProfileCard({
       style={{
         background: isActive
           ? `linear-gradient(135deg, ${color}18 0%, ${color}08 100%)`
-          : '#111',
-        border: `1px solid ${isActive ? color + '40' : '#1C1C1C'}`,
+          : 'var(--theme-bg-card)',
+        border: `1px solid ${isActive ? color + '40' : 'var(--theme-border)'}`,
         boxShadow: isActive ? `0 8px 32px ${color}20` : 'none',
       }}
     >
@@ -83,7 +83,7 @@ function PremiumProfileCard({
       </div>
 
       {/* Name */}
-      <h3 className="text-lg font-bold m-0 mb-1" style={{ color: '#FAFAFA' }}>{profile.name}</h3>
+      <h3 className="text-lg font-bold m-0 mb-1" style={{ color: 'var(--theme-text-primary)' }}>{profile.name}</h3>
 
       {/* Level badge */}
       <span
@@ -101,8 +101,8 @@ function PremiumProfileCard({
           { label: 'jr', value: profile.age },
         ].map(({ label, value }) => (
           <div key={label} className="text-center">
-            <p className="text-sm font-semibold m-0" style={{ color: '#888' }}>{value}</p>
-            <p className="text-[9px] m-0" style={{ color: '#444' }}>{label}</p>
+            <p className="text-sm font-semibold m-0" style={{ color: 'var(--theme-text-secondary)' }}>{value}</p>
+            <p className="text-[9px] m-0" style={{ color: 'var(--theme-text-muted)' }}>{label}</p>
           </div>
         ))}
       </div>
@@ -136,11 +136,11 @@ export default function ProfilesPage() {
             className="w-12 h-12 rounded-2xl flex items-center justify-center"
             style={{ background: 'rgba(255,85,0,0.1)', border: '1px solid rgba(255,85,0,0.2)' }}
           >
-            <Users size={22} style={{ color: '#FF5500' }} />
+            <Users size={22} style={{ color: 'var(--theme-accent)' }} />
           </div>
           <div>
             <h2 className="text-2xl tracking-wider m-0">PROFIELEN</h2>
-            <p className="text-xs m-0 mt-0.5" style={{ color: '#555' }}>
+            <p className="text-xs m-0 mt-0.5" style={{ color: 'var(--theme-text-secondary)' }}>
               {profiles.length} {profiles.length === 1 ? 'profiel' : 'profielen'} aangemaakt
             </p>
           </div>
@@ -176,7 +176,7 @@ export default function ProfilesPage() {
           <div className="text-center py-16">
             <div className="text-6xl mb-4">💪</div>
             <h2 className="text-2xl tracking-wider mb-2">GEEN PROFIELEN</h2>
-            <p className="text-sm mb-6" style={{ color: '#555' }}>Maak je eerste profiel aan om te beginnen</p>
+            <p className="text-sm mb-6" style={{ color: 'var(--theme-text-secondary)' }}>Maak je eerste profiel aan om te beginnen</p>
           </div>
         )}
 
@@ -194,7 +194,7 @@ export default function ProfilesPage() {
               whileTap={{ scale: 0.97 }}
               onClick={() => navigate(to)}
               className="flex items-center gap-3 p-4 rounded-2xl text-left cursor-pointer border-0"
-              style={{ background: '#111', border: '1px solid #1C1C1C' }}
+              style={{ background: 'var(--theme-bg-card)', border: '1px solid var(--theme-border)' }}
             >
               <div
                 className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
@@ -203,8 +203,8 @@ export default function ProfilesPage() {
                 <Icon size={18} style={{ color }} />
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-semibold m-0 text-white truncate">{label}</p>
-                <p className="text-[10px] m-0 truncate" style={{ color: '#555' }}>{sub}</p>
+                <p className="text-sm font-semibold m-0 truncate" style={{ color: 'var(--theme-text-primary)' }}>{label}</p>
+                <p className="text-[10px] m-0 truncate" style={{ color: 'var(--theme-text-secondary)' }}>{sub}</p>
               </div>
             </motion.button>
           ))}
@@ -217,8 +217,8 @@ export default function ProfilesPage() {
           onClick={() => navigate('/profiles/new')}
           className="w-full py-4 rounded-2xl flex items-center justify-center gap-2 cursor-pointer border-0 font-semibold text-white"
           style={{
-            background: 'linear-gradient(135deg, #FF5500, #FF8833)',
-            boxShadow: '0 8px 24px rgba(255,85,0,0.3)',
+            background: 'linear-gradient(135deg, var(--theme-accent), var(--theme-gradient-text-to))',
+            boxShadow: '0 8px 24px var(--theme-accent-glow)',
             fontSize: 15,
           }}
         >
@@ -228,23 +228,23 @@ export default function ProfilesPage() {
 
         {/* Delete modal */}
         <Modal isOpen={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Profiel Verwijderen">
-          <p className="text-sm mb-6 leading-relaxed" style={{ color: '#888' }}>
+          <p className="text-sm mb-6 leading-relaxed" style={{ color: 'var(--theme-text-secondary)' }}>
             Weet je zeker dat je het profiel van{' '}
-            <strong style={{ color: '#FAFAFA' }}>{profileToDelete?.name}</strong>{' '}
+            <strong style={{ color: 'var(--theme-text-primary)' }}>{profileToDelete?.name}</strong>{' '}
             wilt verwijderen? Dit kan niet ongedaan worden gemaakt.
           </p>
           <div className="flex gap-3">
             <button
               onClick={() => setDeleteTarget(null)}
               className="flex-1 py-3 rounded-2xl font-semibold cursor-pointer border-0"
-              style={{ background: '#181818', color: '#888', border: '1px solid #1C1C1C' }}
+              style={{ background: 'var(--theme-bg-input)', color: 'var(--theme-text-secondary)', border: '1px solid var(--theme-border)' }}
             >
               Annuleren
             </button>
             <button
               onClick={handleDelete}
               className="flex-1 py-3 rounded-2xl font-semibold cursor-pointer border-0 text-white"
-              style={{ background: 'rgba(255,59,59,0.15)', color: '#FF3B3B', border: '1px solid rgba(255,59,59,0.2)' }}
+              style={{ background: 'rgba(255,59,59,0.15)', color: 'var(--theme-error)', border: '1px solid rgba(255,59,59,0.2)' }}
             >
               Verwijderen
             </button>

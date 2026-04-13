@@ -30,10 +30,10 @@ export default function Header({ title, showBack = false, showProfile = true }: 
     <header
       className="sticky top-0 z-40"
       style={{
-        background: 'rgba(6, 6, 6, 0.85)',
+        background: 'var(--theme-nav-bg)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        borderBottom: '1px solid rgba(255,255,255,0.05)',
+        borderBottom: '1px solid var(--theme-glass-border)',
       }}
     >
       <div className="max-w-lg mx-auto flex items-center justify-between px-4 py-3">
@@ -46,11 +46,11 @@ export default function Header({ title, showBack = false, showProfile = true }: 
               className="w-9 h-9 rounded-xl flex items-center justify-center cursor-pointer border-0"
               style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}
             >
-              <ArrowLeft size={18} style={{ color: '#FAFAFA' }} />
+              <ArrowLeft size={18} style={{ color: 'var(--theme-text-primary)' }} />
             </motion.button>
           )}
           {title ? (
-            <h1 className="text-xl tracking-wider m-0" style={{ color: '#FAFAFA' }}>{title}</h1>
+            <h1 className="text-xl tracking-wider m-0" style={{ color: 'var(--theme-text-primary)' }}>{title}</h1>
           ) : isHome ? (
             <motion.div
               className="flex items-center gap-2"
@@ -60,11 +60,11 @@ export default function Header({ title, showBack = false, showProfile = true }: 
             >
               <div
                 className="w-8 h-8 rounded-lg flex items-center justify-center"
-                style={{ background: 'linear-gradient(135deg, #FF5500, #FF8833)', boxShadow: '0 0 16px rgba(255,85,0,0.4)' }}
+                style={{ background: 'linear-gradient(135deg, var(--theme-accent), var(--theme-gradient-text-to))', boxShadow: 'var(--theme-accent-glow) 0 0 16px' }}
               >
                 <Zap size={16} fill="#FFFFFF" strokeWidth={0} />
               </div>
-              <h1 className="text-xl tracking-widest m-0 font-heading" style={{ color: '#FAFAFA', letterSpacing: '0.15em' }}>
+              <h1 className="text-xl tracking-widest m-0 font-heading" style={{ color: 'var(--theme-text-primary)', letterSpacing: '0.15em' }}>
                 STRENGTH
               </h1>
             </motion.div>
@@ -81,7 +81,7 @@ export default function Header({ title, showBack = false, showProfile = true }: 
             style={{
               background: 'rgba(255,255,255,0.05)',
               border: '1px solid rgba(255,255,255,0.08)',
-              color: '#666666',
+              color: 'var(--theme-text-secondary)',
               letterSpacing: '0.08em',
             }}
             title="Switch language / Wissel taal"
@@ -97,7 +97,7 @@ export default function Header({ title, showBack = false, showProfile = true }: 
               whileTap={{ scale: 0.9 }}
               onClick={() => navigate('/settings')}
               className="w-8 h-8 rounded-xl flex items-center justify-center cursor-pointer bg-transparent border-0"
-              style={{ color: '#444444' }}
+              style={{ color: 'var(--theme-text-muted)' }}
               title="Instellingen"
             >
               <Settings size={16} />
@@ -111,7 +111,7 @@ export default function Header({ title, showBack = false, showProfile = true }: 
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setShowMenu(!showMenu)}
                 className="w-8 h-8 rounded-xl flex items-center justify-center cursor-pointer bg-transparent border-0"
-                style={{ color: '#444444' }}
+                style={{ color: 'var(--theme-text-muted)' }}
               >
                 <LogOut size={16} />
               </motion.button>
@@ -127,8 +127,8 @@ export default function Header({ title, showBack = false, showProfile = true }: 
                       transition={{ type: 'spring', damping: 20, stiffness: 300 }}
                       className="absolute right-0 top-full mt-2 z-50 rounded-2xl overflow-hidden"
                       style={{
-                        background: '#181818',
-                        border: '1px solid rgba(255,255,255,0.08)',
+                        background: 'var(--theme-bg-input)',
+                        border: '1px solid var(--theme-glass-border)',
                         boxShadow: '0 20px 40px rgba(0,0,0,0.8)',
                         minWidth: 160,
                       }}
@@ -136,7 +136,7 @@ export default function Header({ title, showBack = false, showProfile = true }: 
                       <button
                         onClick={handleSignOut}
                         className="w-full flex items-center gap-2.5 px-4 py-3 text-sm cursor-pointer bg-transparent border-0 text-left transition-colors hover:bg-white/5"
-                        style={{ color: '#FF3B3B' }}
+                        style={{ color: 'var(--theme-error)' }}
                       >
                         <LogOut size={14} />
                         {language === 'nl' ? 'Uitloggen' : 'Sign out'}
