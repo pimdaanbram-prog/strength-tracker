@@ -57,22 +57,22 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
             {/* Title row */}
             {title && (
               <div
-                className="flex items-center justify-between px-5 py-4"
+                className="flex items-center justify-between px-6 py-5"
                 style={{ borderBottom: '1px solid #1C1C1C' }}
               >
                 <h2 className="text-lg tracking-wider m-0">{title.toUpperCase()}</h2>
                 <button
                   onClick={onClose}
-                  className="w-8 h-8 rounded-xl flex items-center justify-center cursor-pointer border-0"
+                  className="w-9 h-9 rounded-xl flex items-center justify-center cursor-pointer border-0"
                   style={{ background: '#1C1C1C', color: '#666' }}
                 >
-                  <X size={14} />
+                  <X size={15} />
                 </button>
               </div>
             )}
 
             {/* Content */}
-            <div className="px-5 py-5" style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}>
+            <div className="px-6 py-6" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
               {children}
             </div>
           </motion.div>

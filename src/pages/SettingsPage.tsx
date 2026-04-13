@@ -29,7 +29,7 @@ function SettingsCard({
       style={{ background: 'var(--theme-bg-card)', border: '1px solid var(--theme-border)' }}
     >
       {/* Card header */}
-      <div className="flex items-center gap-3 px-4 py-3.5">
+      <div className="flex items-center gap-3 px-5 py-4">
         <div
           className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
           style={{ background: `${accent}15`, border: `1px solid ${accent}30` }}
@@ -61,7 +61,7 @@ function SettingRow({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex items-center justify-between px-4 py-3.5 gap-4">
+    <div className="flex items-center justify-between px-5 py-4 gap-4">
       <div className="min-w-0">
         <p className="text-sm font-semibold m-0" style={{ color: 'var(--theme-text-primary)' }}>
           {label}

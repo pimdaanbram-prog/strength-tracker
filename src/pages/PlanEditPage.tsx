@@ -103,11 +103,11 @@ export default function PlanEditPage() {
           </label>
 
           {exercises.length === 0 ? (
-            <div className="py-8 text-center border-2 border-dashed border-border rounded-xl">
+            <div className="py-10 text-center border-2 border-dashed border-border rounded-xl">
               <p className="text-text-muted text-sm">Nog geen oefeningen — voeg er een toe</p>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-3">
               {exercises.map((pe, i) => {
                 const exercise = getExercise(pe.exerciseId)
                 if (!exercise) return null
@@ -117,7 +117,7 @@ export default function PlanEditPage() {
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 10 }}
-                    className="flex items-center gap-3 p-3 bg-bg-card border border-border rounded-xl"
+                    className="flex items-center gap-3 p-4 bg-bg-card border border-border rounded-xl"
                   >
                     <GripVertical size={16} className="text-text-muted shrink-0" />
                     <div className="flex-1 min-w-0">
@@ -162,7 +162,7 @@ export default function PlanEditPage() {
         {/* Add exercise */}
         <button
           onClick={() => setShowBuilder(true)}
-          className="w-full py-3 border-2 border-dashed border-border rounded-xl text-text-muted hover:text-text-secondary hover:border-border-light transition-colors flex items-center justify-center gap-2 cursor-pointer bg-transparent mb-6"
+          className="w-full py-4 border-2 border-dashed border-border rounded-xl text-text-muted hover:text-text-secondary hover:border-border-light transition-colors flex items-center justify-center gap-2 cursor-pointer bg-transparent mb-6"
         >
           <Plus size={18} /> Oefening toevoegen
         </button>
@@ -175,7 +175,7 @@ export default function PlanEditPage() {
         {/* Save */}
         <button
           onClick={handleSave}
-          className="w-full py-3 bg-accent hover:bg-accent-hover text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-4 bg-accent hover:bg-accent-hover text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer"
         >
           <Save size={18} /> {isEditing ? 'Wijzigingen opslaan' : 'Plan opslaan'}
         </button>

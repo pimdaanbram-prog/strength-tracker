@@ -77,9 +77,9 @@ export default function ExercisesPage() {
             { label: 'Categorieën', value: categories.length, color: '#818CF8' },
             { label: 'PR\'s gehaald', value: Object.keys(prs).length, color: '#00E5A0' },
           ].map(({ label, value, color }) => (
-            <div key={label} className="flex-1 rounded-2xl p-3 text-center" style={{ background: '#111', border: '1px solid #1C1C1C' }}>
-              <p className="text-xl font-heading tracking-wider m-0" style={{ color }}>{value}</p>
-              <p className="text-[10px] m-0 mt-0.5" style={{ color: '#444' }}>{label}</p>
+            <div key={label} className="flex-1 rounded-2xl p-4 text-center" style={{ background: '#111', border: '1px solid #1C1C1C' }}>
+              <p className="text-2xl font-heading tracking-wider m-0" style={{ color }}>{value}</p>
+              <p className="text-[10px] m-0 mt-1" style={{ color: '#444' }}>{label}</p>
             </div>
           ))}
         </motion.div>
@@ -89,7 +89,7 @@ export default function ExercisesPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="relative mb-4"
+          className="relative mb-5"
         >
           <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: '#444' }} />
           <input
@@ -114,7 +114,7 @@ export default function ExercisesPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.08 }}
-          className="flex gap-2 overflow-x-auto pb-3 mb-5 hide-scrollbar"
+          className="flex gap-2 overflow-x-auto pb-3 mb-6 hide-scrollbar"
         >
           <button
             onClick={() => setActiveCategory(null)}
@@ -188,7 +188,7 @@ export default function ExercisesPage() {
             variants={containerVariants}
             initial="hidden"
             animate="show"
-            className="space-y-2"
+            className="space-y-3"
           >
             {filtered.map(exercise => {
               const pr = prs[exercise.id]
@@ -203,26 +203,26 @@ export default function ExercisesPage() {
                   whileHover={{ x: 4 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => navigate(`/exercises/${exercise.id}`)}
-                  className="w-full flex items-center gap-3 p-3.5 rounded-2xl cursor-pointer border-0 text-left transition-colors"
+                  className="w-full flex items-center gap-4 p-4 rounded-2xl cursor-pointer border-0 text-left transition-colors"
                   style={{ background: '#111', border: '1px solid #1C1C1C' }}
                 >
                   {/* Category color swatch */}
                   <div
-                    className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 text-lg ${cat?.className || 'gradient-workout-a'}`}
+                    className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 text-xl ${cat?.className || 'gradient-workout-a'}`}
                     style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.4)' }}
                   >
                     {cat?.icon || '🏋️'}
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate m-0" style={{ color: '#FAFAFA' }}>
+                    <p className="text-sm font-semibold truncate m-0 mb-1" style={{ color: '#FAFAFA' }}>
                       {exName(exercise)}
                     </p>
-                    <p className="text-xs m-0 mt-0.5 truncate" style={{ color: '#555' }}>
+                    <p className="text-xs m-0 truncate" style={{ color: '#555' }}>
                       {exercise.equipment} · {exercise.musclesWorked.slice(0, 2).join(', ')}
                     </p>
                     {lastSession && lastSession.maxWeight > 0 && (
-                      <p className="text-xs m-0 mt-0.5" style={{ color: '#666' }}>
+                      <p className="text-xs m-0 mt-1" style={{ color: '#666' }}>
                         Laatste: <span style={{ color: '#888' }}>{lastSession.maxWeight}kg × {lastSession.maxReps}</span>
                       </p>
                     )}
