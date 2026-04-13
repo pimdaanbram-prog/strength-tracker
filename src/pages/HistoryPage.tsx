@@ -1,11 +1,12 @@
 import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Clock, Dumbbell, Trash2, ChevronDown, ChevronUp, Flame, Calendar, Zap } from 'lucide-react'
+import { Clock, Dumbbell, Trash2, ChevronDown, ChevronUp, Flame, Calendar, Zap, Users } from 'lucide-react'
 import Header from '../components/layout/Header'
 import PageWrapper from '../components/layout/PageWrapper'
 import { useWorkouts } from '../hooks/useWorkouts'
 import { useExercises } from '../hooks/useExercises'
 import { useLanguage } from '../hooks/useLanguage'
+import { useAppStore } from '../store/appStore'
 import { getWeekNumber, getYear } from '../utils/weekUtils'
 
 const MONTHS_NL = ['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December']
@@ -33,6 +34,7 @@ export default function HistoryPage() {
   const { getProfileSessions, deleteSession, getStreak } = useWorkouts()
   const { getExercise } = useExercises()
   const { exName } = useLanguage()
+  const allProfiles = useAppStore(s => s.profiles)
 
   const sessions = getProfileSessions()
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -199,6 +201,12 @@ export default function HistoryPage() {
                                   <span className="text-xs flex items-center gap-1" style={{ color: '#555' }}>
                                     <Dumbbell size={10} /> {session.exercises.length} oef
                                   </span>
+                                  {session.isPartnerWorkout && session.partners && session.partners.length > 0 && (
+                                    <span className="text-xs flex items-center gap-1 px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(74,143,255,0.12)', color: '#4A8FFF' }}>
+                                      <Users size={9} />
+                                      {session.partners.map(pid => allProfiles.find(p => p.id === pid)?.name ?? '?').join(', ')}
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                               <button

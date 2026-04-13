@@ -309,6 +309,7 @@ export default function WorkoutPage() {
       if (samenExerciseOrder.length === 0) return
 
       let anyPR = false
+      const participantIds = samenParticipants.map(p => p.id)
       for (const participant of samenParticipants) {
         const participantExercises = samenExercises[participant.id] || []
         saveSessionForProfile(participant.id, {
@@ -319,6 +320,8 @@ export default function WorkoutPage() {
           durationMinutes,
           notes,
           completedAt: now.toISOString(),
+          isPartnerWorkout: true,
+          partners: participantIds.filter(id => id !== participant.id),
         })
         const newPRIds = findNewPRExerciseIds(participantExercises)
         if (newPRIds.length > 0) anyPR = true
