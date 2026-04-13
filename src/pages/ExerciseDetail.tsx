@@ -17,7 +17,7 @@ import { EXERCISE_VIDEOS } from '../data/exerciseVideos'
 
 // ─── Types & configs ──────────────────────────────────────────────────────────
 
-type Tab = 'instructies' | 'tips' | 'fouten' | 'geschiedenis'
+type Tab = 'instructies' | 'tips' | 'fouten' | 'alternatieven' | 'geschiedenis'
 
 const CATEGORY_CONFIG: Record<string, { className: string; icon: string }> = {
   'Chest':          { className: 'cat-chest',     icon: '🫁' },
@@ -161,11 +161,15 @@ export default function ExerciseDetail() {
   const videoUrl   = EXERCISE_VIDEOS[exercise.id]
   const youtubeSearch = `https://www.youtube.com/results?search_query=${encodeURIComponent(exercise.videoKeyword || exercise.name + ' tutorial form')}`
 
+  const { exercises: allExercises } = useExercises()
+  const alternatives = allExercises.filter(e => e.category === exercise.category && e.id !== exercise.id).slice(0, 6)
+
   const tabs: { key: Tab; label: string; icon: typeof Info }[] = [
-    { key: 'instructies', label: 'Instructies', icon: Info },
-    { key: 'tips',        label: 'Tips',        icon: Lightbulb },
-    { key: 'fouten',      label: 'Fouten',      icon: AlertTriangle },
-    { key: 'geschiedenis',label: 'Grafiek',     icon: TrendingUp },
+    { key: 'instructies',  label: 'Instructies',  icon: Info },
+    { key: 'tips',         label: 'Tips',         icon: Lightbulb },
+    { key: 'fouten',       label: 'Fouten',       icon: AlertTriangle },
+    { key: 'alternatieven',label: 'Alternatieven',icon: Dumbbell },
+    { key: 'geschiedenis', label: 'Grafiek',      icon: TrendingUp },
   ]
 
   return (
@@ -400,6 +404,53 @@ export default function ExerciseDetail() {
                     <p className="text-sm m-0 leading-relaxed" style={{ color: '#BBBBBB' }}>{mistake}</p>
                   </motion.div>
                 ))}
+              </div>
+            )}
+
+            {/* Alternatieven */}
+            {activeTab === 'alternatieven' && (
+              <div className="space-y-3">
+                {alternatives.length > 0 ? alternatives.map((alt, i) => {
+                  const altDiff = DIFFICULTY_STYLE[alt.difficulty]
+                  return (
+                    <motion.button
+                      key={alt.id}
+                      initial={{ opacity: 0, x: -16 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => navigate(`/exercises/${alt.id}`)}
+                      className="w-full flex items-center gap-4 p-4 rounded-2xl cursor-pointer border-0 text-left"
+                      style={{ background: '#111', border: '1px solid #1C1C1C' }}
+                    >
+                      <div
+                        className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 text-2xl"
+                        style={{ background: '#181818' }}
+                      >
+                        {CATEGORY_CONFIG[alt.category]?.icon || '🏋️'}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold m-0 truncate" style={{ color: '#FAFAFA' }}>
+                          {exName(alt)}
+                        </p>
+                        <p className="text-xs m-0 mt-0.5" style={{ color: '#555' }}>
+                          {alt.equipment} · {alt.musclesWorked.slice(0, 2).join(', ')}
+                        </p>
+                      </div>
+                      <span
+                        className="text-[10px] px-2.5 py-1 rounded-full font-semibold shrink-0"
+                        style={{ background: altDiff.bg, color: altDiff.color }}
+                      >
+                        {altDiff.label}
+                      </span>
+                    </motion.button>
+                  )
+                }) : (
+                  <div className="rounded-2xl p-6 text-center" style={{ background: '#111', border: '1px solid #1C1C1C' }}>
+                    <p className="text-sm m-0" style={{ color: '#555' }}>Geen alternatieven gevonden</p>
+                  </div>
+                )}
               </div>
             )}
 
