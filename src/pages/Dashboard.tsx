@@ -24,6 +24,7 @@ import { getDayLabel } from '../utils/weekUtils'
 import { workoutTemplates } from '../data/workoutTemplates'
 import Header from '../components/layout/Header'
 import PageWrapper from '../components/layout/PageWrapper'
+import StatCarousel from '../components/StatCarousel'
 
 const CARD_GRADIENTS = [
   'gradient-workout-a',
@@ -197,6 +198,11 @@ export default function Dashboard() {
                 )}
               </div>
             </div>
+          </motion.div>
+
+          {/* ─── STAT CAROUSEL ──────────────────────────────────── */}
+          <motion.div variants={itemVariants}>
+            <StatCarousel />
           </motion.div>
 
           {/* ─── STATS CARDS ────────────────────────────────────── */}
