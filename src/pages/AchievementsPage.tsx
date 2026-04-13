@@ -174,7 +174,7 @@ export default function AchievementsPage() {
                   </span>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {catAchievements.map(achievement => {
                     const isUnlocked = unlockedIds.has(achievement.id)
                     const unlockedData = profileAchievements.find(a => a.id === achievement.id)
@@ -183,7 +183,7 @@ export default function AchievementsPage() {
                       <motion.div
                         key={achievement.id}
                         whileHover={{ scale: 1.01 }}
-                        className="flex items-center gap-3 p-3 rounded-2xl"
+                        className="flex items-center gap-3 p-4 rounded-2xl"
                         style={{
                           background: isUnlocked
                             ? `color-mix(in srgb, ${color} 8%, var(--theme-bg-card))`

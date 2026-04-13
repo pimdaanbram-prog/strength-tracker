@@ -193,18 +193,18 @@ export default function ProfilesPage() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => navigate(to)}
-              className="flex items-center gap-3 p-4 rounded-2xl text-left cursor-pointer border-0"
+              className="flex items-center gap-3 p-5 rounded-2xl text-left cursor-pointer border-0"
               style={{ background: '#111', border: '1px solid #1C1C1C' }}
             >
               <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                 style={{ background: `${color}15` }}
               >
-                <Icon size={18} style={{ color }} />
+                <Icon size={20} style={{ color }} />
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-semibold m-0 text-white truncate">{label}</p>
-                <p className="text-[10px] m-0 truncate" style={{ color: '#555' }}>{sub}</p>
+                <p className="text-xs m-0 mt-0.5 truncate" style={{ color: '#555' }}>{sub}</p>
               </div>
             </motion.button>
           ))}

@@ -1,11 +1,12 @@
 import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Clock, Dumbbell, Trash2, ChevronDown, ChevronUp, Flame, Calendar, Zap } from 'lucide-react'
+import { Clock, Dumbbell, Trash2, ChevronDown, ChevronUp, Flame, Calendar, Zap, Users } from 'lucide-react'
 import Header from '../components/layout/Header'
 import PageWrapper from '../components/layout/PageWrapper'
 import { useWorkouts } from '../hooks/useWorkouts'
 import { useExercises } from '../hooks/useExercises'
 import { useLanguage } from '../hooks/useLanguage'
+import { useAppStore } from '../store/appStore'
 import { getWeekNumber, getYear } from '../utils/weekUtils'
 
 const MONTHS_NL = ['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December']
@@ -33,6 +34,7 @@ export default function HistoryPage() {
   const { getProfileSessions, deleteSession, getStreak } = useWorkouts()
   const { getExercise } = useExercises()
   const { exName } = useLanguage()
+  const allProfiles = useAppStore(s => s.profiles)
 
   const sessions = getProfileSessions()
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -101,7 +103,7 @@ export default function HistoryPage() {
           ].map(({ icon: Icon, value, label, color }) => (
             <div
               key={label}
-              className="relative rounded-2xl p-3 text-center overflow-hidden"
+              className="relative rounded-2xl p-4 text-center overflow-hidden"
               style={{ background: '#111', border: '1px solid #1C1C1C' }}
             >
               <div className="absolute top-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${color}60, transparent)` }} />
@@ -118,7 +120,7 @@ export default function HistoryPage() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
-            className="rounded-2xl p-4 mb-5 relative overflow-hidden"
+            className="rounded-2xl p-5 mb-6 relative overflow-hidden"
             style={{ background: 'rgba(255,85,0,0.07)', border: '1px solid rgba(255,85,0,0.15)' }}
           >
             <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, #FF5500, transparent)' }} />
@@ -157,7 +159,7 @@ export default function HistoryPage() {
               <div className="relative pl-10">
                 <div className="timeline-line" />
 
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {ms.map((session, si) => {
                     const grad = WORKOUT_GRADIENTS[si % WORKOUT_GRADIENTS.length]
                     const isExpanded = expandedId === session.id
@@ -185,7 +187,7 @@ export default function HistoryPage() {
                           style={{ background: '#111', border: `1px solid ${grad.border}` }}
                         >
                           {/* Card header */}
-                          <div className="p-4">
+                          <div className="p-5">
                             <div className="flex items-start justify-between mb-2">
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-semibold m-0" style={{ color: '#FAFAFA' }}>{session.workoutName}</p>
@@ -199,6 +201,12 @@ export default function HistoryPage() {
                                   <span className="text-xs flex items-center gap-1" style={{ color: '#555' }}>
                                     <Dumbbell size={10} /> {session.exercises.length} oef
                                   </span>
+                                  {session.isPartnerWorkout && session.partners && session.partners.length > 0 && (
+                                    <span className="text-xs flex items-center gap-1 px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(74,143,255,0.12)', color: '#4A8FFF' }}>
+                                      <Users size={9} />
+                                      {session.partners.map(pid => allProfiles.find(p => p.id === pid)?.name ?? '?').join(', ')}
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                               <button
@@ -213,7 +221,7 @@ export default function HistoryPage() {
                             </div>
 
                             {/* Exercise summary */}
-                            <div className="space-y-1 mb-2.5">
+                            <div className="space-y-2 mb-3">
                               {session.exercises.map(se => {
                                 const exercise = getExercise(se.exerciseId)
                                 const doneSets = se.sets.filter(s => s.completed || (s.weight && s.weight > 0) || (s.reps && s.reps > 0) || (s.seconds && s.seconds > 0))
@@ -254,7 +262,7 @@ export default function HistoryPage() {
                                 transition={{ duration: 0.2 }}
                                 className="overflow-hidden"
                               >
-                                <div className="px-4 pb-4 pt-3 space-y-3" style={{ borderTop: '1px solid #1C1C1C' }}>
+                                <div className="px-5 pb-5 pt-4 space-y-4" style={{ borderTop: '1px solid #1C1C1C' }}>
                                   {session.exercises.map(se => {
                                     const exercise = getExercise(se.exerciseId)
                                     const doneSets = se.sets.filter(s => s.completed || (s.weight && s.weight > 0) || (s.reps && s.reps > 0) || (s.seconds && s.seconds > 0))

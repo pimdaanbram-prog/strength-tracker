@@ -200,8 +200,8 @@ export default function ProgressPage() {
               <div className="w-1 h-5 rounded-full" style={{ background: 'linear-gradient(to bottom, #FF5500, #FF8833)' }} />
               <h3 className="text-base tracking-wider m-0">TRAININGEN PER WEEK</h3>
             </div>
-            <div className="rounded-2xl p-4" style={{ background: '#111', border: '1px solid #1C1C1C' }}>
-              <div className="h-44">
+            <div className="rounded-2xl p-5" style={{ background: '#111', border: '1px solid #1C1C1C' }}>
+              <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={weeklyFrequency} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                     <defs>
@@ -420,7 +420,7 @@ export default function ProgressPage() {
               <div className="w-1 h-5 rounded-full" style={{ background: 'linear-gradient(to bottom, #FFB300, #FF8C00)' }} />
               <h3 className="text-base tracking-wider m-0">PERSOONLIJKE RECORDS</h3>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {prs.map((pr, i) => {
                 const exercise = getExercise(pr.exerciseId)
                 return (
@@ -430,7 +430,7 @@ export default function ProgressPage() {
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
                     transition={{ type: 'spring', damping: 24, delay: i * 0.04 }}
-                    className="flex items-center gap-3 p-3.5 rounded-2xl relative overflow-hidden"
+                    className="flex items-center gap-3 p-4 rounded-2xl relative overflow-hidden"
                     style={{ background: 'rgba(255,179,0,0.06)', border: '1px solid rgba(255,179,0,0.12)' }}
                   >
                     <div

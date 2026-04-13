@@ -68,7 +68,7 @@ export default function SamenTrainenSelector({
         </div>
 
         {/* Profile grid */}
-        <div className="space-y-2 mb-6">
+        <div className="space-y-3 mb-6">
           {profiles.map(profile => {
             const isSelected = selectedIds.includes(profile.id)
             return (
@@ -76,7 +76,7 @@ export default function SamenTrainenSelector({
                 key={profile.id}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => toggleProfile(profile.id)}
-                className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-colors cursor-pointer text-left ${
+                className={`w-full flex items-center gap-3 p-4 rounded-xl border transition-colors cursor-pointer text-left ${
                   isSelected
                     ? 'border-accent bg-accent/10'
                     : 'border-border bg-bg-card hover:border-border-light'
@@ -125,7 +125,7 @@ export default function SamenTrainenSelector({
         <button
           onClick={() => onStart(selectedIds)}
           disabled={selectedIds.length < 2}
-          className={`w-full py-3 rounded-xl font-semibold transition-colors cursor-pointer flex items-center justify-center gap-2 ${
+          className={`w-full py-4 rounded-xl font-semibold transition-colors cursor-pointer flex items-center justify-center gap-2 ${
             selectedIds.length >= 2
               ? 'bg-accent hover:bg-accent-hover text-white'
               : 'bg-bg-input text-text-muted cursor-not-allowed'

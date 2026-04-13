@@ -78,7 +78,7 @@ export default function ExerciseCard({
     >
       {/* Header — full tap area */}
       <div
-        className="flex items-center gap-3 p-4 cursor-pointer transition-colors active:bg-white/5"
+        className="flex items-center gap-3 p-5 cursor-pointer transition-colors active:bg-white/5"
         onClick={() => setExpanded(!expanded)}
       >
         {/* Progress indicator */}
@@ -134,7 +134,7 @@ export default function ExerciseCard({
       {/* Smart tip */}
       {smartRecommendation && expanded && (
         <div
-          className="mx-4 mb-2 px-3 py-2.5 rounded-xl text-xs"
+          className="mx-4 mb-3 px-4 py-3 rounded-xl text-xs"
           style={{
             background: `${trendColor}10`,
             border: `1px solid ${trendColor}25`,
@@ -155,7 +155,7 @@ export default function ExerciseCard({
             transition={{ duration: 0.18 }}
             className="overflow-hidden"
           >
-            <div className="px-4 pb-4 space-y-2">
+            <div className="px-4 pb-5 space-y-3">
               {sessionExercise.sets.map((set, i) => (
                 <SetLogger
                   key={i}

@@ -71,18 +71,18 @@ export default function WorkoutBuilder({
         className="absolute bottom-0 left-0 right-0 max-h-[85vh] bg-bg-secondary rounded-t-2xl border-t border-border overflow-hidden flex flex-col"
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
           <h3 className="text-lg tracking-wider text-text-primary m-0">OEFENING TOEVOEGEN</h3>
-          <button onClick={onClose} className="p-1 hover:bg-white/10 rounded-lg cursor-pointer">
+          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl cursor-pointer">
             <X size={20} className="text-text-muted" />
           </button>
         </div>
 
         {/* Tab switcher */}
-        <div className="flex gap-1 px-4 pt-3 pb-1">
+        <div className="flex gap-1.5 px-5 pt-4 pb-2">
           <button
             onClick={() => setTab('exercises')}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
               tab === 'exercises' ? 'bg-accent text-white' : 'bg-bg-input text-text-muted hover:text-text-secondary'
             }`}
           >
@@ -90,7 +90,7 @@ export default function WorkoutBuilder({
           </button>
           <button
             onClick={() => setTab('templates')}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
               tab === 'templates' ? 'bg-accent text-white' : 'bg-bg-input text-text-muted hover:text-text-secondary'
             }`}
           >
@@ -101,8 +101,8 @@ export default function WorkoutBuilder({
         {tab === 'exercises' && (
           <>
             {/* Search */}
-            <div className="p-4 pb-2">
-              <div className="flex items-center gap-2 bg-bg-input border border-border rounded-xl px-3 py-2">
+            <div className="px-5 pt-4 pb-2">
+              <div className="flex items-center gap-2 bg-bg-input border border-border rounded-xl px-4 py-3">
                 <Search size={16} className="text-text-muted" />
                 <input
                   type="text"
@@ -116,7 +116,7 @@ export default function WorkoutBuilder({
             </div>
 
             {/* Category filters */}
-            <div className="flex gap-2 px-4 pb-3 overflow-x-auto no-scrollbar">
+            <div className="flex gap-2 px-5 pb-3 overflow-x-auto no-scrollbar">
               <button
                 onClick={() => setActiveCategory(null)}
                 className={`shrink-0 px-3 py-1 rounded-full text-xs transition-colors cursor-pointer ${
@@ -139,7 +139,7 @@ export default function WorkoutBuilder({
             </div>
 
             {/* Exercise list */}
-            <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-1">
+            <div className="flex-1 overflow-y-auto px-5 pb-4 space-y-1">
               {filtered.map(exercise => {
                 const isSelected = selectedIds.includes(exercise.id)
                 return (
@@ -147,7 +147,7 @@ export default function WorkoutBuilder({
                     key={exercise.id}
                     onClick={() => !isSelected && onAddExercise(exercise)}
                     disabled={isSelected}
-                    className={`w-full flex items-center gap-3 p-3 rounded-xl transition-colors text-left cursor-pointer ${
+                    className={`w-full flex items-center gap-3 p-4 rounded-xl transition-colors text-left cursor-pointer ${
                       isSelected
                         ? 'bg-accent/10 opacity-50'
                         : 'hover:bg-white/5'
@@ -172,7 +172,7 @@ export default function WorkoutBuilder({
         )}
 
         {tab === 'templates' && (
-          <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
+          <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
             <p className="text-xs text-text-muted mb-3">
               Voeg alle oefeningen uit een template in één keer toe aan je training.
             </p>

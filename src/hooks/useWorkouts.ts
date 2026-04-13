@@ -31,6 +31,9 @@ export interface WorkoutSession {
   durationMinutes: number
   notes: string
   completedAt: string
+  // Partner workout fields
+  isPartnerWorkout?: boolean
+  partners?: string[]  // profile IDs of training partners
 }
 
 export interface WeekFeedback {

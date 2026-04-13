@@ -43,7 +43,7 @@ export default function PlansPage() {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.97 }}
           onClick={() => navigate('/plans/new')}
-          className="w-full flex items-center gap-3 p-4 mb-6 rounded-2xl cursor-pointer border-0 text-left relative overflow-hidden"
+          className="w-full flex items-center gap-3 p-5 mb-6 rounded-2xl cursor-pointer border-0 text-left relative overflow-hidden"
           style={{ background: 'rgba(255,85,0,0.08)', border: '1px solid rgba(255,85,0,0.2)' }}
         >
           <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, #FF5500, transparent)' }} />
@@ -142,8 +142,8 @@ export default function PlansPage() {
                 </div>
 
                 {/* Exercise tags */}
-                <div className="px-4 pt-3 pb-3">
-                  <div className="flex flex-wrap gap-1.5 mb-3">
+                <div className="px-5 pt-4 pb-4">
+                  <div className="flex flex-wrap gap-2 mb-4">
                     {plan.exercises.slice(0, 5).map(pe => {
                       const ex = getExercise(pe.exerciseId)
                       return ex ? (
@@ -169,7 +169,7 @@ export default function PlansPage() {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={() => navigate('/workout', { state: { planId: plan.id } })}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-white text-xs font-bold rounded-xl cursor-pointer border-0"
+                      className="flex-1 flex items-center justify-center gap-1.5 py-3 text-white text-sm font-bold rounded-xl cursor-pointer border-0"
                       style={{ background: 'linear-gradient(135deg, #FF5500, #FF8833)', boxShadow: '0 4px 12px rgba(255,85,0,0.25)' }}
                     >
                       <Play size={13} fill="#fff" strokeWidth={0} />
@@ -179,7 +179,7 @@ export default function PlansPage() {
                       <motion.button
                         whileTap={{ scale: 0.97 }}
                         onClick={() => navigate('/workout', { state: { planId: plan.id, samen: true } })}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold rounded-xl cursor-pointer border-0"
+                        className="flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-bold rounded-xl cursor-pointer border-0"
                         style={{ background: '#181818', color: '#888', border: '1px solid #222' }}
                       >
                         <Users size={13} />

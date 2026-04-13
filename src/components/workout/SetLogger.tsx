@@ -17,7 +17,7 @@ export default function SetLogger({ set, isTimeBased, onChange }: SetLoggerProps
 
   return (
     <div
-      className={`flex items-center gap-2 py-2 px-3 rounded-xl transition-colors ${
+      className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-colors ${
         set.completed ? 'bg-success/10' : 'bg-bg-input'
       }`}
     >

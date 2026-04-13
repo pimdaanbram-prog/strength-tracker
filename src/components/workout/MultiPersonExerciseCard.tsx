@@ -139,7 +139,7 @@ export default function MultiPersonExerciseCard({
     <div className="bg-bg-card border border-border rounded-xl overflow-hidden">
       {/* Header */}
       <div
-        className="flex items-center gap-3 p-4 cursor-pointer hover:bg-white/5 transition-colors"
+        className="flex items-center gap-3 p-5 cursor-pointer hover:bg-white/5 transition-colors"
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex-1 min-w-0">
@@ -177,7 +177,7 @@ export default function MultiPersonExerciseCard({
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="px-4 pb-4">
+            <div className="px-5 pb-5">
               {/* Tabs for mobile, side-by-side for wider */}
               {/* Tab bar (visible below sm) */}
               <div className="flex gap-1 mb-3 sm:hidden">

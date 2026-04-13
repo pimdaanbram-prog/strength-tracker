@@ -309,6 +309,7 @@ export default function WorkoutPage() {
       if (samenExerciseOrder.length === 0) return
 
       let anyPR = false
+      const participantIds = samenParticipants.map(p => p.id)
       for (const participant of samenParticipants) {
         const participantExercises = samenExercises[participant.id] || []
         saveSessionForProfile(participant.id, {
@@ -319,6 +320,8 @@ export default function WorkoutPage() {
           durationMinutes,
           notes,
           completedAt: now.toISOString(),
+          isPartnerWorkout: true,
+          partners: participantIds.filter(id => id !== participant.id),
         })
         const newPRIds = findNewPRExerciseIds(participantExercises)
         if (newPRIds.length > 0) anyPR = true
@@ -430,7 +433,7 @@ export default function WorkoutPage() {
 
         {/* Timer & Stats */}
         {started && (
-          <div className="flex items-center gap-4 mb-4 text-text-muted">
+          <div className="flex items-center gap-4 mb-5 text-text-muted">
             <div className="flex items-center gap-1">
               <Clock size={14} />
               <span className="text-sm font-mono">{timer.formatTime()}</span>
@@ -442,7 +445,7 @@ export default function WorkoutPage() {
         )}
 
         {/* Exercises */}
-        <div className="space-y-3 mb-4">
+        <div className="space-y-4 mb-5">
           <AnimatePresence>
             {mode === 'solo' &&
               exercises.map((se, i) => {
@@ -519,7 +522,7 @@ export default function WorkoutPage() {
         {(mode === 'solo' || mode === 'samen') && (
           <button
             onClick={() => setShowBuilder(true)}
-            className="w-full py-3 border-2 border-dashed border-border rounded-xl text-text-muted hover:text-text-secondary hover:border-border-light transition-colors flex items-center justify-center gap-2 cursor-pointer bg-transparent"
+            className="w-full py-4 border-2 border-dashed border-border rounded-xl text-text-muted hover:text-text-secondary hover:border-border-light transition-colors flex items-center justify-center gap-2 cursor-pointer bg-transparent"
           >
             <Plus size={18} /> Oefening toevoegen
           </button>
@@ -527,12 +530,12 @@ export default function WorkoutPage() {
 
         {/* Notes */}
         {started && (
-          <div className="mt-4">
+          <div className="mt-5">
             <textarea
               value={notes}
               onChange={e => setNotes(e.target.value)}
               placeholder="Notities voor deze training..."
-              className="w-full bg-bg-input border border-border rounded-xl p-3 text-sm text-text-primary outline-none resize-none h-20 placeholder:text-text-muted"
+              className="w-full bg-bg-input border border-border rounded-xl p-4 text-sm text-text-primary outline-none resize-none h-24 placeholder:text-text-muted"
             />
           </div>
         )}
@@ -546,7 +549,7 @@ export default function WorkoutPage() {
           >
             <button
               onClick={handleSave}
-              className="w-full py-3 bg-accent hover:bg-accent-hover text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-4 bg-accent hover:bg-accent-hover text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer"
             >
               <Save size={18} /> Training Opslaan
             </button>

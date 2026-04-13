@@ -149,14 +149,14 @@ export default function WeekFeedback() {
                     <div className="w-1 h-4 rounded-full" style={{ background: '#00E5A0' }} />
                     <p className="text-xs font-bold uppercase tracking-widest m-0" style={{ color: '#00E5A0', letterSpacing: '0.1em' }}>Sterke punten</p>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {feedback.strengths.map((s, i) => (
                       <motion.div
                         key={i}
                         initial={{ opacity: 0, x: -12 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: i * 0.08 }}
-                        className="flex gap-3 p-3.5 rounded-2xl"
+                        className="flex gap-3 p-4 rounded-2xl"
                         style={{ background: 'rgba(0,229,160,0.06)', border: '1px solid rgba(0,229,160,0.12)' }}
                       >
                         <TrendingUp size={15} className="shrink-0 mt-0.5" style={{ color: '#00E5A0' }} />
@@ -179,14 +179,14 @@ export default function WeekFeedback() {
                     <div className="w-1 h-4 rounded-full" style={{ background: '#FFB300' }} />
                     <p className="text-xs font-bold uppercase tracking-widest m-0" style={{ color: '#FFB300', letterSpacing: '0.1em' }}>Verbeterpunten</p>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {feedback.improvements.map((s, i) => (
                       <motion.div
                         key={i}
                         initial={{ opacity: 0, x: -12 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: i * 0.08 }}
-                        className="flex gap-3 p-3.5 rounded-2xl"
+                        className="flex gap-3 p-4 rounded-2xl"
                         style={{ background: 'rgba(255,179,0,0.06)', border: '1px solid rgba(255,179,0,0.12)' }}
                       >
                         <Target size={15} className="shrink-0 mt-0.5" style={{ color: '#FFB300' }} />
@@ -209,7 +209,7 @@ export default function WeekFeedback() {
                     <div className="w-1 h-4 rounded-full" style={{ background: '#818CF8' }} />
                     <p className="text-xs font-bold uppercase tracking-widest m-0" style={{ color: '#818CF8', letterSpacing: '0.1em' }}>Oefening details</p>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {feedback.progressNotes.map((note, i) => {
                       const exercise = getExercise(note.exerciseId)
                       return (
@@ -218,7 +218,7 @@ export default function WeekFeedback() {
                           initial={{ opacity: 0, x: -12 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: i * 0.06 }}
-                          className="p-3.5 rounded-2xl"
+                          className="p-4 rounded-2xl"
                           style={{ background: '#111', border: '1px solid #1C1C1C' }}
                         >
                           <div className="flex items-center gap-2 mb-1">
@@ -255,7 +255,7 @@ export default function WeekFeedback() {
                     <div className="w-1 h-4 rounded-full" style={{ background: '#FF5500' }} />
                     <p className="text-xs font-bold uppercase tracking-widest m-0" style={{ color: '#FF5500', letterSpacing: '0.1em' }}>Aanbevelingen volgende week</p>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {feedback.nextWeekRecommendations.map((rec, i) => {
                       const exercise = getExercise(rec.exerciseId)
                       return (
@@ -264,7 +264,7 @@ export default function WeekFeedback() {
                           initial={{ opacity: 0, x: -12 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: i * 0.06 }}
-                          className="flex items-center gap-3 p-3.5 rounded-2xl relative overflow-hidden"
+                          className="flex items-center gap-3 p-4 rounded-2xl relative overflow-hidden"
                           style={{ background: 'rgba(255,85,0,0.06)', border: '1px solid rgba(255,85,0,0.15)' }}
                         >
                           <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(255,85,0,0.15)' }}>

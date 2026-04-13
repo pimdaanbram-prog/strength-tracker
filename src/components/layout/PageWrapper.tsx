@@ -18,7 +18,7 @@ export default function PageWrapper({ children, className = '' }: PageWrapperPro
         stiffness: 300,
         mass: 0.8,
       }}
-      className={`max-w-lg mx-auto w-full px-4 pb-32 pt-4 ${className}`}
+      className={`max-w-lg mx-auto w-full px-5 pb-32 pt-6 ${className}`}
     >
       {children}
     </motion.div>
