@@ -73,9 +73,8 @@ export default function WorkoutPage() {
       if (plan) {
         setWorkoutName(plan.name)
         const sessionExercises: SessionExercise[] = plan.exercises.map(pe => {
-          const smartRec = getSmartRecommendation(pe.exerciseId)
           const lastData = getLastExerciseSets(pe.exerciseId)
-          const prefilledWeight = smartRec?.weight ?? lastData?.maxWeight ?? null
+          const prefilledWeight = lastData?.maxWeight ?? null
           const sets: SetLog[] = Array.from({ length: pe.sets }, (_, i) => ({
             setNumber: i + 1,
             weight: prefilledWeight,
@@ -100,9 +99,8 @@ export default function WorkoutPage() {
       if (template) {
         setWorkoutName(exName(template))
         const sessionExercises: SessionExercise[] = template.exercises.map(te => {
-          const smartRec = getSmartRecommendation(te.exerciseId)
           const lastData = getLastExerciseSets(te.exerciseId)
-          const prefilledWeight = smartRec?.weight ?? lastData?.maxWeight ?? null
+          const prefilledWeight = lastData?.maxWeight ?? null
           const sets: SetLog[] = Array.from({ length: te.sets }, (_, i) => ({
             setNumber: i + 1,
             weight: prefilledWeight,
@@ -127,9 +125,8 @@ export default function WorkoutPage() {
 
   const handleAddExercise = (exercise: Exercise) => {
     if (mode === 'solo') {
-      const smartRec = getSmartRecommendation(exercise.id)
       const lastData = getLastExerciseSets(exercise.id)
-      const prefilledWeight = smartRec?.weight ?? lastData?.maxWeight ?? null
+      const prefilledWeight = lastData?.maxWeight ?? null
       const sets: SetLog[] = Array.from({ length: exercise.defaultSets }, (_, i) => ({
         setNumber: i + 1,
         weight: prefilledWeight,
@@ -145,9 +142,8 @@ export default function WorkoutPage() {
       setSamenExercises(prev => {
         const updated = { ...prev }
         for (const profileId of Object.keys(updated)) {
-          const smartRec = getSmartRecommendation(exercise.id, profileId)
           const lastData = getLastExerciseSets(exercise.id, profileId)
-          const prefilledWeight = smartRec?.weight ?? lastData?.maxWeight ?? null
+          const prefilledWeight = lastData?.maxWeight ?? null
           const sets: SetLog[] = Array.from({ length: exercise.defaultSets }, (_, i) => ({
             setNumber: i + 1,
             weight: prefilledWeight,
@@ -209,9 +205,8 @@ export default function WorkoutPage() {
         const withExercises: Record<string, SessionExercise[]> = {}
         for (const profileId of selectedProfileIds) {
           withExercises[profileId] = plan.exercises.map(pe => {
-            const smartRec = getSmartRecommendation(pe.exerciseId, profileId)
             const lastData = getLastExerciseSets(pe.exerciseId, profileId)
-            const prefilledWeight = smartRec?.weight ?? lastData?.maxWeight ?? null
+            const prefilledWeight = lastData?.maxWeight ?? null
             const sets: SetLog[] = Array.from({ length: pe.sets }, (_, i) => ({
               setNumber: i + 1,
               weight: prefilledWeight,
