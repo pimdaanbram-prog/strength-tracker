@@ -78,7 +78,7 @@ export default function WorkoutPage() {
           const sets: SetLog[] = Array.from({ length: pe.sets }, (_, i) => ({
             setNumber: i + 1,
             weight: prefilledWeight,
-            reps: null,
+            reps: lastData?.sets[i]?.reps ?? null,
             seconds: null,
             completed: false,
             rpe: null,
@@ -104,7 +104,7 @@ export default function WorkoutPage() {
           const sets: SetLog[] = Array.from({ length: te.sets }, (_, i) => ({
             setNumber: i + 1,
             weight: prefilledWeight,
-            reps: null,
+            reps: lastData?.sets[i]?.reps ?? null,
             seconds: null,
             completed: false,
             rpe: null,
@@ -130,7 +130,7 @@ export default function WorkoutPage() {
       const sets: SetLog[] = Array.from({ length: exercise.defaultSets }, (_, i) => ({
         setNumber: i + 1,
         weight: prefilledWeight,
-        reps: null,
+        reps: lastData?.sets[i]?.reps ?? null,
         seconds: null,
         completed: false,
         rpe: null,
@@ -147,7 +147,7 @@ export default function WorkoutPage() {
           const sets: SetLog[] = Array.from({ length: exercise.defaultSets }, (_, i) => ({
             setNumber: i + 1,
             weight: prefilledWeight,
-            reps: null,
+            reps: lastData?.sets[i]?.reps ?? null,
             seconds: null,
             completed: false,
             rpe: null,
@@ -210,7 +210,7 @@ export default function WorkoutPage() {
             const sets: SetLog[] = Array.from({ length: pe.sets }, (_, i) => ({
               setNumber: i + 1,
               weight: prefilledWeight,
-              reps: null,
+              reps: lastData?.sets[i]?.reps ?? null,
               seconds: null,
               completed: false,
               rpe: null,

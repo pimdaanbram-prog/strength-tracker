@@ -162,6 +162,8 @@ export default function ExerciseCard({
                   set={set}
                   isTimeBased={exercise.isTimeBased}
                   onChange={(updated) => handleSetChange(i, updated)}
+                  previousSet={lastSession?.sets[i] ?? null}
+                  isUnilateral={exercise.isUnilateral}
                 />
               ))}
 

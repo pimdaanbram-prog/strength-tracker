@@ -42,6 +42,38 @@ export interface BodyMeasurement {
   note?: string
 }
 
+export interface PlateEntry {
+  weight: number
+  count: number   // total plates of this type (must be even to use as pairs)
+}
+
+export interface WeightSettings {
+  enabled: boolean
+  barbellWeight: number      // bar weight, default 20
+  plates: PlateEntry[]       // plate inventory for barbell combos
+  dumbbells: number[]        // list of available dumbbell weights (kg)
+  machineStep: number        // machine weight increment, default 5
+  machineMax: number         // machine max weight, default 200
+}
+
+const DEFAULT_WEIGHT_SETTINGS: WeightSettings = {
+  enabled: false,
+  barbellWeight: 20,
+  plates: [
+    { weight: 25, count: 0 },
+    { weight: 20, count: 2 },
+    { weight: 15, count: 0 },
+    { weight: 10, count: 4 },
+    { weight: 5,  count: 4 },
+    { weight: 2.5, count: 4 },
+    { weight: 1.25, count: 4 },
+    { weight: 0.5,  count: 0 },
+  ],
+  dumbbells: [2.5, 5, 7.5, 10, 12.5, 15, 17.5, 20, 22.5, 25, 27.5, 30, 32.5, 35, 40, 45, 50],
+  machineStep: 5,
+  machineMax: 200,
+}
+
 // App-wide settings (not per-profile)
 export interface AppSettings {
   defaultRestSeconds: number      // 90
@@ -49,6 +81,7 @@ export interface AppSettings {
   weightUnit: 'kg' | 'lbs'
   soundEnabled: boolean
   hapticEnabled: boolean
+  weightSettings: WeightSettings
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -57,6 +90,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   weightUnit: 'kg',
   soundEnabled: true,
   hapticEnabled: true,
+  weightSettings: DEFAULT_WEIGHT_SETTINGS,
 }
 
 interface AppState {
