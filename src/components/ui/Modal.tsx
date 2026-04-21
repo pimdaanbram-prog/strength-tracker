@@ -27,7 +27,7 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50"
+            className="fixed inset-0 z-[80]"
             style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(10px)' }}
             onClick={onClose}
           />
@@ -39,10 +39,9 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: '100%', opacity: 0 }}
             transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-            className="fixed bottom-0 left-1/2 z-50 w-full max-w-lg flex flex-col"
+            className="fixed bottom-0 left-0 right-0 z-[90] mx-auto w-full max-w-lg flex flex-col"
             style={{
-              transform: 'translateX(-50%)',
-              maxHeight: '90vh',
+              maxHeight: '90dvh',
               background: 'var(--theme-bg-card)',
               border: '1px solid var(--theme-glass-border)',
               borderBottom: 'none',
@@ -73,7 +72,7 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
             )}
 
             {/* Content — scrollable */}
-            <div className="overflow-y-auto px-5 py-5" style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}>
+            <div className="overflow-y-auto flex-1 px-5 py-5" style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}>
               {children}
             </div>
           </motion.div>
