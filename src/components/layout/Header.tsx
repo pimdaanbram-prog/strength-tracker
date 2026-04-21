@@ -43,7 +43,7 @@ export default function Header({ title, showBack = false, showProfile = true }: 
             <motion.button
               onClick={() => navigate(-1)}
               whileTap={{ scale: 0.9 }}
-              className="w-9 h-9 rounded-xl flex items-center justify-center cursor-pointer border-0"
+              className="w-11 h-11 rounded-xl flex items-center justify-center cursor-pointer border-0"
               style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}
             >
               <ArrowLeft size={18} style={{ color: 'var(--theme-text-primary)' }} />
@@ -77,7 +77,7 @@ export default function Header({ title, showBack = false, showProfile = true }: 
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={() => setLanguage(language === 'nl' ? 'en' : 'nl')}
-            className="px-2.5 py-1 rounded-lg text-[11px] font-bold cursor-pointer border-0"
+            className="min-h-[44px] min-w-[44px] px-3 rounded-xl text-[11px] font-bold cursor-pointer border-0 flex items-center justify-center"
             style={{
               background: 'rgba(255,255,255,0.05)',
               border: '1px solid rgba(255,255,255,0.08)',
@@ -96,7 +96,7 @@ export default function Header({ title, showBack = false, showProfile = true }: 
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={() => navigate('/settings')}
-              className="w-8 h-8 rounded-xl flex items-center justify-center cursor-pointer bg-transparent border-0"
+              className="w-11 h-11 rounded-xl flex items-center justify-center cursor-pointer bg-transparent border-0"
               style={{ color: 'var(--theme-text-muted)' }}
               title="Instellingen"
             >
@@ -110,7 +110,7 @@ export default function Header({ title, showBack = false, showProfile = true }: 
               <motion.button
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setShowMenu(!showMenu)}
-                className="w-8 h-8 rounded-xl flex items-center justify-center cursor-pointer bg-transparent border-0"
+                className="w-11 h-11 rounded-xl flex items-center justify-center cursor-pointer bg-transparent border-0"
                 style={{ color: 'var(--theme-text-muted)' }}
               >
                 <LogOut size={16} />

@@ -103,10 +103,10 @@ export default function BottomNav() {
               </h3>
               <button
                 onClick={() => setShowMore(false)}
-                className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer border-0"
+                className="w-11 h-11 rounded-full flex items-center justify-center cursor-pointer border-0"
                 style={{ background: 'var(--theme-bg-input)', border: '1px solid var(--theme-border)' }}
               >
-                <X size={15} style={{ color: 'var(--theme-text-muted)' }} />
+                <X size={16} style={{ color: 'var(--theme-text-muted)' }} />
               </button>
             </div>
 

@@ -73,7 +73,7 @@ export default function WorkoutBuilder({
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border">
           <h3 className="text-lg tracking-wider text-text-primary m-0">OEFENING TOEVOEGEN</h3>
-          <button onClick={onClose} className="p-1 hover:bg-white/10 rounded-lg cursor-pointer">
+          <button onClick={onClose} className="w-11 h-11 flex items-center justify-center hover:bg-white/10 rounded-xl cursor-pointer border-0 bg-transparent">
             <X size={20} className="text-text-muted" />
           </button>
         </div>
