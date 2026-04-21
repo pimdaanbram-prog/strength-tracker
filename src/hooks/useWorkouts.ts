@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { getFromStorage, setToStorage, STORAGE_KEYS } from '../utils/localStorage'
 import { getWeekNumber, getYear } from '../utils/weekUtils'
-import { useAppStore } from '../store/appStore'
+import { useAppStore, DEFAULT_WEIGHT_SETTINGS } from '../store/appStore'
 import { useSync } from './useSync'
 import { exercises as exerciseData } from '../data/exercises'
 import { getAchievableWeightsForEquipment, nearestWeight } from '../utils/plateCalculator'
@@ -81,7 +81,7 @@ export function useWorkouts() {
   // to re-render whenever sessions change (local save/delete or cloud sync)
   const sessionVersion = useAppStore(s => s.sessionVersion)
   const bumpSessionVersion = useAppStore(s => s.bumpSessionVersion)
-  const weightSettings = useAppStore(s => s.settings.weightSettings)
+  const weightSettings = useAppStore(s => s.settings.weightSettings ?? DEFAULT_WEIGHT_SETTINGS)
   const { pushSession, pushWeekLog } = useSync()
 
   const getSessions = useCallback((): WorkoutSession[] => {

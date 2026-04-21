@@ -42,9 +42,9 @@ export function nearestWeight(target: number, available: number[]): number {
 /** Get all achievable weights for a given equipment type */
 export function getAchievableWeightsForEquipment(
   equipment: string,
-  settings: WeightSettings
+  settings: WeightSettings | null | undefined
 ): number[] {
-  if (!settings.enabled) return []
+  if (!settings?.enabled) return []
   switch (equipment) {
     case 'barbell':
       return getAchievableBarbellWeights(settings)

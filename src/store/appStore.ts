@@ -56,7 +56,7 @@ export interface WeightSettings {
   machineMax: number         // machine max weight, default 200
 }
 
-const DEFAULT_WEIGHT_SETTINGS: WeightSettings = {
+export const DEFAULT_WEIGHT_SETTINGS: WeightSettings = {
   enabled: false,
   barbellWeight: 20,
   plates: [
@@ -217,6 +217,23 @@ export const useAppStore = create<AppState>()(
         language: state.language,
         settings: state.settings,
       }),
+      // Deep-merge so newly added fields (like weightSettings) always have defaults
+      // even when loading an older localStorage entry that doesn't have them.
+      merge: (persisted, current) => {
+        const p = persisted as Partial<typeof current>
+        return {
+          ...current,
+          ...p,
+          settings: {
+            ...current.settings,
+            ...(p.settings ?? {}),
+            weightSettings: {
+              ...current.settings.weightSettings,
+              ...(p.settings?.weightSettings ?? {}),
+            },
+          },
+        }
+      },
     }
   )
 )

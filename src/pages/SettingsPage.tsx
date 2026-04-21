@@ -8,7 +8,7 @@ import {
 import Header from '../components/layout/Header'
 import PageWrapper from '../components/layout/PageWrapper'
 import Modal from '../components/ui/Modal'
-import { useAppStore } from '../store/appStore'
+import { useAppStore, DEFAULT_WEIGHT_SETTINGS } from '../store/appStore'
 import type { WeightSettings } from '../store/appStore'
 import { useTheme } from '../contexts/ThemeContext'
 import { useToast } from '../contexts/ToastContext'
@@ -731,7 +731,7 @@ export default function SettingsPage() {
       <WeightSettingsModal
         isOpen={showWeightModal}
         onClose={() => setShowWeightModal(false)}
-        current={settings.weightSettings}
+        current={settings.weightSettings ?? DEFAULT_WEIGHT_SETTINGS}
         onSave={ws => updateSettings({ weightSettings: ws })}
       />
 
