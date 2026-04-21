@@ -374,9 +374,11 @@ export default function WorkoutPage() {
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => setMode('samen-select')}
+                onClick={() => allProfiles.length < 2
+                  ? navigate('/profiles/new')
+                  : setMode('samen-select')
+                }
                 className="flex flex-col items-center gap-3 p-6 bg-bg-card border border-border rounded-xl hover:border-accent transition-colors cursor-pointer"
-                disabled={allProfiles.length < 2}
               >
                 <div className="w-14 h-14 rounded-full bg-accent/20 flex items-center justify-center">
                   <Users size={24} className="text-accent" />
@@ -385,7 +387,7 @@ export default function WorkoutPage() {
                   <p className="text-text-primary font-semibold m-0">Samen</p>
                   <p className="text-xs text-text-muted m-0 mt-1">
                     {allProfiles.length < 2
-                      ? 'Min. 2 profielen nodig'
+                      ? '+ Profiel toevoegen'
                       : 'Samen trainen'}
                   </p>
                 </div>

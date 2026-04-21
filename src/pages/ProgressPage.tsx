@@ -173,12 +173,10 @@ export default function ProgressPage() {
             <RefreshCw size={11} className={isSyncing ? 'animate-spin' : ''} />
             {isSyncing ? 'Syncing...' : lastSyncAt ? `Gesync ${lastSyncAt.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'})}` : 'Sync met cloud'}
           </button>
-          {syncError && (
-            <button onClick={handleDiagnose} disabled={diagnosing} className="flex items-center gap-1 text-xs cursor-pointer bg-transparent border-0 p-0" style={{ color: 'var(--theme-error)' }}>
-              <AlertCircle size={11} />
-              {diagnosing ? 'Diagnoseren...' : 'Sync fout — diagnose'}
-            </button>
-          )}
+          <button onClick={handleDiagnose} disabled={diagnosing} className="flex items-center gap-1 text-xs cursor-pointer bg-transparent border-0 p-0" style={{ color: syncError ? 'var(--theme-error)' : 'var(--theme-text-muted)' }}>
+            <AlertCircle size={11} />
+            {diagnosing ? 'Diagnoseren...' : syncError ? 'Sync fout — diagnose' : 'Sync diagnose'}
+          </button>
         </div>
         {diagnosisResult && (
           <div className={`mb-4 text-xs rounded-xl p-3 ${diagnosisResult.startsWith('OK') ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>

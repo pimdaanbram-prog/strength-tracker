@@ -331,7 +331,7 @@ export default function Dashboard() {
           ) : todaySessions.length > 0 ? (
             <motion.div variants={itemVariants} className="mb-8">
               <div
-                className="p-4 rounded-2xl flex items-center gap-3"
+                className="p-4 rounded-2xl flex items-center gap-3 mb-3"
                 style={{ background: 'rgba(0,229,160,0.08)', border: '1px solid rgba(0,229,160,0.15)' }}
               >
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(0,229,160,0.15)' }}>
@@ -346,6 +346,31 @@ export default function Dashboard() {
                   </p>
                 </div>
               </div>
+              {suggestedTemplate && (
+                <motion.button
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => navigate('/workout', { state: { templateId: suggestedTemplate.id } })}
+                  className="w-full flex items-center gap-3 p-3.5 rounded-2xl cursor-pointer border-0 text-left"
+                  style={{ background: 'var(--theme-bg-card)', border: '1px solid var(--theme-border)' }}
+                >
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                    style={{ background: 'var(--theme-accent-muted)' }}
+                  >
+                    <Play size={16} fill="currentColor" style={{ color: 'var(--theme-accent)', marginLeft: 2 }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold m-0" style={{ color: 'var(--theme-text-primary)' }}>
+                      Nog een training?
+                    </p>
+                    <p className="text-xs m-0 mt-0.5 truncate" style={{ color: 'var(--theme-text-secondary)' }}>
+                      {exName(suggestedTemplate)} · {suggestedTemplate.exercises.length} oef.
+                    </p>
+                  </div>
+                  <ArrowRight size={14} style={{ color: 'var(--theme-text-muted)' }} />
+                </motion.button>
+              )}
             </motion.div>
           ) : null}
 
@@ -453,17 +478,18 @@ export default function Dashboard() {
                       <p className="text-xs m-0 mt-0.5" style={{ color: 'var(--theme-text-secondary)' }}>{plan.exercises.length} oefeningen</p>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
-                      {profiles.length >= 2 && (
-                        <motion.button
-                          whileTap={{ scale: 0.9 }}
-                          onClick={() => navigate('/workout', { state: { planId: plan.id, samen: true } })}
-                          className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer border-0"
-                          style={{ background: 'var(--theme-glass)', color: 'var(--theme-text-muted)' }}
-                          title="Samen trainen"
-                        >
-                          <Users size={13} />
-                        </motion.button>
-                      )}
+                      <motion.button
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => profiles.length >= 2
+                          ? navigate('/workout', { state: { planId: plan.id, samen: true } })
+                          : navigate('/profiles/new')
+                        }
+                        className="w-11 h-11 rounded-lg flex items-center justify-center cursor-pointer border-0"
+                        style={{ background: 'var(--theme-glass)', color: 'var(--theme-text-muted)' }}
+                        title={profiles.length >= 2 ? 'Samen trainen' : 'Voeg een tweede profiel toe'}
+                      >
+                        <Users size={13} />
+                      </motion.button>
                       <motion.button
                         whileTap={{ scale: 0.9 }}
                         onClick={() => navigate('/workout', { state: { planId: plan.id } })}
@@ -600,36 +626,40 @@ export default function Dashboard() {
           </motion.div>
 
           {/* ─── SAMEN TRAINEN ─────────────────────────────────── */}
-          {profiles.length >= 2 && (
-            <motion.div variants={itemVariants} className="mb-8">
-              <motion.button
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => navigate('/workout', { state: { samen: true } })}
-                className="w-full flex items-center gap-4 p-4 rounded-2xl cursor-pointer border-0 text-left overflow-hidden relative"
-                style={{ background: 'var(--theme-bg-card)', border: '1px solid var(--theme-border)' }}
+          <motion.div variants={itemVariants} className="mb-8">
+            <motion.button
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => profiles.length >= 2
+                ? navigate('/workout', { state: { samen: true } })
+                : navigate('/profiles/new')
+              }
+              className="w-full flex items-center gap-4 p-4 rounded-2xl cursor-pointer border-0 text-left overflow-hidden relative"
+              style={{ background: 'var(--theme-bg-card)', border: '1px solid var(--theme-border)' }}
+            >
+              {/* Background accent */}
+              <div
+                className="absolute right-0 top-0 bottom-0 w-32 pointer-events-none"
+                style={{ background: 'linear-gradient(to left, var(--theme-accent-muted), transparent)' }}
+              />
+              <div
+                className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+                style={{ background: 'var(--theme-accent-muted)', border: '1px solid var(--theme-accent-glow)' }}
               >
-                {/* Background accent */}
-                <div
-                  className="absolute right-0 top-0 bottom-0 w-32 pointer-events-none"
-                  style={{ background: 'linear-gradient(to left, var(--theme-accent-muted), transparent)' }}
-                />
-                <div
-                  className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
-                  style={{ background: 'var(--theme-accent-muted)', border: '1px solid var(--theme-accent-glow)' }}
-                >
-                  <Users size={22} style={{ color: 'var(--theme-accent)' }} />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-bold m-0" style={{ color: 'var(--theme-text-primary)' }}>Samen Trainen</p>
-                  <p className="text-xs m-0 mt-0.5" style={{ color: 'var(--theme-text-secondary)' }}>
-                    Train met {profiles.length} profielen tegelijk
-                  </p>
-                </div>
-                <ChevronRight size={16} style={{ color: 'var(--theme-text-muted)' }} />
-              </motion.button>
-            </motion.div>
-          )}
+                <Users size={22} style={{ color: 'var(--theme-accent)' }} />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold m-0" style={{ color: 'var(--theme-text-primary)' }}>Samen Trainen</p>
+                <p className="text-xs m-0 mt-0.5" style={{ color: 'var(--theme-text-secondary)' }}>
+                  {profiles.length >= 2
+                    ? `Train met ${profiles.length} profielen tegelijk`
+                    : 'Voeg een tweede profiel toe om samen te trainen →'
+                  }
+                </p>
+              </div>
+              <ChevronRight size={16} style={{ color: 'var(--theme-text-muted)' }} />
+            </motion.button>
+          </motion.div>
 
           {/* ─── RECENTE PR'S ─────────────────────────────────── */}
           {recentPRs.length > 0 && (
