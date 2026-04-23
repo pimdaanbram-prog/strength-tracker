@@ -13,7 +13,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
       <div
         ref={ref}
         className={`
-          bg-bg-card/80 backdrop-blur-sm rounded-2xl
+          backdrop-blur-xl backdrop-saturate-150 rounded-2xl
           border transition-all duration-200
           ${active
             ? accentColor
@@ -21,14 +21,16 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
               : 'border-accent shadow-lg shadow-accent/10'
             : 'border-border'
           }
-          ${hover ? 'hover:border-border-light hover:bg-bg-card cursor-pointer' : ''}
+          ${hover ? 'hover:border-border-light cursor-pointer' : ''}
           ${className}
         `}
-        style={
-          active && accentColor
-            ? { borderColor: accentColor, boxShadow: `0 10px 15px -3px ${accentColor}20` }
-            : undefined
-        }
+      style={{
+        background: 'var(--theme-bg-card)',
+        boxShadow: active && accentColor
+          ? `0 10px 15px -3px ${accentColor}20`
+          : '0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)',
+        ...(active && accentColor ? { borderColor: accentColor } : {}),
+      }}
         {...props}
       >
         {children}

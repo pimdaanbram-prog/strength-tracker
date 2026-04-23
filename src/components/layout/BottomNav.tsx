@@ -82,9 +82,11 @@ export default function BottomNav() {
             className="fixed left-0 right-0 z-50 rounded-t-3xl overflow-hidden"
             style={{
               bottom: 0,
-              background: 'var(--theme-bg-secondary)',
-              borderTop: '1px solid var(--theme-border)',
-              boxShadow: '0 -16px 48px rgba(0,0,0,0.6)',
+              background: 'var(--theme-bg-card)',
+              backdropFilter: 'blur(32px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(32px) saturate(180%)',
+              borderTop: '1px solid var(--theme-glass-border)',
+              boxShadow: '0 -16px 48px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06)',
               paddingBottom: 'max(7rem, calc(env(safe-area-inset-bottom) + 7rem))',
             }}
           >
@@ -122,9 +124,11 @@ export default function BottomNav() {
                     onClick={() => handleMoreItem(to)}
                     className="flex flex-col items-center gap-2 py-3 px-2 rounded-2xl cursor-pointer border-0"
                     style={{
-                      background: isActive ? `${color}15` : 'var(--theme-bg-input)',
-                      border: `1px solid ${isActive ? color + '35' : 'var(--theme-border)'}`,
-                      boxShadow: isActive ? `0 4px 16px ${color}20` : 'none',
+                      background: isActive ? `${color}18` : 'var(--theme-glass)',
+                      backdropFilter: 'blur(12px)',
+                      WebkitBackdropFilter: 'blur(12px)',
+                      border: `1px solid ${isActive ? color + '40' : 'var(--theme-glass-border)'}`,
+                      boxShadow: isActive ? `0 4px 16px ${color}22` : 'none',
                     }}
                   >
                     <div

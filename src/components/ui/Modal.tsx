@@ -43,10 +43,12 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
             style={{
               maxHeight: '90dvh',
               background: 'var(--theme-bg-card)',
+              backdropFilter: 'blur(32px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(32px) saturate(180%)',
               border: '1px solid var(--theme-glass-border)',
               borderBottom: 'none',
               borderRadius: '28px 28px 0 0',
-              boxShadow: '0 -24px 64px rgba(0,0,0,0.7)',
+              boxShadow: '0 -24px 64px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.06)',
             }}
           >
             {/* Drag handle */}
