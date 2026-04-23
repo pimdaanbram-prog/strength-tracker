@@ -121,19 +121,21 @@ export default function PlansPage() {
                     <div className="flex items-center gap-1 shrink-0">
                       <button
                         onClick={() => navigate(`/plans/${plan.id}/edit`)}
-                        className="p-2 rounded-xl cursor-pointer bg-transparent border-0 transition-colors"
-                        style={{ color: 'rgba(255,255,255,0.4)' }}
-                        onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
-                        onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}
+                        className="w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer border-0 transition-all"
+                        style={{ background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.85)' }}
+                        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.25)')}
+                        onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
+                        title="Bewerken"
                       >
                         <Pencil size={14} />
                       </button>
                       <button
                         onClick={() => handleDelete(plan.id, plan.name)}
-                        className="p-2 rounded-xl cursor-pointer bg-transparent border-0 transition-colors"
-                        style={{ color: 'rgba(255,59,59,0.4)' }}
-                        onMouseEnter={e => (e.currentTarget.style.color = '#FF3B3B')}
-                        onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,59,59,0.4)')}
+                        className="w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer border-0 transition-all"
+                        style={{ background: 'rgba(255,59,59,0.15)', color: 'rgba(255,59,59,0.85)' }}
+                        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,59,59,0.3)')}
+                        onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,59,59,0.15)')}
+                        title="Verwijderen"
                       >
                         <Trash2 size={14} />
                       </button>
@@ -175,17 +177,19 @@ export default function PlansPage() {
                       <Play size={13} fill="#fff" strokeWidth={0} />
                       Solo starten
                     </motion.button>
-                    {profiles.length >= 2 && (
-                      <motion.button
-                        whileTap={{ scale: 0.97 }}
-                        onClick={() => navigate('/workout', { state: { planId: plan.id, samen: true } })}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold rounded-xl cursor-pointer border-0"
-                        style={{ background: 'var(--theme-bg-input)', color: 'var(--theme-text-secondary)', border: '1px solid var(--theme-border)' }}
-                      >
-                        <Users size={13} />
-                        Samen
-                      </motion.button>
-                    )}
+                    <motion.button
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => profiles.length >= 2
+                        ? navigate('/workout', { state: { planId: plan.id, samen: true } })
+                        : navigate('/profiles/new')
+                      }
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold rounded-xl cursor-pointer border-0"
+                      style={{ background: 'var(--theme-bg-input)', color: 'var(--theme-text-secondary)', border: '1px solid var(--theme-border)' }}
+                      title={profiles.length < 2 ? 'Voeg een tweede profiel toe' : 'Samen trainen'}
+                    >
+                      <Users size={13} />
+                      {profiles.length >= 2 ? 'Samen' : '+ Profiel'}
+                    </motion.button>
                   </div>
                 </div>
               </motion.div>

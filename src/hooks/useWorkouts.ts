@@ -1,13 +1,17 @@
 import { useCallback } from 'react'
 import { getFromStorage, setToStorage, STORAGE_KEYS } from '../utils/localStorage'
 import { getWeekNumber, getYear } from '../utils/weekUtils'
-import { useAppStore } from '../store/appStore'
+import { useAppStore, DEFAULT_WEIGHT_SETTINGS } from '../store/appStore'
 import { useSync } from './useSync'
+import { exercises as exerciseData } from '../data/exercises'
+import { getAchievableWeightsForEquipment, nearestWeight } from '../utils/plateCalculator'
 
 export interface SetLog {
   setNumber: number
   weight: number | null
   reps: number | null
+  repsLeft?: number | null
+  repsRight?: number | null
   seconds: number | null
   completed: boolean
   rpe: number | null
@@ -77,6 +81,7 @@ export function useWorkouts() {
   // to re-render whenever sessions change (local save/delete or cloud sync)
   const sessionVersion = useAppStore(s => s.sessionVersion)
   const bumpSessionVersion = useAppStore(s => s.bumpSessionVersion)
+  const weightSettings = useAppStore(s => s.settings.weightSettings ?? DEFAULT_WEIGHT_SETTINGS)
   const { pushSession, pushWeekLog } = useSync()
 
   const getSessions = useCallback((): WorkoutSession[] => {
@@ -303,47 +308,60 @@ export function useWorkouts() {
 
     const increment = last.maxWeight >= 20 ? 2.5 : 1.25
 
+    // Determine achievable weights for this exercise (if weight settings enabled)
+    const exerciseDef = exerciseData.find(e => e.id === exerciseId)
+    const achievable = exerciseDef
+      ? getAchievableWeightsForEquipment(exerciseDef.equipment, weightSettings)
+      : []
+
+    const snap = (w: number) => achievable.length > 0 ? nearestWeight(w, achievable) : w
+
     if (weightHistory.length === 1) {
-      return { weight: last.maxWeight, reps: '8-10', trend: 'new', note: 'Eerste sessie — houd dit gewicht aan' }
+      const w = snap(last.maxWeight)
+      return { weight: w, reps: '8-10', trend: 'new', note: 'Eerste sessie — houd dit gewicht aan' }
     }
 
     const prev = weightHistory[weightHistory.length - 2]
 
     if (last.maxReps >= 12 && last.maxWeight > 0) {
+      const w = snap(last.maxWeight + increment)
       return {
-        weight: last.maxWeight + increment,
+        weight: w,
         reps: '8-10',
         trend: 'up',
-        note: `Vorige keer ${last.maxReps} reps — probeer ${last.maxWeight + increment}kg`,
+        note: `Vorige keer ${last.maxReps} reps — probeer ${w}kg`,
       }
     }
 
     if (last.maxWeight > prev.maxWeight) {
+      const w = snap(last.maxWeight)
       return {
-        weight: last.maxWeight,
+        weight: w,
         reps: '8-12',
         trend: 'up',
-        note: `Goed bezig! Probeer ${last.maxReps + 1}-${last.maxReps + 2} reps bij ${last.maxWeight}kg`,
+        note: `Goed bezig! Probeer ${last.maxReps + 1}-${last.maxReps + 2} reps bij ${w}kg`,
       }
     }
 
     if (last.maxWeight === prev.maxWeight) {
+      const w = snap(last.maxWeight)
       return {
-        weight: last.maxWeight,
+        weight: w,
         reps: '10-12',
         trend: 'same',
-        note: `Zelfde gewicht — probeer 1-2 extra reps bij ${last.maxWeight}kg`,
+        note: `Zelfde gewicht — probeer 1-2 extra reps bij ${w}kg`,
       }
     }
 
-    const recoveryWeight = Math.round(prev.maxWeight * 0.95 / 2.5) * 2.5 || last.maxWeight
+    const recoveryRaw = Math.round(prev.maxWeight * 0.95 / 2.5) * 2.5 || last.maxWeight
+    const w = snap(recoveryRaw)
     return {
-      weight: recoveryWeight,
+      weight: w,
       reps: '8-10',
       trend: 'down',
-      note: `Herstelweek — start bij ${recoveryWeight}kg met goede vorm`,
+      note: `Herstelweek — start bij ${w}kg met goede vorm`,
     }
-  }, [activeProfileId, getSessions])
+  }, [activeProfileId, getSessions, weightSettings])
 
   const getWeekLogs = useCallback((): WeekLog[] => {
     if (!activeProfileId) return []

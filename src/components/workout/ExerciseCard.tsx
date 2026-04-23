@@ -162,6 +162,8 @@ export default function ExerciseCard({
                   set={set}
                   isTimeBased={exercise.isTimeBased}
                   onChange={(updated) => handleSetChange(i, updated)}
+                  previousSet={lastSession?.sets[i] ?? null}
+                  isUnilateral={exercise.isUnilateral}
                 />
               ))}
 
@@ -170,7 +172,7 @@ export default function ExerciseCard({
                 {/* Add set */}
                 <button
                   onClick={addSet}
-                  className="flex items-center gap-1 px-3 h-9 rounded-xl text-xs font-semibold cursor-pointer border-0 transition-colors"
+                  className="flex items-center gap-1 px-3 h-11 rounded-xl text-xs font-semibold cursor-pointer border-0 transition-colors"
                   style={{ background: 'var(--theme-accent-muted)', color: 'var(--theme-accent)' }}
                 >
                   <Plus size={13} /> Set
@@ -179,7 +181,7 @@ export default function ExerciseCard({
                 {/* Rest timer */}
                 <button
                   onClick={() => onStartRest(exercise.restSeconds)}
-                  className="flex items-center gap-1 px-3 h-9 rounded-xl text-xs font-semibold cursor-pointer border-0 transition-colors"
+                  className="flex items-center gap-1 px-3 h-11 rounded-xl text-xs font-semibold cursor-pointer border-0 transition-colors"
                   style={{ background: 'var(--theme-bg-input)', color: 'var(--theme-text-secondary)' }}
                 >
                   <Timer size={13} /> {exercise.restSeconds}s
@@ -188,7 +190,7 @@ export default function ExerciseCard({
                 {/* Notes */}
                 <button
                   onClick={() => setShowNotes(!showNotes)}
-                  className="flex items-center gap-1 px-3 h-9 rounded-xl text-xs font-semibold cursor-pointer border-0 transition-colors"
+                  className="flex items-center gap-1 px-3 h-11 rounded-xl text-xs font-semibold cursor-pointer border-0 transition-colors"
                   style={{ background: 'var(--theme-bg-input)', color: showNotes ? 'var(--theme-accent)' : 'var(--theme-text-secondary)' }}
                 >
                   <MessageSquare size={13} />
@@ -198,7 +200,7 @@ export default function ExerciseCard({
                 {/* Delete — push to right */}
                 <button
                   onClick={onRemove}
-                  className="ml-auto w-9 h-9 rounded-xl flex items-center justify-center cursor-pointer border-0 transition-colors"
+                  className="ml-auto w-11 h-11 rounded-xl flex items-center justify-center cursor-pointer border-0 transition-colors"
                   style={{ color: 'rgba(255,59,59,0.4)', background: 'transparent' }}
                   onTouchStart={e => (e.currentTarget.style.color = '#FF3B3B')}
                   onTouchEnd={e => (e.currentTarget.style.color = 'rgba(255,59,59,0.4)')}

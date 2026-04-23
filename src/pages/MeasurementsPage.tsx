@@ -356,8 +356,8 @@ export default function MeasurementsPage() {
               title="Gewicht Tracker"
             >
               {/* Input row */}
-              <div className="flex gap-2 items-end">
-                <div className="flex-1">
+              <div className="flex flex-wrap gap-2 items-end">
+                <div className="flex-1 min-w-[120px]">
                   <FieldLabel>Gewicht ({unit})</FieldLabel>
                   <StyledInput
                     value={weightInput}
@@ -368,13 +368,13 @@ export default function MeasurementsPage() {
                     onEnter={handleAddWeight}
                   />
                 </div>
-                <div>
+                <div className="flex-1 min-w-[140px]">
                   <FieldLabel>Datum</FieldLabel>
                   <input
                     type="date"
                     value={weightDate}
                     onChange={e => setWeightDate(e.target.value)}
-                    className="rounded-xl px-3 py-2.5 text-sm font-medium outline-none"
+                    className="w-full rounded-xl px-3 py-2.5 text-sm font-medium outline-none"
                     style={{
                       background: 'var(--theme-bg-input)',
                       border: '1px solid var(--theme-border)',

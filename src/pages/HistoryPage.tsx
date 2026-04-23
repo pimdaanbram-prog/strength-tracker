@@ -265,18 +265,24 @@ export default function HistoryPage() {
                                           {exName(exercise) || se.exerciseId}
                                         </p>
                                         <div className="flex flex-wrap gap-1.5">
-                                          {doneSets.map((set, i) => (
-                                            <span
-                                              key={i}
-                                              className="text-xs px-2.5 py-1 rounded-xl"
-                                              style={{ background: 'var(--theme-bg-input)', color: 'var(--theme-text-secondary)', border: '1px solid var(--theme-border)' }}
-                                            >
-                                              {set.weight && set.weight > 0 ? `${set.weight}kg` : ''}
-                                              {set.weight && set.weight > 0 && set.reps ? ' × ' : ''}
-                                              {set.reps ? `${set.reps}` : ''}
-                                              {set.seconds ? `${set.seconds}s` : ''}
-                                            </span>
-                                          ))}
+                                          {doneSets.map((set, i) => {
+                                            const hasLR = set.repsLeft != null || set.repsRight != null
+                                            return (
+                                              <span
+                                                key={i}
+                                                className="text-xs px-2.5 py-1 rounded-xl"
+                                                style={{ background: 'var(--theme-bg-input)', color: 'var(--theme-text-secondary)', border: '1px solid var(--theme-border)' }}
+                                              >
+                                                {set.weight && set.weight > 0 ? `${set.weight}kg` : ''}
+                                                {set.weight && set.weight > 0 && (set.reps || hasLR) ? ' × ' : ''}
+                                                {hasLR
+                                                  ? `${set.repsLeft ?? '?'}L / ${set.repsRight ?? '?'}R`
+                                                  : set.reps ? `${set.reps}` : ''
+                                                }
+                                                {set.seconds ? `${set.seconds}s` : ''}
+                                              </span>
+                                            )
+                                          })}
                                         </div>
                                       </div>
                                     )

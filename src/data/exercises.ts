@@ -15,6 +15,7 @@ export interface Exercise {
   defaultReps: string
   restSeconds: number
   isTimeBased: boolean
+  isUnilateral?: boolean
   instructions: string[]
   tips: string[]
   commonMistakes: string[]
@@ -384,6 +385,7 @@ export const exercises: Exercise[] = [
     defaultReps: '10/arm',
     restSeconds: 75,
     isTimeBased: false,
+    isUnilateral: true,
     instructions: [
       'Plaats je rechterhand en rechterknie op een bank voor steun.',
       'Pak met je linkerhand een dumbbell van de grond.',
@@ -648,6 +650,7 @@ export const exercises: Exercise[] = [
     defaultReps: '10-12/arm',
     restSeconds: 60,
     isTimeBased: false,
+    isUnilateral: true,
     instructions: [
       'Stel de kabel in op borsthoogte met een enkelhandgreep.',
       'Pak de handgreep vast met één hand en doe een stap achteruit.',
@@ -1092,6 +1095,7 @@ export const exercises: Exercise[] = [
     musclesWorked: ['biceps'],
     difficulty: 'beginner',
     isCompound: false,
+    isUnilateral: true,
     recommendedWeight: {
       male: { beginner: '5-7 kg', intermediate: '8-14 kg', advanced: '16-22 kg' },
       female: { beginner: '2-4 kg', intermediate: '5-8 kg', advanced: '10-14 kg' },
@@ -1470,6 +1474,7 @@ export const exercises: Exercise[] = [
     musclesWorked: ['triceps'],
     difficulty: 'beginner',
     isCompound: false,
+    isUnilateral: true,
     recommendedWeight: {
       male: { beginner: '3-5 kg', intermediate: '6-10 kg', advanced: '12-16 kg' },
       female: { beginner: '1-3 kg', intermediate: '4-6 kg', advanced: '7-10 kg' },
@@ -1633,6 +1638,7 @@ export const exercises: Exercise[] = [
     defaultReps: '10/been',
     restSeconds: 60,
     isTimeBased: false,
+    isUnilateral: true,
     instructions: [
       'Sta rechtop met je voeten op heupbreedte.',
       'Doe een grote stap naar voren met je rechtervoet.',
@@ -1671,6 +1677,7 @@ export const exercises: Exercise[] = [
     defaultReps: '10/been',
     restSeconds: 75,
     isTimeBased: false,
+    isUnilateral: true,
     instructions: [
       'Sta met je rug naar een bank, ongeveer een grote stap ervandaan.',
       'Plaats de bovenkant van je achtervoet op de bank.',
@@ -1857,6 +1864,7 @@ export const exercises: Exercise[] = [
     defaultReps: '10/been',
     restSeconds: 60,
     isTimeBased: false,
+    isUnilateral: true,
     instructions: [
       'Sta voor een stevige bank, kist of platform op kniehoogte.',
       'Plaats je rechtervoet volledig op het platform.',
@@ -3636,6 +3644,7 @@ export const exercises: Exercise[] = [
     defaultReps: '10/been',
     restSeconds: 60,
     isTimeBased: false,
+    isUnilateral: true,
     instructions: [
       'Sta op je rechtervoet met een dumbbell in je linkerhand.',
       'Houd een lichte buiging in je standknie.',

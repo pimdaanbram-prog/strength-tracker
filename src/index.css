@@ -1,32 +1,33 @@
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
 /* ─── Runtime Theme Variables (set by ThemeContext) ──── */
 :root {
-  --theme-bg-primary: #060606;
-  --theme-bg-secondary: #0A0A0A;
-  --theme-bg-card: #111111;
-  --theme-bg-input: #181818;
-  --theme-text-primary: #FAFAFA;
-  --theme-text-secondary: #888888;
-  --theme-text-muted: #444444;
-  --theme-accent: #FF5500;
-  --theme-accent-hover: #E64D00;
-  --theme-accent-muted: rgba(255,85,0,0.12);
-  --theme-accent-glow: rgba(255,85,0,0.3);
-  --theme-border: #1C1C1C;
-  --theme-border-subtle: #282828;
-  --theme-success: #00E5A0;
-  --theme-warning: #FFB300;
-  --theme-error: #FF3B3B;
-  --theme-glass: rgba(255,255,255,0.04);
-  --theme-glass-border: rgba(255,255,255,0.08);
-  --theme-shadow-sm: 0 2px 8px rgba(0,0,0,0.4);
-  --theme-shadow-md: 0 8px 24px rgba(0,0,0,0.5);
-  --theme-shadow-lg: 0 16px 48px rgba(0,0,0,0.6);
-  --theme-nav-bg: rgba(14,14,14,0.92);
-  --theme-gradient-text-from: #FF5500;
-  --theme-gradient-text-to: #FF8833;
+  --theme-bg-primary: #060608;
+  --theme-bg-secondary: #0A0A0E;
+  --theme-bg-card: rgba(17,17,22,0.72);
+  --theme-bg-input: rgba(255,255,255,0.05);
+  --theme-text-primary: #F5F5F7;
+  --theme-text-secondary: rgba(235,235,245,0.72);
+  --theme-text-muted: rgba(235,235,245,0.45);
+  --theme-accent: #FF7A1F;
+  --theme-accent-hover: #E86A10;
+  --theme-accent-muted: rgba(255,122,31,0.14);
+  --theme-accent-glow: rgba(255,122,31,0.32);
+  --theme-border: rgba(255,255,255,0.08);
+  --theme-border-subtle: rgba(255,255,255,0.05);
+  --theme-success: #3EE8A8;
+  --theme-warning: #FFB020;
+  --theme-error: #FF4D4D;
+  --theme-glass: rgba(255,255,255,0.06);
+  --theme-glass-border: rgba(255,255,255,0.11);
+  --theme-shadow-sm: 0 2px 8px rgba(0,0,0,0.45);
+  --theme-shadow-md: 0 8px 32px rgba(0,0,0,0.55);
+  --theme-shadow-lg: 0 16px 48px rgba(0,0,0,0.65);
+  --theme-nav-bg: rgba(6,6,12,0.72);
+  --theme-gradient-text-from: #FF7A1F;
+  --theme-gradient-text-to: #FFB020;
+  --theme-font-mono: 'JetBrains Mono', ui-monospace, monospace;
 }
 
 /* ─── Tailwind Theme Tokens ────────────────────────── */
@@ -50,6 +51,7 @@
   --color-glass-border: var(--theme-glass-border);
   --font-heading: 'Bebas Neue', sans-serif;
   --font-body: 'Space Grotesk', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 }
 
 * {
@@ -71,10 +73,32 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Ambient gradient orbs — depth layer behind glass cards */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 55% at 12% 18%, var(--theme-accent-glow) 0%, transparent 58%),
+    radial-gradient(ellipse 60% 45% at 88% 82%, color-mix(in srgb, var(--theme-accent-glow) 50%, transparent) 0%, transparent 52%);
+  pointer-events: none;
+  z-index: 0;
+  transition: none;
+}
+
+/* Dampen orbs for light themes */
+[data-theme="clean-light"] body::before,
+[data-theme="cream-light"] body::before,
+[data-theme="bubblegum"] body::before {
+  opacity: 0.15;
+}
+
 #root {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 1;
 }
 
 h1, h2, h3, h4 {
@@ -128,17 +152,27 @@ input[type="number"] { -moz-appearance: textfield; }
 /* ─── Glassmorphism ─────────────────────────────── */
 .glass {
   background: var(--theme-glass);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid var(--theme-glass-border);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
 }
 
 .glass-strong {
-  background: var(--theme-glass);
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
+  background: rgba(255,255,255,0.09);
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  border: 1px solid rgba(255,255,255,0.16);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.10);
+}
+
+.glass-card {
+  background: var(--theme-bg-card);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid var(--theme-glass-border);
-  filter: brightness(1.4);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
 }
 
 /* ─── Gradient card backgrounds ─────────────────── */

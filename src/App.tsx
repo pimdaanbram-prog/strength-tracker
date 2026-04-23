@@ -84,14 +84,14 @@ function MainApp() {
             </div>
             <button
               onClick={handleInstall}
-              className="px-3 py-2 bg-white text-xs font-bold rounded-xl cursor-pointer border-0 shrink-0 min-h-[36px]"
+              className="px-3 py-2 bg-white text-xs font-bold rounded-xl cursor-pointer border-0 shrink-0 min-h-[44px]"
               style={{ color: 'var(--theme-accent)' }}
             >
               Installeer
             </button>
             <button
               onClick={dismissBanner}
-              className="w-9 h-9 flex items-center justify-center cursor-pointer bg-transparent border-0 shrink-0"
+              className="w-11 h-11 flex items-center justify-center cursor-pointer bg-transparent border-0 shrink-0"
             >
               <X size={16} className="text-white/70" />
             </button>

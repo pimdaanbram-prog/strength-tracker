@@ -3,14 +3,16 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   Palette, Dumbbell, Bell, Database, Info,
-  ChevronRight, Download, Trash2, AlertTriangle,
+  ChevronRight, Download, Trash2, AlertTriangle, Weight, Plus, Minus, Check,
 } from 'lucide-react'
 import Header from '../components/layout/Header'
 import PageWrapper from '../components/layout/PageWrapper'
 import Modal from '../components/ui/Modal'
-import { useAppStore } from '../store/appStore'
+import { useAppStore, DEFAULT_WEIGHT_SETTINGS } from '../store/appStore'
+import type { WeightSettings } from '../store/appStore'
 import { useTheme } from '../contexts/ThemeContext'
 import { useToast } from '../contexts/ToastContext'
+import { getAchievableBarbellWeights } from '../utils/plateCalculator'
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -211,6 +213,245 @@ function deleteAllData() {
   window.location.reload()
 }
 
+// ─── Weight Settings Modal ────────────────────────────────────────────────────
+
+const STANDARD_DUMBBELLS = [2.5, 5, 7.5, 10, 12.5, 15, 17.5, 20, 22.5, 25, 27.5, 30, 32.5, 35, 40, 45, 50]
+const PLATE_SIZES = [25, 20, 15, 10, 5, 2.5, 1.25, 0.5]
+
+function WeightSettingsModal({
+  isOpen,
+  onClose,
+  current,
+  onSave,
+}: {
+  isOpen: boolean
+  onClose: () => void
+  current: WeightSettings
+  onSave: (ws: WeightSettings) => void
+}) {
+  const [draft, setDraft] = useState<WeightSettings>(current)
+
+  const setPlateCount = (plateWeight: number, count: number) => {
+    setDraft(d => ({
+      ...d,
+      plates: d.plates.map(p => p.weight === plateWeight ? { ...p, count: Math.max(0, count) } : p),
+    }))
+  }
+
+  const getPlateCount = (plateWeight: number) =>
+    draft.plates.find(p => p.weight === plateWeight)?.count ?? 0
+
+  const toggleDumbbell = (w: number) => {
+    setDraft(d => ({
+      ...d,
+      dumbbells: d.dumbbells.includes(w)
+        ? d.dumbbells.filter(x => x !== w)
+        : [...d.dumbbells, w].sort((a, b) => a - b),
+    }))
+  }
+
+  const barbellWeights = getAchievableBarbellWeights(draft)
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Beschikbare Gewichten">
+      <div className="space-y-5">
+
+        {/* Enable toggle */}
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-semibold m-0" style={{ color: 'var(--theme-text-primary)' }}>
+              Slim filteren op gewichten
+            </p>
+            <p className="text-xs m-0 mt-0.5" style={{ color: 'var(--theme-text-muted)' }}>
+              Adviezen afstemmen op jouw beschikbare gewichten
+            </p>
+          </div>
+          <button
+            role="switch"
+            aria-checked={draft.enabled}
+            onClick={() => setDraft(d => ({ ...d, enabled: !d.enabled }))}
+            className="relative rounded-full cursor-pointer border-0 shrink-0 transition-all"
+            style={{
+              width: 46, height: 26,
+              background: draft.enabled ? 'var(--theme-accent)' : 'var(--theme-bg-input)',
+              border: `1px solid ${draft.enabled ? 'var(--theme-accent)' : 'var(--theme-border)'}`,
+            }}
+          >
+            <span
+              className="absolute rounded-full"
+              style={{
+                width: 18, height: 18, top: 3,
+                left: draft.enabled ? 23 : 3,
+                background: '#fff',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.35)',
+                transition: 'left 0.2s ease',
+              }}
+            />
+          </button>
+        </div>
+
+        <div className="h-px" style={{ background: 'var(--theme-border)' }} />
+
+        {/* ── Barbell section ─────────────────────────────────── */}
+        <div>
+          <p className="text-xs font-bold uppercase tracking-widest mb-3 m-0" style={{ color: 'var(--theme-text-muted)' }}>
+            Stang &amp; Schijven
+          </p>
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm" style={{ color: 'var(--theme-text-secondary)' }}>Stanggewicht</span>
+            <div className="flex items-center gap-2">
+              <button onClick={() => setDraft(d => ({ ...d, barbellWeight: Math.max(0, d.barbellWeight - 2.5) }))}
+                className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer border-0"
+                style={{ background: 'var(--theme-bg-input)', color: 'var(--theme-text-secondary)' }}>
+                <Minus size={13} />
+              </button>
+              <span className="text-sm font-bold w-14 text-center" style={{ color: 'var(--theme-text-primary)' }}>
+                {draft.barbellWeight} kg
+              </span>
+              <button onClick={() => setDraft(d => ({ ...d, barbellWeight: d.barbellWeight + 2.5 }))}
+                className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer border-0"
+                style={{ background: 'var(--theme-bg-input)', color: 'var(--theme-text-secondary)' }}>
+                <Plus size={13} />
+              </button>
+            </div>
+          </div>
+
+          <p className="text-xs mb-2 m-0" style={{ color: 'var(--theme-text-muted)' }}>
+            Aantal schijven per type (totaal, niet per kant)
+          </p>
+          <div className="space-y-1.5">
+            {PLATE_SIZES.map(pw => {
+              const count = getPlateCount(pw)
+              return (
+                <div key={pw} className="flex items-center justify-between">
+                  <span className="text-sm w-16" style={{ color: 'var(--theme-text-secondary)' }}>{pw} kg</span>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => setPlateCount(pw, count - 2)}
+                      className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer border-0"
+                      style={{ background: 'var(--theme-bg-input)', color: 'var(--theme-text-secondary)' }}>
+                      <Minus size={12} />
+                    </button>
+                    <span className="text-sm font-bold w-8 text-center" style={{ color: count > 0 ? 'var(--theme-text-primary)' : 'var(--theme-text-muted)' }}>
+                      {count}
+                    </span>
+                    <button onClick={() => setPlateCount(pw, count + 2)}
+                      className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer border-0"
+                      style={{ background: 'var(--theme-bg-input)', color: 'var(--theme-text-secondary)' }}>
+                      <Plus size={12} />
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {barbellWeights.length > 1 && (
+            <div className="mt-2 p-2 rounded-xl" style={{ background: 'var(--theme-bg-input)' }}>
+              <p className="text-[10px] mb-1 m-0" style={{ color: 'var(--theme-text-muted)' }}>
+                Mogelijke stanggewichten:
+              </p>
+              <p className="text-xs m-0" style={{ color: 'var(--theme-text-secondary)' }}>
+                {barbellWeights.slice(0, 12).join(' · ')}{barbellWeights.length > 12 ? ' …' : ''}
+              </p>
+            </div>
+          )}
+        </div>
+
+        <div className="h-px" style={{ background: 'var(--theme-border)' }} />
+
+        {/* ── Dumbbells ─────────────────────────────────────── */}
+        <div>
+          <p className="text-xs font-bold uppercase tracking-widest mb-2 m-0" style={{ color: 'var(--theme-text-muted)' }}>
+            Dumbbells
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {STANDARD_DUMBBELLS.map(w => {
+              const active = draft.dumbbells.includes(w)
+              return (
+                <button
+                  key={w}
+                  onClick={() => toggleDumbbell(w)}
+                  className="px-2.5 py-1.5 rounded-xl text-xs font-semibold cursor-pointer border-0 transition-all"
+                  style={{
+                    background: active ? 'var(--theme-accent-muted)' : 'var(--theme-bg-input)',
+                    color: active ? 'var(--theme-accent)' : 'var(--theme-text-muted)',
+                    border: `1px solid ${active ? 'var(--theme-accent-glow)' : 'var(--theme-border)'}`,
+                  }}
+                >
+                  {w}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="h-px" style={{ background: 'var(--theme-border)' }} />
+
+        {/* ── Machine ───────────────────────────────────────── */}
+        <div>
+          <p className="text-xs font-bold uppercase tracking-widest mb-3 m-0" style={{ color: 'var(--theme-text-muted)' }}>
+            Machines &amp; Kabels
+          </p>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm" style={{ color: 'var(--theme-text-secondary)' }}>Stapgrootte</span>
+            <div className="flex items-center gap-2">
+              <button onClick={() => setDraft(d => ({ ...d, machineStep: Math.max(1, d.machineStep - 2.5) }))}
+                className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer border-0"
+                style={{ background: 'var(--theme-bg-input)', color: 'var(--theme-text-secondary)' }}>
+                <Minus size={12} />
+              </button>
+              <span className="text-sm font-bold w-14 text-center" style={{ color: 'var(--theme-text-primary)' }}>
+                {draft.machineStep} kg
+              </span>
+              <button onClick={() => setDraft(d => ({ ...d, machineStep: d.machineStep + 2.5 }))}
+                className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer border-0"
+                style={{ background: 'var(--theme-bg-input)', color: 'var(--theme-text-secondary)' }}>
+                <Plus size={12} />
+              </button>
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm" style={{ color: 'var(--theme-text-secondary)' }}>Maximum</span>
+            <div className="flex items-center gap-2">
+              <button onClick={() => setDraft(d => ({ ...d, machineMax: Math.max(d.machineStep, d.machineMax - 10) }))}
+                className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer border-0"
+                style={{ background: 'var(--theme-bg-input)', color: 'var(--theme-text-secondary)' }}>
+                <Minus size={12} />
+              </button>
+              <span className="text-sm font-bold w-14 text-center" style={{ color: 'var(--theme-text-primary)' }}>
+                {draft.machineMax} kg
+              </span>
+              <button onClick={() => setDraft(d => ({ ...d, machineMax: d.machineMax + 10 }))}
+                className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer border-0"
+                style={{ background: 'var(--theme-bg-input)', color: 'var(--theme-text-secondary)' }}>
+                <Plus size={12} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Save / Cancel ─────────────────────────────────── */}
+        <div className="flex gap-3 pt-1">
+          <button
+            onClick={onClose}
+            className="flex-1 py-3.5 rounded-2xl font-semibold text-sm cursor-pointer border-0"
+            style={{ background: 'var(--theme-bg-input)', color: 'var(--theme-text-secondary)', border: '1px solid var(--theme-border)' }}
+          >
+            Annuleren
+          </button>
+          <button
+            onClick={() => { onSave(draft); onClose() }}
+            className="flex-1 py-3.5 rounded-2xl font-semibold text-sm cursor-pointer border-0 flex items-center justify-center gap-2"
+            style={{ background: 'linear-gradient(135deg, var(--theme-accent), var(--theme-gradient-text-to))', color: '#fff' }}
+          >
+            <Check size={15} /> Opslaan
+          </button>
+        </div>
+      </div>
+    </Modal>
+  )
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function SettingsPage() {
@@ -223,6 +464,7 @@ export default function SettingsPage() {
   const { showSuccess }    = useToast()
 
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [showWeightModal, setShowWeightModal] = useState(false)
 
   const itemVariants = {
     hidden: { opacity: 0, y: 14 },
@@ -346,7 +588,43 @@ export default function SettingsPage() {
             </SettingsCard>
           </motion.div>
 
-          {/* ─── 3. Notificaties ──────────────────────────────────────────── */}
+          {/* ─── 3. Beschikbare gewichten ─────────────────────────────────── */}
+          <motion.div variants={itemVariants}>
+            <SettingsCard
+              icon={<Weight size={15} style={{ color: '#00C9FF' }} />}
+              title="Beschikbare Gewichten"
+              accent="#00C9FF"
+            >
+              <SettingRow
+                label="Mijn gewichten"
+                description={settings.weightSettings?.enabled
+                  ? `Actief — ${settings.weightSettings.dumbbells.length} dumbbells, stang ${settings.weightSettings.barbellWeight}kg`
+                  : 'Adviezen aanpassen op beschikbare gewichten'
+                }
+              >
+                <button
+                  onClick={() => setShowWeightModal(true)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold cursor-pointer border-0 transition-all"
+                  style={{
+                    background: 'rgba(0,201,255,0.1)',
+                    border: '1px solid rgba(0,201,255,0.25)',
+                    color: '#00C9FF',
+                  }}
+                >
+                  {settings.weightSettings?.enabled && (
+                    <span
+                      className="w-2 h-2 rounded-full shrink-0"
+                      style={{ background: '#00E5A0' }}
+                    />
+                  )}
+                  Instellen
+                  <ChevronRight size={13} />
+                </button>
+              </SettingRow>
+            </SettingsCard>
+          </motion.div>
+
+          {/* ─── 4. Notificaties ──────────────────────────────────────────── */}
           <motion.div variants={itemVariants}>
             <SettingsCard
               icon={<Bell size={15} style={{ color: '#FFB300' }} />}
@@ -375,7 +653,7 @@ export default function SettingsPage() {
             </SettingsCard>
           </motion.div>
 
-          {/* ─── 4. Data ──────────────────────────────────────────────────── */}
+          {/* ─── 5. Data ──────────────────────────────────────────────────── */}
           <motion.div variants={itemVariants}>
             <SettingsCard
               icon={<Database size={15} style={{ color: '#00C060' }} />}
@@ -425,7 +703,7 @@ export default function SettingsPage() {
             </SettingsCard>
           </motion.div>
 
-          {/* ─── 5. Over ──────────────────────────────────────────────────── */}
+          {/* ─── 6. Over ──────────────────────────────────────────────────── */}
           <motion.div variants={itemVariants}>
             <SettingsCard
               icon={<Info size={15} style={{ color: 'var(--theme-text-muted)' }} />}
@@ -448,6 +726,14 @@ export default function SettingsPage() {
 
         </motion.div>
       </PageWrapper>
+
+      {/* ─── Weight settings modal ───────────────────────────────────────── */}
+      <WeightSettingsModal
+        isOpen={showWeightModal}
+        onClose={() => setShowWeightModal(false)}
+        current={settings.weightSettings ?? DEFAULT_WEIGHT_SETTINGS}
+        onSave={ws => updateSettings({ weightSettings: ws })}
+      />
 
       {/* ─── Delete confirmation modal ───────────────────────────────────── */}
       <Modal
