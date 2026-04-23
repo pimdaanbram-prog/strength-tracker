@@ -4,6 +4,8 @@ import { Activity, RefreshCw, AlertCircle, Trophy } from 'lucide-react'
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import Header from '../components/layout/Header'
 import PageWrapper from '../components/layout/PageWrapper'
+import { lazy, Suspense } from 'react'
+const MuscleFigure3D = lazy(() => import('../components/ui/MuscleFigure3D'))
 import { useWorkouts } from '../hooks/useWorkouts'
 import { useExercises } from '../hooks/useExercises'
 import { useSync } from '../hooks/useSync'
@@ -14,8 +16,6 @@ const CATEGORY_NL: Record<string, string> = {
   'Arms - Biceps': 'Biceps', 'Arms - Triceps': 'Triceps',
   'Core': 'Core', 'Legs': 'Benen', 'Glutes': 'Billen', 'Full Body': 'Full Body',
 }
-const FRONT_CATS = ['Shoulders','Chest','Arms - Biceps','Core','Glutes','Legs']
-const BACK_CATS  = ['Shoulders','Back','Arms - Triceps','Glutes','Legs']
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null
@@ -41,7 +41,6 @@ export default function ProgressPage() {
   const prs       = getPersonalRecords()
 
   const [selectedExercise, setSelectedExercise] = useState('')
-  const [bodyView, setBodyView]     = useState<'front'|'back'>('front')
   const [selectedMuscle, setSelectedMuscle] = useState<string|null>(null)
   const [diagnosisResult, setDiagnosisResult] = useState<string|null>(null)
   const [diagnosing, setDiagnosing] = useState(false)
@@ -88,23 +87,6 @@ export default function ProgressPage() {
     setDiagnosing(true); setDiagnosisResult(null)
     const result = await diagnoseSyncIssue()
     setDiagnosisResult(result); setDiagnosing(false)
-  }
-
-  function bodyFill(cat: string) {
-    const count = categoryFreq[cat] || 0
-    if (selectedMuscle === cat) return 'var(--theme-accent)'
-    if (count === 0) return 'var(--theme-border)'
-    const intensity = Math.min(count / 8, 1)
-    return `rgba(255,85,0,${0.2 + intensity * 0.65})`
-  }
-  function bodyStroke(cat: string) {
-    return selectedMuscle === cat ? 'var(--theme-accent)' : 'var(--theme-border-subtle)'
-  }
-  function gp(cat: string) {
-    return {
-      style: { fill: bodyFill(cat), stroke: bodyStroke(cat), strokeWidth: 1.5 as number, cursor: 'pointer' as const, transition: 'fill 0.25s' },
-      onClick: () => setSelectedMuscle(selectedMuscle === cat ? null : cat),
-    }
   }
 
   if (sessions.length === 0) {
@@ -219,7 +201,7 @@ export default function ProgressPage() {
           </motion.div>
         )}
 
-        {/* ─── Body heatmap ──────────────────────────────── */}
+        {/* ─── 3D Muscle Figure ──────────────────────────── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -230,111 +212,94 @@ export default function ProgressPage() {
           <div className="flex items-center gap-2 mb-3">
             <div className="w-1 h-5 rounded-full" style={{ background: 'linear-gradient(to bottom, #818CF8, #C084FC)' }} />
             <h3 className="text-base tracking-wider m-0">SPIERGROEPEN</h3>
+            <span className="text-xs ml-auto" style={{ color: 'var(--theme-text-muted)', fontFamily: 'var(--theme-font-mono, monospace)' }}>
+              Draaien · Klikken
+            </span>
           </div>
-          <div className="rounded-2xl p-4" style={{ background: 'var(--theme-bg-card)', border: '1px solid var(--theme-border)' }}>
-            <div className="flex gap-2 mb-4">
-              {['front','back'].map(v => (
-                <button key={v} onClick={() => setBodyView(v as 'front'|'back')}
-                  className="px-3 py-1.5 rounded-full text-xs font-semibold cursor-pointer border-0 transition-all"
-                  style={bodyView === v
-                    ? { background: 'linear-gradient(135deg, var(--theme-accent), var(--theme-gradient-text-to))', color: '#fff', boxShadow: 'var(--theme-accent-glow) 0 4px 12px' }
-                    : { background: 'var(--theme-bg-input)', color: 'var(--theme-text-secondary)', border: '1px solid var(--theme-border)' }
-                  }
-                >
-                  {v === 'front' ? 'Voorkant' : 'Achterkant'}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex gap-4 items-start">
-              <div className="shrink-0">
-                <svg width="100" height="220" viewBox="0 0 100 220">
-                  <circle cx="50" cy="15" r="12" style={{ fill: 'var(--theme-border)', stroke: 'var(--theme-border-subtle)' }} strokeWidth="1" />
-                  <rect x="44" y="26" width="12" height="7" rx="3" style={{ fill: 'var(--theme-border)', stroke: 'var(--theme-border-subtle)' }} strokeWidth="1" />
-                  {bodyView === 'front' ? (
-                    <>
-                      <g {...gp('Shoulders')}><ellipse cx="26" cy="40" rx="12" ry="8"/><ellipse cx="74" cy="40" rx="12" ry="8"/></g>
-                      <g {...gp('Chest')}><rect x="35" y="32" width="14" height="24" rx="3"/><rect x="51" y="32" width="14" height="24" rx="3"/></g>
-                      <g {...gp('Arms - Biceps')}><rect x="15" y="32" width="12" height="32" rx="5"/><rect x="73" y="32" width="12" height="32" rx="5"/><rect x="16" y="66" width="10" height="24" rx="4"/><rect x="74" y="66" width="10" height="24" rx="4"/></g>
-                      <g {...gp('Core')}><rect x="37" y="56" width="11" height="10" rx="2"/><rect x="52" y="56" width="11" height="10" rx="2"/><rect x="37" y="68" width="11" height="10" rx="2"/><rect x="52" y="68" width="11" height="10" rx="2"/></g>
-                      <g {...gp('Glutes')}><rect x="35" y="80" width="30" height="15" rx="5"/></g>
-                      <g {...gp('Legs')}><rect x="35" y="95" width="13" height="46" rx="5"/><rect x="52" y="95" width="13" height="46" rx="5"/><rect x="36" y="143" width="11" height="32" rx="4"/><rect x="53" y="143" width="11" height="32" rx="4"/></g>
-                    </>
-                  ) : (
-                    <>
-                      <g {...gp('Shoulders')}><ellipse cx="26" cy="40" rx="12" ry="8"/><ellipse cx="74" cy="40" rx="12" ry="8"/></g>
-                      <g {...gp('Back')}><rect x="35" y="32" width="30" height="18" rx="3"/><rect x="20" y="40" width="15" height="26" rx="4"/><rect x="65" y="40" width="15" height="26" rx="4"/><rect x="38" y="58" width="24" height="16" rx="3"/></g>
-                      <g {...gp('Arms - Triceps')}><rect x="15" y="32" width="12" height="32" rx="5"/><rect x="73" y="32" width="12" height="32" rx="5"/><rect x="16" y="66" width="10" height="24" rx="4"/><rect x="74" y="66" width="10" height="24" rx="4"/></g>
-                      <g {...gp('Glutes')}><rect x="35" y="76" width="13" height="20" rx="5"/><rect x="52" y="76" width="13" height="20" rx="5"/></g>
-                      <g {...gp('Legs')}><rect x="35" y="96" width="13" height="46" rx="5"/><rect x="52" y="96" width="13" height="46" rx="5"/><rect x="36" y="144" width="11" height="32" rx="4"/><rect x="53" y="144" width="11" height="32" rx="4"/></g>
-                    </>
-                  )}
-                </svg>
+          <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--theme-bg-card)', border: '1px solid var(--theme-glass-border)' }}>
+            {/* 3D figure */}
+            <Suspense fallback={
+              <div style={{ height: 380, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--theme-text-muted)', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'var(--theme-font-mono, monospace)' }}>
+                Loading anatomy…
               </div>
+            }>
+              <MuscleFigure3D
+                categoryFreq={categoryFreq}
+                selectedCategory={selectedMuscle}
+                onCategorySelect={(cat) => setSelectedMuscle(cat === selectedMuscle ? null : cat)}
+                height={380}
+              />
+            </Suspense>
 
-              <div className="flex-1 flex flex-col gap-1.5 pt-1">
-                {(bodyView === 'front' ? FRONT_CATS : BACK_CATS).map(cat => {
+            {/* Category legend below */}
+            <div className="px-4 pb-4">
+              <div className="flex flex-wrap gap-1.5">
+                {Object.keys(CATEGORY_NL).map(cat => {
                   const count = categoryFreq[cat] || 0
                   const isSelected = selectedMuscle === cat
                   const intensity = Math.min(count / 8, 1)
-                  const color = count === 0 ? 'var(--theme-border)' : `rgba(255,85,0,${0.2 + intensity * 0.65})`
+                  const color = count === 0 ? 'var(--theme-border)' : `rgba(255,122,31,${0.25 + intensity * 0.65})`
                   return (
                     <button
                       key={cat}
                       onClick={() => setSelectedMuscle(isSelected ? null : cat)}
-                      className="flex items-center gap-2 text-xs text-left rounded-xl px-2 py-1.5 cursor-pointer bg-transparent border-0 transition-all"
-                      style={isSelected ? { background: 'var(--theme-accent-muted)' } : {}}
+                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs cursor-pointer border-0 transition-all"
+                      style={{
+                        background: isSelected ? 'var(--theme-accent-muted)' : 'var(--theme-glass)',
+                        border: `1px solid ${isSelected ? 'var(--theme-accent)' : 'var(--theme-glass-border)'}`,
+                        color: isSelected ? 'var(--theme-accent)' : 'var(--theme-text-secondary)',
+                        fontWeight: isSelected ? 600 : 400,
+                      }}
                     >
-                      <span className="w-3 h-3 rounded-sm shrink-0" style={{ background: color, border: '1px solid var(--theme-border-subtle)' }} />
-                      <span className="flex-1" style={{ color: isSelected ? 'var(--theme-accent)' : 'var(--theme-text-secondary)', fontWeight: isSelected ? 600 : 400 }}>
-                        {CATEGORY_NL[cat] || cat}
-                      </span>
-                      <span style={{ color: 'var(--theme-text-muted)' }}>{count}×</span>
+                      <span className="w-2 h-2 rounded-full shrink-0" style={{ background: color }} />
+                      {CATEGORY_NL[cat]}
+                      {count > 0 && <span style={{ color: isSelected ? 'var(--theme-accent)' : 'var(--theme-text-muted)' }}>{count}×</span>}
                     </button>
                   )
                 })}
               </div>
-            </div>
 
-            {selectedMuscle && (
-              <motion.div
-                key={selectedMuscle}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-4 pt-4"
-                style={{ borderTop: '1px solid var(--theme-border)' }}
-              >
-                <p className="text-xs font-semibold m-0 mb-2" style={{ color: 'var(--theme-accent)' }}>
-                  {CATEGORY_NL[selectedMuscle] || selectedMuscle} — {categoryFreq[selectedMuscle] || 0}× getraind
-                </p>
-                {muscleGroupSessions.length > 0 ? (
-                  <div className="space-y-2">
-                    {muscleGroupSessions.map(s => {
-                      const relevant = s.exercises.filter(e => getExercise(e.exerciseId)?.category === selectedMuscle)
-                      return (
-                        <div key={s.id} className="flex items-start gap-3">
-                          <span className="text-xs shrink-0 w-12" style={{ color: 'var(--theme-text-muted)' }}>{s.date.slice(5).replace('-','/')}</span>
-                          <div className="flex-1">
-                            {relevant.map(e => {
-                              const ex = getExercise(e.exerciseId)
-                              const done = e.sets.filter(set => set.completed)
-                              const maxW = done.filter(s => s.weight).reduce((m,s) => Math.max(m,s.weight!),0)
-                              return (
-                                <p key={e.exerciseId} className="text-xs m-0" style={{ color: 'var(--theme-text-secondary)' }}>
-                                  {exName(ex)} · {done.length} sets{maxW > 0 ? ` · ${maxW}kg` : ''}
-                                </p>
-                              )
-                            })}
+              {/* Selected muscle detail */}
+              {selectedMuscle && (
+                <motion.div
+                  key={selectedMuscle}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-3 pt-3"
+                  style={{ borderTop: '1px solid var(--theme-glass-border)' }}
+                >
+                  <p className="text-xs font-semibold m-0 mb-2" style={{ color: 'var(--theme-accent)' }}>
+                    {CATEGORY_NL[selectedMuscle] || selectedMuscle} — {categoryFreq[selectedMuscle] || 0}× getraind
+                  </p>
+                  {muscleGroupSessions.length > 0 ? (
+                    <div className="space-y-2">
+                      {muscleGroupSessions.map(s => {
+                        const relevant = s.exercises.filter(e => getExercise(e.exerciseId)?.category === selectedMuscle)
+                        return (
+                          <div key={s.id} className="flex items-start gap-3">
+                            <span className="text-xs shrink-0 w-12" style={{ color: 'var(--theme-text-muted)' }}>{s.date.slice(5).replace('-','/')}</span>
+                            <div className="flex-1">
+                              {relevant.map(e => {
+                                const ex = getExercise(e.exerciseId)
+                                const done = e.sets.filter(set => set.completed)
+                                const maxW = done.filter(s => s.weight).reduce((m, s) => Math.max(m, s.weight!), 0)
+                                return (
+                                  <p key={e.exerciseId} className="text-xs m-0" style={{ color: 'var(--theme-text-secondary)' }}>
+                                    {exName(ex)} · {done.length} sets{maxW > 0 ? ` · ${maxW}kg` : ''}
+                                  </p>
+                                )
+                              })}
+                            </div>
                           </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-xs m-0" style={{ color: 'var(--theme-text-muted)' }}>Nog niet getraind</p>
-                )}
-              </motion.div>
-            )}
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-xs m-0" style={{ color: 'var(--theme-text-muted)' }}>Nog niet getraind</p>
+                  )}
+                </motion.div>
+              )}
+            </div>
           </div>
         </motion.div>
 
