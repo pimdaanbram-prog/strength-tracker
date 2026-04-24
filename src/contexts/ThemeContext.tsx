@@ -13,15 +13,49 @@ interface ThemeContextValue {
   customThemes: Theme[]
   saveCustomTheme: (theme: Theme) => void
   deleteCustomTheme: (id: string) => void
+  accent: string
+  accentHi: string
+  accentGrad: string
+  accentGlow: string
+  accentSoft: string
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
+
+function hexToRgba(hex: string, alpha: number): string {
+  const h = hex.replace('#', '')
+  const r = parseInt(h.substring(0, 2), 16)
+  const g = parseInt(h.substring(2, 4), 16)
+  const b = parseInt(h.substring(4, 6), 16)
+  return `rgba(${r},${g},${b},${alpha})`
+}
 
 export function applyTheme(theme: Theme) {
   const root = document.documentElement
   for (const [key, value] of Object.entries(theme.vars)) {
     root.style.setProperty(key, value)
   }
+
+  // Compute derived accent vars for the v2 design system
+  const accent = theme.vars['--theme-accent'] ?? '#FF7A1F'
+  const accentHi = theme.vars['--theme-accent-hi'] ?? theme.vars['--theme-gradient-text-to'] ?? accent
+
+  root.style.setProperty('--theme-accent-hi', accentHi)
+  root.style.setProperty('--theme-accent-grad', `linear-gradient(135deg, ${accent} 0%, ${accentHi} 100%)`)
+
+  if (accent.startsWith('#') && accent.length >= 7) {
+    root.style.setProperty('--theme-accent-glow', hexToRgba(accent, 0.45))
+    root.style.setProperty('--theme-accent-muted', hexToRgba(accent, 0.13))
+  }
+
+  // Ensure v2 glass vars exist for all themes
+  if (!theme.vars['--theme-glass-hi']) {
+    root.style.setProperty('--theme-glass-hi', theme.isDark ? 'rgba(30,30,38,0.70)' : 'rgba(255,255,255,0.80)')
+  }
+  if (!theme.vars['--theme-glass-border-hi']) {
+    root.style.setProperty('--theme-glass-border-hi', theme.isDark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.12)')
+  }
+
   root.setAttribute('data-theme', theme.id)
   const meta = document.querySelector('meta[name="theme-color"]')
   if (meta) meta.setAttribute('content', theme.vars['--theme-bg-primary'] ?? '#060606')
@@ -101,6 +135,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     })
   }
 
+  const accent = theme.vars['--theme-accent'] ?? '#FF7A1F'
+  const accentHi = theme.vars['--theme-accent-hi'] ?? theme.vars['--theme-gradient-text-to'] ?? accent
+  const accentGrad = `linear-gradient(135deg, ${accent} 0%, ${accentHi} 100%)`
+  const accentGlow = accent.startsWith('#') && accent.length >= 7 ? hexToRgba(accent, 0.45) : `${accent}72`
+  const accentSoft = accent.startsWith('#') && accent.length >= 7 ? hexToRgba(accent, 0.13) : `${accent}21`
+
   return (
     <ThemeContext.Provider value={{
       theme, themeId, setTheme,
@@ -108,6 +148,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       customThemes,
       saveCustomTheme,
       deleteCustomTheme,
+      accent,
+      accentHi,
+      accentGrad,
+      accentGlow,
+      accentSoft,
     }}>
       {children}
     </ThemeContext.Provider>

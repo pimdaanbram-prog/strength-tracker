@@ -1,33 +1,40 @@
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 /* ─── Runtime Theme Variables (set by ThemeContext) ──── */
 :root {
   --theme-bg-primary: #060608;
-  --theme-bg-secondary: #0A0A0E;
-  --theme-bg-card: rgba(17,17,22,0.72);
+  --theme-bg-secondary: #0C0C10;
+  --theme-bg-card: rgba(22,22,28,0.55);
   --theme-bg-input: rgba(255,255,255,0.05);
   --theme-text-primary: #F5F5F7;
   --theme-text-secondary: rgba(235,235,245,0.72);
   --theme-text-muted: rgba(235,235,245,0.45);
+  --theme-text-faint: rgba(235,235,245,0.25);
   --theme-accent: #FF7A1F;
+  --theme-accent-hi: #FFB020;
   --theme-accent-hover: #E86A10;
-  --theme-accent-muted: rgba(255,122,31,0.14);
-  --theme-accent-glow: rgba(255,122,31,0.32);
+  --theme-accent-muted: rgba(255,122,31,0.13);
+  --theme-accent-glow: rgba(255,122,31,0.45);
+  --theme-accent-grad: linear-gradient(135deg, #FF7A1F 0%, #FFB020 100%);
   --theme-border: rgba(255,255,255,0.08);
   --theme-border-subtle: rgba(255,255,255,0.05);
   --theme-success: #3EE8A8;
   --theme-warning: #FFB020;
-  --theme-error: #FF4D4D;
-  --theme-glass: rgba(255,255,255,0.06);
-  --theme-glass-border: rgba(255,255,255,0.11);
+  --theme-error: #FF5470;
+  --theme-glass: rgba(22,22,28,0.55);
+  --theme-glass-hi: rgba(30,30,38,0.70);
+  --theme-glass-border: rgba(255,255,255,0.10);
+  --theme-glass-border-hi: rgba(255,255,255,0.18);
   --theme-shadow-sm: 0 2px 8px rgba(0,0,0,0.45);
-  --theme-shadow-md: 0 8px 32px rgba(0,0,0,0.55);
-  --theme-shadow-lg: 0 16px 48px rgba(0,0,0,0.65);
-  --theme-nav-bg: rgba(6,6,12,0.72);
+  --theme-shadow-md: 0 8px 32px rgba(0,0,0,0.40);
+  --theme-shadow-lg: 0 16px 48px rgba(0,0,0,0.50);
+  --theme-nav-bg: rgba(12,12,18,0.55);
   --theme-gradient-text-from: #FF7A1F;
   --theme-gradient-text-to: #FFB020;
   --theme-font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --theme-font-display: 'Space Grotesk', sans-serif;
+  --theme-font-body: 'Inter', -apple-system, sans-serif;
 }
 
 /* ─── Tailwind Theme Tokens ────────────────────────── */
@@ -49,8 +56,9 @@
   --color-danger: var(--theme-error);
   --color-glass: var(--theme-glass);
   --color-glass-border: var(--theme-glass-border);
-  --font-heading: 'Bebas Neue', sans-serif;
-  --font-body: 'Space Grotesk', sans-serif;
+  --font-heading: 'Space Grotesk', sans-serif;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 }
 
@@ -68,7 +76,7 @@ body {
   padding: 0;
   background-color: var(--theme-bg-primary);
   color: var(--theme-text-primary);
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Inter', -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -102,8 +110,9 @@ body::before {
 }
 
 h1, h2, h3, h4 {
-  font-family: 'Bebas Neue', sans-serif;
-  letter-spacing: 0.05em;
+  font-family: 'Space Grotesk', sans-serif;
+  letter-spacing: -0.02em;
+  font-weight: 700;
 }
 
 /* ─── Scrollbar ─────────────────────────────────── */
@@ -345,3 +354,104 @@ body::after {
 [data-theme="cream-light"] body::after {
   opacity: 0.01;
 }
+
+/* ─── V2 Design system animations ───────────────── */
+@keyframes orbA {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(20px, -30px) scale(1.08); }
+  66%       { transform: translate(-15px, 15px) scale(0.96); }
+}
+@keyframes orbB {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  40%       { transform: translate(-25px, 20px) scale(1.06); }
+  70%       { transform: translate(15px, -10px) scale(0.95); }
+}
+@keyframes orbC {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%       { transform: translate(20px, 25px) scale(1.04); }
+}
+@keyframes orbPulse {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50%       { opacity: 0.85; transform: scale(1.08); }
+}
+@keyframes barRise {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes heatIn {
+  from { opacity: 0; transform: scale(0.7); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes floatParticle {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: var(--p-opacity, 0.3); }
+  33%       { transform: translate(8px, -12px) scale(1.1); }
+  66%       { transform: translate(-6px, 8px) scale(0.9); }
+}
+@keyframes breathe {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-4px); }
+}
+
+/* ─── V2 display typography helpers ─────────────── */
+.font-display {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+.font-mono {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+.eyebrow {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--theme-text-muted);
+}
+
+/* ─── V2 glass card ──────────────────────────────── */
+.glass-card-v2 {
+  background: var(--theme-glass);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--theme-glass-border);
+  border-radius: 22px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08);
+  position: relative;
+  overflow: hidden;
+}
+.glass-card-v2::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+  pointer-events: none;
+}
+.glass-card-v2-hi {
+  background: var(--theme-glass-hi);
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  border: 1px solid var(--theme-glass-border);
+  border-radius: 22px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.12);
+  position: relative;
+  overflow: hidden;
+}
+.glass-card-v2-hi::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  pointer-events: none;
+}
+
+/* ─── Tilt 3D card ───────────────────────────────── */
+.preserve-3d { transform-style: preserve-3d; }
