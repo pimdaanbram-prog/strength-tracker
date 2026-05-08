@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Home, Dumbbell, BarChart3, Clock, Settings,
   MoreHorizontal, X, Users, Trophy, Wrench,
-  Ruler, Palette, BookMarked, CalendarDays,
+  Ruler, Palette, BookMarked, CalendarDays, Sparkles,
 } from 'lucide-react'
 
 // ─── 5 primary tabs ───────────────────────────────────────────────────────────
@@ -18,6 +18,7 @@ const MAIN_TABS = [
 
 // ─── Secondary sheet items ────────────────────────────────────────────────────
 const MORE_ITEMS = [
+  { to: '/plan-generator', icon: Sparkles,  label: 'Plan Generator', color: '#FF7A1F' },
   { to: '/exercises',   icon: Dumbbell,     label: 'Oefeningen',   color: '#4A8FFF' },
   { to: '/profiles',    icon: Users,        label: 'Profielen',    color: '#FF5500' },
   { to: '/history',     icon: Clock,        label: 'Historie',     color: '#4A8FFF' },
