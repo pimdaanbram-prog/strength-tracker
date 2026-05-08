@@ -4,6 +4,7 @@ import { useAppStore } from '../store/appStore'
 import type { UserProfile } from '../store/appStore'
 import { getFromStorage, setToStorage, STORAGE_KEYS } from '../utils/localStorage'
 import type { WorkoutSession, WeekLog } from './useWorkouts'
+import type { WorkoutPlan } from './usePlans'
 
 // Convert between camelCase (frontend) and snake_case (database)
 function profileToDb(p: UserProfile, accountId: string) {
@@ -55,6 +56,27 @@ function sessionToDb(s: WorkoutSession, accountId: string) {
     duration_minutes: s.durationMinutes,
     notes: s.notes,
     completed_at: s.completedAt,
+  }
+}
+
+function planToDb(p: WorkoutPlan, accountId: string) {
+  return {
+    id: p.id,
+    account_id: accountId,
+    name: p.name,
+    exercises: p.exercises,
+    created_at: p.createdAt,
+    last_used_at: p.lastUsedAt,
+  }
+}
+
+function dbToPlan(d: Record<string, unknown>): WorkoutPlan {
+  return {
+    id: d.id as string,
+    name: d.name as string,
+    exercises: (d.exercises || []) as WorkoutPlan['exercises'],
+    createdAt: d.created_at as string,
+    lastUsedAt: (d.last_used_at as string | null) ?? null,
   }
 }
 
@@ -246,6 +268,25 @@ export function useSync() {
         setToStorage(STORAGE_KEYS.WEEK_LOGS, merged)
       }
 
+      // Pull plans
+      const { data: dbPlans, error: plansError } = await supabase
+        .from('workout_plans')
+        .select('*')
+        .eq('account_id', accountId)
+
+      if (!plansError && dbPlans) {
+        const cloudPlans = dbPlans.map(dbToPlan)
+        const localPlans = getFromStorage<WorkoutPlan[]>(STORAGE_KEYS.PLANS, [])
+        const cloudIds = new Set(cloudPlans.map(p => p.id))
+        const localOnly = localPlans.filter(p => !cloudIds.has(p.id))
+        const merged = [...cloudPlans, ...localOnly]
+        setToStorage(STORAGE_KEYS.PLANS, merged)
+        useAppStore.getState().bumpPlanVersion()
+        for (const p of localOnly) {
+          await supabase.from('workout_plans').upsert(planToDb(p, accountId))
+        }
+      }
+
       setLastSyncAt(new Date())
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
@@ -318,6 +359,27 @@ export function useSync() {
       console.error('Push week log failed:', e)
     }
   }, [getAccountId])
+
+  // Push a plan to cloud
+  const pushPlan = useCallback(async (plan: WorkoutPlan) => {
+    try {
+      const accountId = await getAccountId()
+      if (!accountId) return
+      const { error } = await supabase.from('workout_plans').upsert(planToDb(plan, accountId))
+      if (error) console.error('Push plan failed:', error.message)
+    } catch (e) {
+      console.error('Push plan failed:', e)
+    }
+  }, [getAccountId])
+
+  // Delete a plan from cloud
+  const deletePlanFromCloud = useCallback(async (id: string) => {
+    try {
+      await supabase.from('workout_plans').delete().eq('id', id)
+    } catch (e) {
+      console.error('Delete plan from cloud failed:', e)
+    }
+  }, [])
 
   // Initial sync on mount + re-sync when app becomes visible + re-sync on sign-in
   useEffect(() => {
@@ -396,6 +458,26 @@ export function useSync() {
             useAppStore.getState().bumpSessionVersion()
           }
         })
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'workout_plans',
+          filter: `account_id=eq.${accountId}`,
+        }, (payload) => {
+          const plans = getFromStorage<WorkoutPlan[]>(STORAGE_KEYS.PLANS, [])
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            const plan = dbToPlan(payload.new)
+            const idx = plans.findIndex(p => p.id === plan.id)
+            if (idx >= 0) plans[idx] = plan
+            else plans.push(plan)
+            setToStorage(STORAGE_KEYS.PLANS, plans)
+            useAppStore.getState().bumpPlanVersion()
+          }
+          if (payload.eventType === 'DELETE') {
+            setToStorage(STORAGE_KEYS.PLANS, plans.filter(p => p.id !== payload.old.id))
+            useAppStore.getState().bumpPlanVersion()
+          }
+        })
         .subscribe()
 
       return channel
@@ -416,6 +498,8 @@ export function useSync() {
     pushSession,
     deleteSession,
     pushWeekLog,
+    pushPlan,
+    deletePlanFromCloud,
     diagnoseSyncIssue,
     syncError,
     isSyncing,
