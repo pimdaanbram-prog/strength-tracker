@@ -97,6 +97,7 @@ interface AppState {
   profiles: UserProfile[]
   activeProfileId: string | null
   sessionVersion: number
+  planVersion: number
   language: 'nl' | 'en'
   settings: AppSettings
 
@@ -109,6 +110,7 @@ interface AppState {
   deleteProfile: (id: string) => void
   setActiveProfile: (id: string | null) => void
   bumpSessionVersion: () => void
+  bumpPlanVersion: () => void
   setLanguage: (lang: 'nl' | 'en') => void
   updateSettings: (updates: Partial<AppSettings>) => void
 
@@ -125,6 +127,7 @@ export const useAppStore = create<AppState>()(
       profiles: [],
       activeProfileId: null,
       sessionVersion: 0,
+      planVersion: 0,
       language: 'nl',
       settings: DEFAULT_SETTINGS,
 
@@ -162,6 +165,9 @@ export const useAppStore = create<AppState>()(
 
       bumpSessionVersion: () =>
         set((state) => ({ sessionVersion: state.sessionVersion + 1 })),
+
+      bumpPlanVersion: () =>
+        set((state) => ({ planVersion: state.planVersion + 1 })),
 
       setLanguage: (lang) => set({ language: lang }),
 
