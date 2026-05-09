@@ -69,7 +69,25 @@ CREATE POLICY "Users manage own week logs"
   ON public.week_logs FOR ALL
   USING (auth.uid() = account_id);
 
+-- Workout plannen (door gebruiker aangemaakte schema's)
+CREATE TABLE public.workout_plans (
+  id TEXT PRIMARY KEY,
+  account_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  name TEXT NOT NULL,
+  exercises JSONB DEFAULT '[]',
+  created_at TEXT NOT NULL,
+  last_used_at TEXT,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.workout_plans ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users manage own workout plans"
+  ON public.workout_plans FOR ALL
+  USING (auth.uid() = account_id);
+
 -- Realtime inschakelen
 ALTER PUBLICATION supabase_realtime ADD TABLE public.training_profiles;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.workout_sessions;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.week_logs;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.workout_plans;

@@ -21,6 +21,7 @@ function generateId(): string {
 }
 
 export function usePlans() {
+
   const planVersion = useAppStore(s => s.planVersion)
   const bumpPlanVersion = useAppStore(s => s.bumpPlanVersion)
   const { pushPlan, deletePlanFromCloud } = useSync()
@@ -32,7 +33,8 @@ export function usePlans() {
 
   const getPlan = useCallback((id: string): WorkoutPlan | null => {
     return getFromStorage<WorkoutPlan[]>(STORAGE_KEYS.PLANS, []).find(p => p.id === id) ?? null
-  }, [])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [planVersion])
 
   const savePlan = useCallback((plan: Omit<WorkoutPlan, 'id' | 'createdAt' | 'lastUsedAt'>): WorkoutPlan => {
     const newPlan: WorkoutPlan = {
@@ -47,6 +49,7 @@ export function usePlans() {
     bumpPlanVersion()
     pushPlan(newPlan)
     return newPlan
+
   }, [pushPlan, bumpPlanVersion])
 
   const updatePlan = useCallback((id: string, updates: Partial<Omit<WorkoutPlan, 'id' | 'createdAt'>>): void => {
@@ -58,6 +61,7 @@ export function usePlans() {
       bumpPlanVersion()
       pushPlan(plans[idx])
     }
+
   }, [pushPlan, bumpPlanVersion])
 
   const deletePlan = useCallback((id: string): void => {
@@ -65,6 +69,7 @@ export function usePlans() {
     setToStorage(STORAGE_KEYS.PLANS, plans)
     bumpPlanVersion()
     deletePlanFromCloud(id)
+
   }, [deletePlanFromCloud, bumpPlanVersion])
 
   const markPlanUsed = useCallback((id: string): void => {
@@ -76,6 +81,7 @@ export function usePlans() {
       bumpPlanVersion()
       pushPlan(plans[idx])
     }
+
   }, [pushPlan, bumpPlanVersion])
 
   return { getPlans, getPlan, savePlan, updatePlan, deletePlan, markPlanUsed }

@@ -82,7 +82,7 @@ export function useWorkouts() {
   const sessionVersion = useAppStore(s => s.sessionVersion)
   const bumpSessionVersion = useAppStore(s => s.bumpSessionVersion)
   const weightSettings = useAppStore(s => s.settings.weightSettings ?? DEFAULT_WEIGHT_SETTINGS)
-  const { pushSession, pushWeekLog } = useSync()
+  const { pushSession, pushWeekLog, deleteSession: deleteSessionFromCloud } = useSync()
 
   const getSessions = useCallback((): WorkoutSession[] => {
     return getFromStorage<WorkoutSession[]>(STORAGE_KEYS.SESSIONS, [])
@@ -186,7 +186,8 @@ export function useWorkouts() {
     const sessions = getSessions().filter(s => s.id !== sessionId)
     setToStorage(STORAGE_KEYS.SESSIONS, sessions)
     bumpSessionVersion()
-  }, [getSessions, bumpSessionVersion])
+    deleteSessionFromCloud(sessionId)
+  }, [getSessions, bumpSessionVersion, deleteSessionFromCloud])
 
   const getExerciseHistory = useCallback((exerciseId: string): { date: string; maxWeight: number; maxReps: number; totalVolume: number }[] => {
     const sessions = getProfileSessions()

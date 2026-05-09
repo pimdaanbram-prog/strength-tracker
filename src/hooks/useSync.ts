@@ -275,6 +275,7 @@ export function useSync() {
         .eq('account_id', accountId)
 
       if (!plansError && dbPlans) {
+
         const cloudPlans = dbPlans.map(dbToPlan)
         const localPlans = getFromStorage<WorkoutPlan[]>(STORAGE_KEYS.PLANS, [])
         const cloudIds = new Set(cloudPlans.map(p => p.id))
@@ -340,6 +341,27 @@ export function useSync() {
     }
   }, [])
 
+  // Push a plan to cloud
+  const pushPlan = useCallback(async (plan: WorkoutPlan) => {
+    try {
+      const accountId = await getAccountId()
+      if (!accountId) return
+      const { error } = await supabase.from('workout_plans').upsert(planToDb(plan, accountId))
+      if (error) console.error('Push plan failed:', error)
+    } catch (e) {
+      console.error('Push plan failed:', e)
+    }
+  }, [getAccountId])
+
+  // Delete a plan from cloud
+  const deletePlanFromCloud = useCallback(async (id: string) => {
+    try {
+      await supabase.from('workout_plans').delete().eq('id', id)
+    } catch (e) {
+      console.error('Delete plan from cloud failed:', e)
+    }
+  }, [])
+
   // Push week feedback to cloud
   const pushWeekLog = useCallback(async (log: WeekLog) => {
     try {
@@ -359,27 +381,6 @@ export function useSync() {
       console.error('Push week log failed:', e)
     }
   }, [getAccountId])
-
-  // Push a plan to cloud
-  const pushPlan = useCallback(async (plan: WorkoutPlan) => {
-    try {
-      const accountId = await getAccountId()
-      if (!accountId) return
-      const { error } = await supabase.from('workout_plans').upsert(planToDb(plan, accountId))
-      if (error) console.error('Push plan failed:', error.message)
-    } catch (e) {
-      console.error('Push plan failed:', e)
-    }
-  }, [getAccountId])
-
-  // Delete a plan from cloud
-  const deletePlanFromCloud = useCallback(async (id: string) => {
-    try {
-      await supabase.from('workout_plans').delete().eq('id', id)
-    } catch (e) {
-      console.error('Delete plan from cloud failed:', e)
-    }
-  }, [])
 
   // Initial sync on mount + re-sync when app becomes visible + re-sync on sign-in
   useEffect(() => {
@@ -466,6 +467,7 @@ export function useSync() {
         }, (payload) => {
           const plans = getFromStorage<WorkoutPlan[]>(STORAGE_KEYS.PLANS, [])
           if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+
             const plan = dbToPlan(payload.new)
             const idx = plans.findIndex(p => p.id === plan.id)
             if (idx >= 0) plans[idx] = plan
