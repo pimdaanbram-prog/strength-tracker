@@ -5,6 +5,7 @@ import type { UserProfile } from '@/shared/lib/store'
 import { getFromStorage, setToStorage, STORAGE_KEYS } from '@/shared/lib/localStorage'
 import type { WorkoutSession, WeekLog } from '@/features/workouts/hooks/useWorkouts'
 import type { WorkoutPlan } from '@/features/workouts/hooks/usePlans'
+import { safeQuery } from '@/shared/lib/safeQuery'
 
 // Convert between camelCase (frontend) and snake_case (database)
 function profileToDb(p: UserProfile, accountId: string) {
@@ -193,17 +194,21 @@ export function useSync() {
       }
 
       // Pull profiles
-      const { data: dbProfiles, error: profileError } = await supabase
-        .from('training_profiles')
-        .select('id,account_id,name,gender,age,weight,height,fitness_level,goals,available_equipment,created_at,avatar,color')
-        .eq('account_id', accountId)
+      const profilesResult = await safeQuery(
+        supabase
+          .from('training_profiles')
+          .select('id,account_id,name,gender,age,weight,height,fitness_level,goals,available_equipment,created_at,avatar,color')
+          .eq('account_id', accountId),
+        'Profiel sync'
+      )
 
-      if (profileError) {
-        setSyncError(`Profiel sync mislukt: ${profileError.message}`)
+      if (profilesResult.error) {
+        setSyncError(`Profiel sync mislukt: ${profilesResult.error}`)
         return
       }
 
-      if (dbProfiles) {
+      if (profilesResult.data) {
+        const dbProfiles = profilesResult.data
         const profiles = dbProfiles.map(dbToProfile)
         const store = useAppStore.getState()
         const cloudIds = new Set(profiles.map(p => p.id))
@@ -223,18 +228,21 @@ export function useSync() {
       }
 
       // Pull sessions
-      const { data: dbSessions, error: sessionError } = await supabase
-        .from('workout_sessions')
-        .select('id,account_id,profile_id,date,week_number,year,day_label,workout_name,exercises,duration_minutes,notes,completed_at')
-        .eq('account_id', accountId)
+      const sessionsResult = await safeQuery(
+        supabase
+          .from('workout_sessions')
+          .select('id,account_id,profile_id,date,week_number,year,day_label,workout_name,exercises,duration_minutes,notes,completed_at')
+          .eq('account_id', accountId),
+        'Sessie sync'
+      )
 
-      if (sessionError) {
-        setSyncError(`Sessie sync mislukt: ${sessionError.message}`)
+      if (sessionsResult.error) {
+        setSyncError(`Sessie sync mislukt: ${sessionsResult.error}`)
         return
       }
 
-      if (dbSessions) {
-        const cloudSessions = dbSessions.map(dbToSession)
+      if (sessionsResult.data) {
+        const cloudSessions = sessionsResult.data.map(dbToSession)
         const localSessions = getFromStorage<WorkoutSession[]>(STORAGE_KEYS.SESSIONS, [])
         const cloudIds = new Set(cloudSessions.map(s => s.id))
         const localOnly = localSessions.filter(s => !cloudIds.has(s.id))
@@ -247,13 +255,16 @@ export function useSync() {
       }
 
       // Pull week logs
-      const { data: dbWeekLogs, error: weekError } = await supabase
-        .from('week_logs')
-        .select('profile_id,week_number,year,sessions,feedback_generated,feedback')
-        .eq('account_id', accountId)
+      const weekLogsResult = await safeQuery(
+        supabase
+          .from('week_logs')
+          .select('profile_id,week_number,year,sessions,feedback_generated,feedback')
+          .eq('account_id', accountId),
+        'WeekLog sync'
+      )
 
-      if (!weekError && dbWeekLogs) {
-        const cloudLogs: WeekLog[] = dbWeekLogs.map(d => ({
+      if (!weekLogsResult.error && weekLogsResult.data) {
+        const cloudLogs: WeekLog[] = weekLogsResult.data.map(d => ({
           profileId: d.profile_id as string,
           weekNumber: d.week_number as number,
           year: d.year as number,
@@ -269,14 +280,16 @@ export function useSync() {
       }
 
       // Pull plans
-      const { data: dbPlans, error: plansError } = await supabase
-        .from('workout_plans')
-        .select('id,account_id,name,exercises,created_at,last_used_at')
-        .eq('account_id', accountId)
+      const plansResult = await safeQuery(
+        supabase
+          .from('workout_plans')
+          .select('id,account_id,name,exercises,created_at,last_used_at')
+          .eq('account_id', accountId),
+        'Plan sync'
+      )
 
-      if (!plansError && dbPlans) {
-
-        const cloudPlans = dbPlans.map(dbToPlan)
+      if (!plansResult.error && plansResult.data) {
+        const cloudPlans = plansResult.data.map(dbToPlan)
         const localPlans = getFromStorage<WorkoutPlan[]>(STORAGE_KEYS.PLANS, [])
         const cloudIds = new Set(cloudPlans.map(p => p.id))
         const localOnly = localPlans.filter(p => !cloudIds.has(p.id))
