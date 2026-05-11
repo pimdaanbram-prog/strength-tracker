@@ -1,6 +1,6 @@
 import { useAppStore } from '@/shared/store/appStore'
 import type { UserProfile } from '@/shared/store/appStore'
-import { useSync } from '@/shared/lib/useSync'
+import { useSaveProfileMutation, useDeleteProfileMutation } from '@/shared/lib/supabaseQueries'
 
 export function useProfiles() {
   const profiles = useAppStore((s) => s.profiles)
@@ -10,7 +10,8 @@ export function useProfiles() {
   const updateProfileAction = useAppStore((s) => s.updateProfile)
   const deleteProfileAction = useAppStore((s) => s.deleteProfile)
   const setActiveProfileAction = useAppStore((s) => s.setActiveProfile)
-  const { pushProfile, deleteProfileFromCloud } = useSync()
+  const { mutate: saveProfileToCloud } = useSaveProfileMutation()
+  const { mutate: deleteProfileFromCloud } = useDeleteProfileMutation()
 
   const activeProfile = getActiveProfile()
   const isOnboarding = profiles.length === 0
@@ -22,12 +23,12 @@ export function useProfiles() {
     isOnboarding,
     addProfile: (profile: UserProfile) => {
       addProfileAction(profile)
-      pushProfile(profile)
+      saveProfileToCloud(profile)
     },
     updateProfile: (id: string, updates: Partial<UserProfile>) => {
       updateProfileAction(id, updates)
       const updated = useAppStore.getState().profiles.find(p => p.id === id)
-      if (updated) pushProfile(updated)
+      if (updated) saveProfileToCloud(updated)
     },
     deleteProfile: (id: string) => {
       deleteProfileAction(id)

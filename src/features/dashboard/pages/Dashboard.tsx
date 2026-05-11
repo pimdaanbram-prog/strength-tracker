@@ -19,7 +19,7 @@ import { useWorkouts } from '@/features/workouts/hooks/useWorkouts'
 import { useExercises } from '@/features/exercises/hooks/useExercises'
 import { usePlans } from '@/features/plans/hooks/usePlans'
 import { useLanguage } from '@/shared/hooks/useLanguage'
-import { useSync } from '@/shared/lib/useSync'
+import { useSyncStatus } from '@/shared/lib/useSyncStatus'
 import { getDayLabel } from '@/shared/utils/weekUtils'
 import { workoutTemplates } from '@/features/workouts/data/workoutTemplates'
 import Header from '@/shared/components/layout/Header'
@@ -35,7 +35,7 @@ export default function Dashboard() {
   const { getPlans } = usePlans()
   const myPlans = getPlans()
   const { exName } = useLanguage()
-  const { pullFromCloud, isSyncing, syncError } = useSync()
+  const { pullFromCloud, isSyncing, syncError } = useSyncStatus()
 
   const weekCount = getThisWeekSessionCount()
   const streak = getStreak()

@@ -5,7 +5,7 @@ import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, R
 import AmbientBackground from '@/shared/components/ui/AmbientBackground'
 import { useWorkouts } from '@/features/workouts/hooks/useWorkouts'
 import { useExercises } from '@/features/exercises/hooks/useExercises'
-import { useSync } from '@/shared/lib/useSync'
+import { useSyncStatus } from '@/shared/lib/useSyncStatus'
 import { useLanguage } from '@/shared/hooks/useLanguage'
 
 const MuscleFigure3D = lazy(() => import('@/shared/components/ui/MuscleFigure3D'))
@@ -44,7 +44,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 export default function ProgressPage() {
   const { getProfileSessions, getExerciseHistory, getPersonalRecords } = useWorkouts()
   const { exercises, getExercise } = useExercises()
-  const { pullFromCloud, diagnoseSyncIssue, syncError, isSyncing, lastSyncAt } = useSync()
+  const { pullFromCloud, diagnoseSyncIssue, syncError, isSyncing, lastSyncAt } = useSyncStatus()
   const { exName } = useLanguage()
 
   const sessions  = getProfileSessions()

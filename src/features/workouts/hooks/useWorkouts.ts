@@ -2,7 +2,7 @@ import { useCallback } from 'react'
 import { getFromStorage, setToStorage, STORAGE_KEYS } from '@/shared/utils/localStorage'
 import { getWeekNumber, getYear } from '@/shared/utils/weekUtils'
 import { useAppStore, DEFAULT_WEIGHT_SETTINGS } from '@/shared/store/appStore'
-import { useSync } from '@/shared/lib/useSync'
+import { useSaveSessionMutation, useDeleteSessionMutation, useSaveWeekLogMutation } from '@/shared/lib/supabaseQueries'
 import { exercises as exerciseData } from '@/features/exercises/data/exercises'
 import { getAchievableWeightsForEquipment, nearestWeight } from '@/shared/utils/plateCalculator'
 
@@ -82,7 +82,9 @@ export function useWorkouts() {
   const sessionVersion = useAppStore(s => s.sessionVersion)
   const bumpSessionVersion = useAppStore(s => s.bumpSessionVersion)
   const weightSettings = useAppStore(s => s.settings.weightSettings ?? DEFAULT_WEIGHT_SETTINGS)
-  const { pushSession, pushWeekLog, deleteSession: deleteSessionFromCloud } = useSync()
+  const { mutate: saveSessionToCloud } = useSaveSessionMutation()
+  const { mutate: deleteSessionFromCloud } = useDeleteSessionMutation()
+  const { mutate: saveWeekLogToCloud } = useSaveWeekLogMutation()
 
   const getSessions = useCallback((): WorkoutSession[] => {
     return getFromStorage<WorkoutSession[]>(STORAGE_KEYS.SESSIONS, [])
@@ -115,8 +117,8 @@ export function useWorkouts() {
     setToStorage(STORAGE_KEYS.SESSIONS, sessions)
     bumpSessionVersion()
 
-    // Push to cloud
-    pushSession(newSession)
+    // Push to cloud (optimistic: localStorage already updated above)
+    saveSessionToCloud(newSession)
 
     // Update week log
     const weekLogs = getFromStorage<WeekLog[]>(STORAGE_KEYS.WEEK_LOGS, [])
@@ -136,10 +138,10 @@ export function useWorkouts() {
     }
     weekLog.sessions.push(newSession.id)
     setToStorage(STORAGE_KEYS.WEEK_LOGS, weekLogs)
-    pushWeekLog(weekLog)
+    saveWeekLogToCloud(weekLog)
 
     return newSession
-  }, [activeProfileId, getSessions, pushSession, pushWeekLog, bumpSessionVersion])
+  }, [activeProfileId, getSessions, saveSessionToCloud, saveWeekLogToCloud, bumpSessionVersion])
 
   const saveSessionForProfile = useCallback((profileId: string, session: Omit<WorkoutSession, 'id' | 'profileId' | 'weekNumber' | 'year'>): WorkoutSession => {
     const date = new Date(session.date)
@@ -156,8 +158,7 @@ export function useWorkouts() {
     setToStorage(STORAGE_KEYS.SESSIONS, sessions)
     bumpSessionVersion()
 
-    // Push to cloud
-    pushSession(newSession)
+    saveSessionToCloud(newSession)
 
     // Update week log
     const weekLogs = getFromStorage<WeekLog[]>(STORAGE_KEYS.WEEK_LOGS, [])
@@ -177,10 +178,10 @@ export function useWorkouts() {
     }
     weekLog.sessions.push(newSession.id)
     setToStorage(STORAGE_KEYS.WEEK_LOGS, weekLogs)
-    pushWeekLog(weekLog)
+    saveWeekLogToCloud(weekLog)
 
     return newSession
-  }, [getSessions, pushSession, pushWeekLog, bumpSessionVersion])
+  }, [getSessions, saveSessionToCloud, saveWeekLogToCloud, bumpSessionVersion])
 
   const deleteSession = useCallback((sessionId: string) => {
     const sessions = getSessions().filter(s => s.id !== sessionId)
@@ -379,9 +380,9 @@ export function useWorkouts() {
       log.feedback = feedback
       log.feedbackGenerated = true
       setToStorage(STORAGE_KEYS.WEEK_LOGS, weekLogs)
-      pushWeekLog(log)
+      saveWeekLogToCloud(log)
     }
-  }, [activeProfileId, pushWeekLog])
+  }, [activeProfileId, saveWeekLogToCloud])
 
   const getThisWeekSessionCount = useCallback((): number => {
     const now = new Date()

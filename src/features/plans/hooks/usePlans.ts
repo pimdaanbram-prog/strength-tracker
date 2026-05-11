@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { getFromStorage, setToStorage, STORAGE_KEYS } from '@/shared/utils/localStorage'
 import { useAppStore } from '@/shared/store/appStore'
-import { useSync } from '@/shared/lib/useSync'
+import { useSavePlanMutation, useDeletePlanMutation } from '@/shared/lib/supabaseQueries'
 
 export interface PlanExercise {
   exerciseId: string
@@ -21,10 +21,10 @@ function generateId(): string {
 }
 
 export function usePlans() {
-
   const planVersion = useAppStore(s => s.planVersion)
   const bumpPlanVersion = useAppStore(s => s.bumpPlanVersion)
-  const { pushPlan, deletePlanFromCloud } = useSync()
+  const { mutate: savePlanToCloud } = useSavePlanMutation()
+  const { mutate: deletePlanFromCloud } = useDeletePlanMutation()
 
   const getPlans = useCallback((): WorkoutPlan[] => {
     return getFromStorage<WorkoutPlan[]>(STORAGE_KEYS.PLANS, [])
@@ -47,10 +47,9 @@ export function usePlans() {
     plans.push(newPlan)
     setToStorage(STORAGE_KEYS.PLANS, plans)
     bumpPlanVersion()
-    pushPlan(newPlan)
+    savePlanToCloud(newPlan)
     return newPlan
-
-  }, [pushPlan, bumpPlanVersion])
+  }, [savePlanToCloud, bumpPlanVersion])
 
   const updatePlan = useCallback((id: string, updates: Partial<Omit<WorkoutPlan, 'id' | 'createdAt'>>): void => {
     const plans = getFromStorage<WorkoutPlan[]>(STORAGE_KEYS.PLANS, [])
@@ -59,17 +58,15 @@ export function usePlans() {
       plans[idx] = { ...plans[idx], ...updates }
       setToStorage(STORAGE_KEYS.PLANS, plans)
       bumpPlanVersion()
-      pushPlan(plans[idx])
+      savePlanToCloud(plans[idx])
     }
-
-  }, [pushPlan, bumpPlanVersion])
+  }, [savePlanToCloud, bumpPlanVersion])
 
   const deletePlan = useCallback((id: string): void => {
     const plans = getFromStorage<WorkoutPlan[]>(STORAGE_KEYS.PLANS, []).filter(p => p.id !== id)
     setToStorage(STORAGE_KEYS.PLANS, plans)
     bumpPlanVersion()
     deletePlanFromCloud(id)
-
   }, [deletePlanFromCloud, bumpPlanVersion])
 
   const markPlanUsed = useCallback((id: string): void => {
@@ -79,10 +76,9 @@ export function usePlans() {
       plans[idx].lastUsedAt = new Date().toISOString()
       setToStorage(STORAGE_KEYS.PLANS, plans)
       bumpPlanVersion()
-      pushPlan(plans[idx])
+      savePlanToCloud(plans[idx])
     }
-
-  }, [pushPlan, bumpPlanVersion])
+  }, [savePlanToCloud, bumpPlanVersion])
 
   return { getPlans, getPlan, savePlan, updatePlan, deletePlan, markPlanUsed }
 }
