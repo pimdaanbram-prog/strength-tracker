@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+/* Fonts are loaded via @fontsource-variable/* in main.tsx (self-hosted, no CDN) */
 @import "tailwindcss";
 
 /* ─── Runtime Theme Variables (set by ThemeContext) ──── */
@@ -32,9 +32,9 @@
   --theme-nav-bg: rgba(12,12,18,0.55);
   --theme-gradient-text-from: #FF7A1F;
   --theme-gradient-text-to: #FFB020;
-  --theme-font-mono: 'JetBrains Mono', ui-monospace, monospace;
-  --theme-font-display: 'Space Grotesk', sans-serif;
-  --theme-font-body: 'Inter', -apple-system, sans-serif;
+  --theme-font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace;
+  --theme-font-display: 'Space Grotesk Variable', 'Space Grotesk', sans-serif;
+  --theme-font-body: 'Inter Variable', 'Inter', -apple-system, sans-serif;
 }
 
 /* ─── Tailwind Theme Tokens ────────────────────────── */

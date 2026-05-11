@@ -195,7 +195,7 @@ export function useSync() {
       // Pull profiles
       const { data: dbProfiles, error: profileError } = await supabase
         .from('training_profiles')
-        .select('*')
+        .select('id,account_id,name,gender,age,weight,height,fitness_level,goals,available_equipment,created_at,avatar,color')
         .eq('account_id', accountId)
 
       if (profileError) {
@@ -225,7 +225,7 @@ export function useSync() {
       // Pull sessions
       const { data: dbSessions, error: sessionError } = await supabase
         .from('workout_sessions')
-        .select('*')
+        .select('id,account_id,profile_id,date,week_number,year,day_label,workout_name,exercises,duration_minutes,notes,completed_at')
         .eq('account_id', accountId)
 
       if (sessionError) {
@@ -249,7 +249,7 @@ export function useSync() {
       // Pull week logs
       const { data: dbWeekLogs, error: weekError } = await supabase
         .from('week_logs')
-        .select('*')
+        .select('profile_id,week_number,year,sessions,feedback_generated,feedback')
         .eq('account_id', accountId)
 
       if (!weekError && dbWeekLogs) {
@@ -271,7 +271,7 @@ export function useSync() {
       // Pull plans
       const { data: dbPlans, error: plansError } = await supabase
         .from('workout_plans')
-        .select('*')
+        .select('id,account_id,name,exercises,created_at,last_used_at')
         .eq('account_id', accountId)
 
       if (!plansError && dbPlans) {

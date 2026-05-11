@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { lazy, Suspense, useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Download, X } from 'lucide-react'
@@ -7,31 +7,47 @@ import { ThemeProvider } from './contexts/ThemeContext'
 import { ToastProvider } from './contexts/ToastContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import BottomNav from './components/layout/BottomNav'
-import Dashboard from './pages/Dashboard'
-import WorkoutPage from './pages/WorkoutPage'
-import ExercisesPage from './pages/ExercisesPage'
-import ExerciseDetail from './pages/ExerciseDetail'
-import HistoryPage from './pages/HistoryPage'
-import ProgressPage from './pages/ProgressPage'
-import ProfilesPage from './pages/ProfilesPage'
-import ProfileNew from './pages/ProfileNew'
-import WeekFeedback from './pages/WeekFeedback'
-import PlansPage from './pages/PlansPage'
-import PlanEditPage from './pages/PlanEditPage'
-import ThemePage from './pages/ThemePage'
-import AchievementsPage from './pages/AchievementsPage'
-import ToolsPage from './pages/ToolsPage'
-import MeasurementsPage from './pages/MeasurementsPage'
-import SettingsPage from './pages/SettingsPage'
-import PlanGeneratorPage from './pages/PlanGeneratorPage'
 import { useSync } from './hooks/useSync'
-import LoginPage from './pages/auth/LoginPage'
-import RegisterPage from './pages/auth/RegisterPage'
-import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
+
+// Route-level code splitting — each page gets its own chunk
+const Dashboard = lazy(() => import('./pages/Dashboard'))
+const WorkoutPage = lazy(() => import('./pages/WorkoutPage'))
+const ExercisesPage = lazy(() => import('./pages/ExercisesPage'))
+const ExerciseDetail = lazy(() => import('./pages/ExerciseDetail'))
+const HistoryPage = lazy(() => import('./pages/HistoryPage'))
+const ProgressPage = lazy(() => import('./pages/ProgressPage'))
+const ProfilesPage = lazy(() => import('./pages/ProfilesPage'))
+const ProfileNew = lazy(() => import('./pages/ProfileNew'))
+const WeekFeedback = lazy(() => import('./pages/WeekFeedback'))
+const PlansPage = lazy(() => import('./pages/PlansPage'))
+const PlanEditPage = lazy(() => import('./pages/PlanEditPage'))
+const ThemePage = lazy(() => import('./pages/ThemePage'))
+const AchievementsPage = lazy(() => import('./pages/AchievementsPage'))
+const ToolsPage = lazy(() => import('./pages/ToolsPage'))
+const MeasurementsPage = lazy(() => import('./pages/MeasurementsPage'))
+const SettingsPage = lazy(() => import('./pages/SettingsPage'))
+const PlanGeneratorPage = lazy(() => import('./pages/PlanGeneratorPage'))
+const LoginPage = lazy(() => import('./pages/auth/LoginPage'))
+const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'))
+const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'))
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
+}
+
+function PageLoader() {
+  return (
+    <div
+      className="min-h-[100dvh] flex items-center justify-center"
+      style={{ background: 'var(--theme-bg-primary)' }}
+    >
+      <div
+        className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
+        style={{ borderColor: 'var(--theme-accent)', borderTopColor: 'transparent' }}
+      />
+    </div>
+  )
 }
 
 function MainApp() {
@@ -100,28 +116,30 @@ function MainApp() {
         )}
       </AnimatePresence>
 
-      <AnimatePresence mode="wait">
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/workout" element={<WorkoutPage />} />
-          <Route path="/exercises" element={<ExercisesPage />} />
-          <Route path="/exercises/:id" element={<ExerciseDetail />} />
-          <Route path="/history" element={<HistoryPage />} />
-          <Route path="/progress" element={<ProgressPage />} />
-          <Route path="/profiles" element={<ProfilesPage />} />
-          <Route path="/profiles/new" element={<ProfileNew />} />
-          <Route path="/week-feedback" element={<WeekFeedback />} />
-          <Route path="/plans" element={<PlansPage />} />
-          <Route path="/plans/new" element={<PlanEditPage />} />
-          <Route path="/plans/:id/edit" element={<PlanEditPage />} />
-          <Route path="/themes" element={<ThemePage />} />
-          <Route path="/achievements" element={<AchievementsPage />} />
-          <Route path="/tools" element={<ToolsPage />} />
-          <Route path="/measurements" element={<MeasurementsPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/plan-generator" element={<PlanGeneratorPage />} />
-        </Routes>
-      </AnimatePresence>
+      <Suspense fallback={<PageLoader />}>
+        <AnimatePresence mode="wait">
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/workout" element={<WorkoutPage />} />
+            <Route path="/exercises" element={<ExercisesPage />} />
+            <Route path="/exercises/:id" element={<ExerciseDetail />} />
+            <Route path="/history" element={<HistoryPage />} />
+            <Route path="/progress" element={<ProgressPage />} />
+            <Route path="/profiles" element={<ProfilesPage />} />
+            <Route path="/profiles/new" element={<ProfileNew />} />
+            <Route path="/week-feedback" element={<WeekFeedback />} />
+            <Route path="/plans" element={<PlansPage />} />
+            <Route path="/plans/new" element={<PlanEditPage />} />
+            <Route path="/plans/:id/edit" element={<PlanEditPage />} />
+            <Route path="/themes" element={<ThemePage />} />
+            <Route path="/achievements" element={<AchievementsPage />} />
+            <Route path="/tools" element={<ToolsPage />} />
+            <Route path="/measurements" element={<MeasurementsPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/plan-generator" element={<PlanGeneratorPage />} />
+          </Routes>
+        </AnimatePresence>
+      </Suspense>
       <BottomNav />
     </div>
   )
@@ -133,16 +151,18 @@ export default function App() {
       <ThemeProvider>
         <ToastProvider>
           <AuthProvider>
-            <Routes>
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-              <Route path="/*" element={
-                <ProtectedRoute>
-                  <MainApp />
-                </ProtectedRoute>
-              } />
-            </Routes>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/*" element={
+                  <ProtectedRoute>
+                    <MainApp />
+                  </ProtectedRoute>
+                } />
+              </Routes>
+            </Suspense>
           </AuthProvider>
         </ToastProvider>
       </ThemeProvider>

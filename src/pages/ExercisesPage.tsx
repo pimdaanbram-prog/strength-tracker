@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useLayoutEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, ChevronRight, Trophy } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import AmbientBackground from '../components/ui/AmbientBackground'
 import { useExercises } from '../hooks/useExercises'
 import { useWorkouts } from '../hooks/useWorkouts'
@@ -25,11 +26,8 @@ const DIFFICULTY_STYLE = {
   advanced:     { color: '#FF3B3B', bg: 'rgba(255,59,59,0.1)', label: 'Gevorderd' },
 }
 
-const containerVariants = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } }
-const itemVariants = {
-  hidden: { opacity: 0, y: 16 },
-  show: { opacity: 1, y: 0, transition: { type: 'spring' as const, damping: 24, stiffness: 280 } },
-}
+const ITEM_HEIGHT = 84  // card height
+const ITEM_GAP = 8      // gap between items
 
 export default function ExercisesPage() {
   const navigate = useNavigate()
@@ -56,6 +54,23 @@ export default function ExercisesPage() {
     }
     return result
   }, [exercises, activeCategory, search, exercisesByCategory])
+
+  // Virtual list — window-based scrolling
+  const listRef = useRef<HTMLDivElement>(null)
+  const [scrollMargin, setScrollMargin] = useState(0)
+
+  useLayoutEffect(() => {
+    if (listRef.current) {
+      setScrollMargin(listRef.current.getBoundingClientRect().top + window.scrollY)
+    }
+  })
+
+  const rowVirtualizer = useWindowVirtualizer({
+    count: filtered.length,
+    estimateSize: () => ITEM_HEIGHT + ITEM_GAP,
+    overscan: 6,
+    scrollMargin,
+  })
 
   return (
     <div className="relative min-h-[100dvh] overflow-hidden" style={{ background: 'var(--theme-bg-primary)' }}>
@@ -142,7 +157,7 @@ export default function ExercisesPage() {
             )}
           </AnimatePresence>
 
-          {/* Exercise list */}
+          {/* Exercise list — virtualized */}
           {filtered.length === 0 ? (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ textAlign: 'center', padding: '64px 0' }}>
               <div style={{ fontSize: 48, marginBottom: 16 }}>🔍</div>
@@ -150,60 +165,75 @@ export default function ExercisesPage() {
               <p style={{ fontSize: 13, color: 'var(--theme-text-muted)' }}>Probeer een andere zoekterm</p>
             </motion.div>
           ) : (
-            <motion.div key={`${activeCategory}-${search}`}
-              variants={containerVariants} initial="hidden" animate="show"
-              style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {filtered.map(exercise => {
+            <div
+              ref={listRef}
+              style={{ height: `${rowVirtualizer.getTotalSize()}px`, position: 'relative' }}
+            >
+              {rowVirtualizer.getVirtualItems().map(virtualItem => {
+                const exercise = filtered[virtualItem.index]
                 const pr = prs[exercise.id]
                 const lastSession = pr ? getLastExerciseSets(exercise.id) : null
                 const diff = DIFFICULTY_STYLE[exercise.difficulty]
                 const cat = CATEGORY_CONFIG[exercise.category]
 
                 return (
-                  <motion.button key={exercise.id} variants={itemVariants}
-                    whileHover={{ x: 3 }} whileTap={{ scale: 0.98 }}
-                    onClick={() => navigate(`/exercises/${exercise.id}`)}
-                    style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 18, cursor: 'pointer', border: '1px solid var(--theme-glass-border)', textAlign: 'left', background: 'var(--theme-glass)', backdropFilter: 'blur(24px) saturate(180%)', WebkitBackdropFilter: 'blur(24px) saturate(180%)', transition: 'border-color 0.15s' }}
-                    onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--theme-accent)')}
-                    onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--theme-glass-border)')}>
-                    {/* Icon tile */}
-                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 text-lg ${cat?.className || 'gradient-workout-a'}`}
-                      style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
-                      {cat?.icon || '🏋️'}
-                    </div>
+                  <div
+                    key={exercise.id}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      transform: `translateY(${virtualItem.start - rowVirtualizer.options.scrollMargin}px)`,
+                      paddingBottom: `${ITEM_GAP}px`,
+                    }}
+                  >
+                    <motion.button
+                      whileHover={{ x: 3 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => navigate(`/exercises/${exercise.id}`)}
+                      style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 18, cursor: 'pointer', border: '1px solid var(--theme-glass-border)', textAlign: 'left', background: 'var(--theme-glass)', backdropFilter: 'blur(24px) saturate(180%)', WebkitBackdropFilter: 'blur(24px) saturate(180%)', transition: 'border-color 0.15s' }}
+                      onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--theme-accent)')}
+                      onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--theme-glass-border)')}>
+                      {/* Icon tile */}
+                      <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 text-lg ${cat?.className || 'gradient-workout-a'}`}
+                        style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
+                        {cat?.icon || '🏋️'}
+                      </div>
 
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: 13, fontWeight: 600, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {exName(exercise)}
-                      </p>
-                      <p style={{ fontSize: 11, margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--theme-text-secondary)' }}>
-                        {exercise.equipment} · {exercise.musclesWorked.slice(0, 2).join(', ')}
-                      </p>
-                      {lastSession && lastSession.maxWeight > 0 && (
-                        <p style={{ fontSize: 10, margin: '2px 0 0', color: 'var(--theme-text-muted)', fontFamily: 'var(--theme-font-mono)' }}>
-                          {lastSession.maxWeight}kg × {lastSession.maxReps}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: 13, fontWeight: 600, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {exName(exercise)}
                         </p>
-                      )}
-                    </div>
+                        <p style={{ fontSize: 11, margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--theme-text-secondary)' }}>
+                          {exercise.equipment} · {exercise.musclesWorked.slice(0, 2).join(', ')}
+                        </p>
+                        {lastSession && lastSession.maxWeight > 0 && (
+                          <p style={{ fontSize: 10, margin: '2px 0 0', color: 'var(--theme-text-muted)', fontFamily: 'var(--theme-font-mono)' }}>
+                            {lastSession.maxWeight}kg × {lastSession.maxReps}
+                          </p>
+                        )}
+                      </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
-                      {pr && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                          <Trophy size={10} style={{ color: 'var(--theme-warning)' }} />
-                          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--theme-warning)', fontFamily: 'var(--theme-font-mono)' }}>{pr.weight}kg</span>
-                        </div>
-                      )}
-                      <span style={{ fontSize: 9.5, padding: '3px 8px', borderRadius: 999, fontWeight: 600, background: diff.bg, color: diff.color }}>{diff.label}</span>
-                      {exercise.isCompound && (
-                        <span style={{ fontSize: 8.5, padding: '2px 6px', borderRadius: 999, background: 'rgba(255,179,0,0.1)', color: '#FFB300' }}>Compound</span>
-                      )}
-                    </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
+                        {pr && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                            <Trophy size={10} style={{ color: 'var(--theme-warning)' }} />
+                            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--theme-warning)', fontFamily: 'var(--theme-font-mono)' }}>{pr.weight}kg</span>
+                          </div>
+                        )}
+                        <span style={{ fontSize: 9.5, padding: '3px 8px', borderRadius: 999, fontWeight: 600, background: diff.bg, color: diff.color }}>{diff.label}</span>
+                        {exercise.isCompound && (
+                          <span style={{ fontSize: 8.5, padding: '2px 6px', borderRadius: 999, background: 'rgba(255,179,0,0.1)', color: '#FFB300' }}>Compound</span>
+                        )}
+                      </div>
 
-                    <ChevronRight size={13} style={{ color: 'var(--theme-text-muted)', marginLeft: 2 }} />
-                  </motion.button>
+                      <ChevronRight size={13} style={{ color: 'var(--theme-text-muted)', marginLeft: 2 }} />
+                    </motion.button>
+                  </div>
                 )
               })}
-            </motion.div>
+            </div>
           )}
         </div>
       </div>
