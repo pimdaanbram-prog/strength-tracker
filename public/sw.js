@@ -1,4 +1,4 @@
-const CACHE_NAME = 'strength-tracker-v1'
+const CACHE_NAME = 'strength-tracker-v2'
 
 const PRECACHE_URLS = [
   '/',
@@ -8,6 +8,18 @@ const PRECACHE_URLS = [
   '/icons/icon-192.png',
   '/icons/icon-512.png',
 ]
+
+// Never cache requests to these origins (auth + live API traffic)
+const BYPASS_ORIGINS = [
+  'supabase.co',
+  'supabase.io',
+  'googleapis.com',
+  'gstatic.com',
+]
+
+function shouldBypass(url) {
+  return BYPASS_ORIGINS.some(origin => url.hostname.endsWith(origin))
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -28,6 +40,15 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return
 
+  const url = new URL(event.request.url)
+
+  // Pass Supabase and other live API traffic straight through — never cache
+  if (shouldBypass(url)) {
+    event.respondWith(fetch(event.request))
+    return
+  }
+
+  // Stale-while-revalidate for app shell + static assets
   event.respondWith(
     caches.match(event.request).then((cached) => {
       const fetched = fetch(event.request)
