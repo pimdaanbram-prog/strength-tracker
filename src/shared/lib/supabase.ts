@@ -19,3 +19,22 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     },
   },
 })
+
+// Wraps any Supabase query and logs errors in development.
+// Returns { data, error } — callers should always check error.
+export async function safeQuery<T>(
+  queryFn: () => PromiseLike<{ data: T | null; error: { message: string } | null }>
+): Promise<{ data: T | null; error: string | null }> {
+  try {
+    const { data, error } = await queryFn()
+    if (error) {
+      if (import.meta.env.DEV) console.error('[supabase]', error.message)
+      return { data: null, error: error.message }
+    }
+    return { data, error: null }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error'
+    if (import.meta.env.DEV) console.error('[supabase] unexpected:', message)
+    return { data: null, error: message }
+  }
+}

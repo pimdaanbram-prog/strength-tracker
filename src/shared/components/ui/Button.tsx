@@ -1,17 +1,25 @@
 import { forwardRef } from 'react'
-import type { ButtonHTMLAttributes } from 'react'
+import type { CSSProperties, ButtonHTMLAttributes } from 'react'
 import { motion } from 'framer-motion'
 
 type Variant = 'primary' | 'secondary' | 'danger' | 'ghost'
 type Size = 'sm' | 'md' | 'lg'
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+// Omit event types that conflict with Framer Motion's motion.button overloads
+// (onDrag, onDragStart, onDragEnd, onAnimationStart differ in React vs Framer Motion)
+type MotionConflictKeys =
+  | 'onDrag' | 'onDragCapture' | 'onDragEnd' | 'onDragEndCapture'
+  | 'onDragEnter' | 'onDragEnterCapture' | 'onDragLeave' | 'onDragLeaveCapture'
+  | 'onDragOver' | 'onDragOverCapture' | 'onDragStart' | 'onDragStartCapture'
+  | 'onAnimationStart' | 'onAnimationStartCapture'
+
+interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, MotionConflictKeys> {
   variant?: Variant
   size?: Size
   fullWidth?: boolean
 }
 
-const variantStyles: Record<Variant, React.CSSProperties> = {
+const variantStyles: Record<Variant, CSSProperties> = {
   primary: {
     background: 'linear-gradient(135deg, var(--theme-accent), var(--theme-gradient-text-to))',
     color: '#fff',
@@ -61,7 +69,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         `}
         disabled={disabled}
         style={{ ...variantStyles[variant], fontFamily: 'inherit', ...style }}
-        {...(props as any)}
+        {...props}
       >
         {children}
       </motion.button>

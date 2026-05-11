@@ -1,16 +1,20 @@
 import { createContext, useContext } from 'react'
 import type { ReactNode } from 'react'
 import { useAuth } from '@/features/auth/hooks/useAuth'
-import type { User, Session } from '@supabase/supabase-js'
+import type { User, Session, AuthError, AuthResponse, AuthTokenResponsePassword } from '@supabase/supabase-js'
+
+type ResetPasswordResponse = Promise<
+  { data: Record<string, never>; error: null } | { data: null; error: AuthError }
+>
 
 interface AuthContextType {
   user: User | null
   session: Session | null
   loading: boolean
-  signIn: (email: string, password: string) => Promise<any>
-  signUp: (email: string, password: string) => Promise<any>
-  signOut: () => Promise<any>
-  resetPassword: (email: string) => Promise<any>
+  signIn: (email: string, password: string) => Promise<AuthTokenResponsePassword>
+  signUp: (email: string, password: string) => Promise<AuthResponse>
+  signOut: () => Promise<{ error: AuthError | null }>
+  resetPassword: (email: string) => ResetPasswordResponse
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)

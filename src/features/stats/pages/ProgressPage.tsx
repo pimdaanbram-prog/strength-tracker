@@ -16,14 +16,25 @@ const CATEGORY_NL: Record<string, string> = {
   'Core': 'Core', 'Legs': 'Benen', 'Glutes': 'Billen', 'Full Body': 'Full Body',
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+interface TooltipPayloadEntry {
+  value: number | string
+  unit?: string
+}
+
+interface CustomTooltipProps {
+  active?: boolean
+  payload?: TooltipPayloadEntry[]
+  label?: string
+}
+
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   if (!active || !payload?.length) return null
   return (
     <div style={{ background: 'var(--theme-bg-input)', border: '1px solid var(--theme-border-subtle)', borderRadius: 12, padding: '8px 12px' }}>
       <p style={{ color: 'var(--theme-text-secondary)', fontSize: 11, margin: 0 }}>{label}</p>
-      {payload.map((p: any, i: number) => (
+      {payload.map((p, i) => (
         <p key={i} style={{ color: 'var(--theme-accent)', fontSize: 13, fontWeight: 600, margin: '2px 0 0' }}>
-          {p.value}{p.unit || ''}
+          {p.value}{p.unit ?? ''}
         </p>
       ))}
     </div>
