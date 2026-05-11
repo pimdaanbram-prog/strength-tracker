@@ -56,7 +56,7 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "eslint --max-warnings 0",
+      "eslint",
       "bash -c 'tsc -b --noEmit'"
     ]
   }

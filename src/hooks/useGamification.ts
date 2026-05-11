@@ -72,7 +72,7 @@ export function useGamification() {
     const weeks = new Set(sessions.map(s => `${s.year}-${s.weekNumber}`))
     const now = new Date()
     let streak = 0
-    let checkDate = new Date(now)
+    const checkDate = new Date(now)
     for (let i = 0; i < 260; i++) {
       const weekNum = getISOWeek(checkDate)
       const year = checkDate.getFullYear()

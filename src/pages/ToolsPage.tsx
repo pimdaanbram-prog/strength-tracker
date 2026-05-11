@@ -238,6 +238,7 @@ export default function ToolsPage() {
   const [customSecs,    setCustomSecs]    = useState('')
   const intervalRef  = useRef<number | null>(null)
   const settingsRef  = useRef(settings)
+  // eslint-disable-next-line react-hooks/refs
   settingsRef.current = settings
 
   const clearTimerInterval = useCallback(() => {

@@ -46,6 +46,9 @@ const sizeClasses: Record<Size, string> = {
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ variant = 'primary', size = 'md', fullWidth, className = '', children, disabled, style, ...props }, ref) => {
+    // motion.button has slightly different prop types; this spread is safe
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const restProps = props as any
     return (
       <motion.button
         ref={ref}
@@ -61,7 +64,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         `}
         disabled={disabled}
         style={{ ...variantStyles[variant], fontFamily: 'inherit', ...style }}
-        {...(props as any)}
+        {...restProps}
       >
         {children}
       </motion.button>

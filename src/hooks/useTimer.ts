@@ -69,6 +69,7 @@ interface UseCountdownReturn {
 
 export function useCountdown(durationSeconds: number): UseCountdownReturn {
   const [seconds, setSeconds] = useState(durationSeconds)
+  const [total, setTotal] = useState(durationSeconds)
   const [isRunning, setIsRunning] = useState(false)
   const [isFinished, setIsFinished] = useState(false)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -88,6 +89,7 @@ export function useCountdown(durationSeconds: number): UseCountdownReturn {
   const reset = useCallback((newDuration?: number) => {
     const dur = newDuration ?? totalRef.current
     totalRef.current = dur
+    setTotal(dur)
     setIsRunning(false)
     setIsFinished(false)
     setSeconds(dur)
@@ -120,7 +122,7 @@ export function useCountdown(durationSeconds: number): UseCountdownReturn {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
   }, [seconds])
 
-  const progress = totalRef.current > 0 ? (totalRef.current - seconds) / totalRef.current : 0
+  const progress = total > 0 ? (total - seconds) / total : 0
 
   return { seconds, isRunning, isFinished, start, pause, reset, formatTime, progress }
 }
