@@ -1,6 +1,7 @@
 import { lazy, Suspense, useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { Download, X } from 'lucide-react'
 import { AuthProvider } from '@/features/auth/context/AuthContext'
 import { ThemeProvider } from '@/features/themes/context/ThemeContext'
@@ -8,6 +9,7 @@ import { ToastProvider } from '@/shared/contexts/ToastContext'
 import ProtectedRoute from '@/app/ProtectedRoute'
 import BottomNav from '@/app/layout/BottomNav'
 import { useSync } from '@/shared/hooks/useSync'
+import { queryClient } from '@/shared/lib/queryClient'
 
 // Route-level code splitting — each page gets its own chunk
 const Dashboard = lazy(() => import('@/features/dashboard/pages/Dashboard'))
@@ -147,6 +149,7 @@ function MainApp() {
 
 export default function App() {
   return (
+    <QueryClientProvider client={queryClient}>
     <BrowserRouter>
       <MotionConfig reducedMotion="user">
       <ThemeProvider>
@@ -169,5 +172,6 @@ export default function App() {
       </ThemeProvider>
       </MotionConfig>
     </BrowserRouter>
+    </QueryClientProvider>
   )
 }

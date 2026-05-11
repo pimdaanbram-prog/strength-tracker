@@ -23,6 +23,7 @@ export default defineConfig({
           if (id.includes('node_modules/recharts') || id.includes('node_modules/d3') || id.includes('node_modules/victory')) return 'vendor-recharts'
           if (id.includes('node_modules/framer-motion')) return 'vendor-motion'
           if (id.includes('node_modules/@supabase')) return 'vendor-supabase'
+          if (id.includes('node_modules/@tanstack/react-query')) return 'vendor-query'
           if (id.includes('node_modules/react-dom') || id.includes('node_modules/react-router-dom')) return 'vendor-react'
           if (id.includes('node_modules/react')) return 'vendor-react'
         },
