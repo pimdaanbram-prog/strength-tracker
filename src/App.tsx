@@ -1,6 +1,6 @@
 import { lazy, Suspense, useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, MotionConfig, motion } from 'framer-motion'
 import { Download, X } from 'lucide-react'
 import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
@@ -148,6 +148,7 @@ function MainApp() {
 export default function App() {
   return (
     <BrowserRouter>
+      <MotionConfig reducedMotion="user">
       <ThemeProvider>
         <ToastProvider>
           <AuthProvider>
@@ -166,6 +167,7 @@ export default function App() {
           </AuthProvider>
         </ToastProvider>
       </ThemeProvider>
+      </MotionConfig>
     </BrowserRouter>
   )
 }

@@ -455,3 +455,36 @@ body::after {
 
 /* ─── Tilt 3D card ───────────────────────────────── */
 .preserve-3d { transform-style: preserve-3d; }
+
+/* ─── prefers-reduced-motion ─────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  /* Keep Framer Motion from firing layout animations */
+  [data-framer-component-type] {
+    transition: none !important;
+  }
+}
+
+/* ─── Skeleton loading ───────────────────────────── */
+@keyframes skeleton-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--theme-glass) 25%,
+    var(--theme-glass-hi) 50%,
+    var(--theme-glass) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; background: var(--theme-glass); }
+}
