@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState, useEffect } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { Download, X } from 'lucide-react'
@@ -7,7 +7,9 @@ import { AuthProvider } from '@/features/auth/context/AuthContext'
 import { ThemeProvider } from '@/features/themes/context/ThemeContext'
 import { ToastProvider } from '@/shared/contexts/ToastContext'
 import ProtectedRoute from '@/app/ProtectedRoute'
-import BottomNav from '@/app/layout/BottomNav'
+import Sidebar from '@/components/layout/Sidebar'
+import BottomNav from '@/components/layout/BottomNav'
+import PageContainer from '@/components/layout/PageContainer'
 import { useSync } from '@/shared/hooks/useSync'
 import { queryClient } from '@/shared/lib/queryClient'
 
@@ -41,18 +43,28 @@ interface BeforeInstallPromptEvent extends Event {
 function PageLoader() {
   return (
     <div
-      className="min-h-[100dvh] flex items-center justify-center"
+      className="min-h-[100dvh] px-4 py-8"
       style={{ background: 'var(--theme-bg-primary)' }}
     >
-      <div
-        className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
-        style={{ borderColor: 'var(--theme-accent)', borderTopColor: 'transparent' }}
-      />
+      <div className="mx-auto grid w-full max-w-5xl gap-4 lg:grid-cols-[1fr_320px]">
+        <div className="grid gap-4">
+          <div className="skeleton h-44 rounded-[2rem]" />
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <div className="skeleton h-28 rounded-3xl" />
+            <div className="skeleton h-28 rounded-3xl" />
+            <div className="skeleton h-28 rounded-3xl" />
+            <div className="skeleton h-28 rounded-3xl" />
+          </div>
+          <div className="skeleton h-72 rounded-[2rem]" />
+        </div>
+        <div className="skeleton hidden h-[520px] rounded-[2rem] lg:block" />
+      </div>
     </div>
   )
 }
 
 function MainApp() {
+  const location = useLocation()
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [showBanner, setShowBanner] = useState(false)
 
@@ -118,28 +130,31 @@ function MainApp() {
         )}
       </AnimatePresence>
 
+      <Sidebar />
       <Suspense fallback={<PageLoader />}>
         <AnimatePresence mode="wait">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/workout" element={<WorkoutPage />} />
-            <Route path="/exercises" element={<ExercisesPage />} />
-            <Route path="/exercises/:id" element={<ExerciseDetail />} />
-            <Route path="/history" element={<HistoryPage />} />
-            <Route path="/progress" element={<ProgressPage />} />
-            <Route path="/profiles" element={<ProfilesPage />} />
-            <Route path="/profiles/new" element={<ProfileNew />} />
-            <Route path="/week-feedback" element={<WeekFeedback />} />
-            <Route path="/plans" element={<PlansPage />} />
-            <Route path="/plans/new" element={<PlanEditPage />} />
-            <Route path="/plans/:id/edit" element={<PlanEditPage />} />
-            <Route path="/themes" element={<ThemePage />} />
-            <Route path="/achievements" element={<AchievementsPage />} />
-            <Route path="/tools" element={<ToolsPage />} />
-            <Route path="/measurements" element={<MeasurementsPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/plan-generator" element={<PlanGeneratorPage />} />
-          </Routes>
+          <PageContainer key={location.pathname}>
+            <Routes location={location}>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/workout" element={<WorkoutPage />} />
+              <Route path="/exercises" element={<ExercisesPage />} />
+              <Route path="/exercises/:id" element={<ExerciseDetail />} />
+              <Route path="/history" element={<HistoryPage />} />
+              <Route path="/progress" element={<ProgressPage />} />
+              <Route path="/profiles" element={<ProfilesPage />} />
+              <Route path="/profiles/new" element={<ProfileNew />} />
+              <Route path="/week-feedback" element={<WeekFeedback />} />
+              <Route path="/plans" element={<PlansPage />} />
+              <Route path="/plans/new" element={<PlanEditPage />} />
+              <Route path="/plans/:id/edit" element={<PlanEditPage />} />
+              <Route path="/themes" element={<ThemePage />} />
+              <Route path="/achievements" element={<AchievementsPage />} />
+              <Route path="/tools" element={<ToolsPage />} />
+              <Route path="/measurements" element={<MeasurementsPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/plan-generator" element={<PlanGeneratorPage />} />
+            </Routes>
+          </PageContainer>
         </AnimatePresence>
       </Suspense>
       <BottomNav />

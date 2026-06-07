@@ -1,7 +1,10 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { themes as builtInThemes, DEFAULT_THEME_ID, type Theme } from '@/features/themes/data/themes'
+import { applyTheme as applyDesignTheme } from '@/utils/applyTheme'
+import type { Theme as DesignTheme } from '@/styles/themes'
 
 const STORAGE_KEY = 'st-theme-id'
+const DESIGN_STORAGE_KEY = 'strengthtracker_theme'
 const CUSTOM_THEMES_KEY = 'st-custom-themes'
 export const MAX_CUSTOM_THEMES = 3
 
@@ -32,8 +35,13 @@ function hexToRgba(hex: string, alpha: number): string {
 
 export function applyTheme(theme: Theme) {
   const root = document.documentElement
-  for (const [key, value] of Object.entries(theme.vars)) {
-    root.style.setProperty(key, value)
+  if (theme.colors && theme.fonts && theme.emoji && theme.category) {
+    applyDesignTheme(theme as DesignTheme)
+  } else {
+    for (const [key, value] of Object.entries(theme.vars)) {
+      root.style.setProperty(key, value)
+    }
+    root.setAttribute('data-noise', 'false')
   }
 
   // Compute derived accent vars for the v2 design system
@@ -61,6 +69,8 @@ export function applyTheme(theme: Theme) {
   if (meta) meta.setAttribute('content', theme.vars['--theme-bg-primary'] ?? '#060606')
   document.body.style.backgroundColor = theme.vars['--theme-bg-primary'] ?? '#060606'
   document.body.style.color = theme.vars['--theme-text-primary'] ?? '#FAFAFA'
+  localStorage.setItem(STORAGE_KEY, theme.id)
+  localStorage.setItem(DESIGN_STORAGE_KEY, theme.id)
 }
 
 function loadCustomThemes(): Theme[] {
@@ -78,8 +88,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const allThemes = [...builtInThemes, ...customThemes]
 
+  function resolveThemeId(id: string | null, customs = customThemes): string {
+    if (!id) return DEFAULT_THEME_ID
+    return [...builtInThemes, ...customs].some(t => t.id === id) ? id : DEFAULT_THEME_ID
+  }
+
   const [themeId, setThemeId] = useState<string>(() => {
-    return localStorage.getItem(STORAGE_KEY) ?? DEFAULT_THEME_ID
+    const storedId = localStorage.getItem(DESIGN_STORAGE_KEY) ?? localStorage.getItem(STORAGE_KEY)
+    return resolveThemeId(storedId)
   })
 
   function findTheme(id: string, customs = customThemes): Theme {
@@ -94,7 +110,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const customs = loadCustomThemes()
-    const id = localStorage.getItem(STORAGE_KEY) ?? DEFAULT_THEME_ID
+    const storedId = localStorage.getItem(DESIGN_STORAGE_KEY) ?? localStorage.getItem(STORAGE_KEY)
+    const id = resolveThemeId(storedId, customs)
+    setThemeId(id)
     applyTheme(findTheme(id, customs))
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -102,6 +120,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   function setTheme(id: string) {
     setThemeId(id)
     localStorage.setItem(STORAGE_KEY, id)
+    localStorage.setItem(DESIGN_STORAGE_KEY, id)
     applyTheme(findTheme(id))
   }
 
@@ -129,6 +148,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         const fallbackId = DEFAULT_THEME_ID
         setThemeId(fallbackId)
         localStorage.setItem(STORAGE_KEY, fallbackId)
+        localStorage.setItem(DESIGN_STORAGE_KEY, fallbackId)
         applyTheme(builtInThemes[0])
       }
       return updated

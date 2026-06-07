@@ -7,6 +7,9 @@ import Header from '@/app/layout/Header'
 import PageWrapper from '@/app/layout/PageWrapper'
 import Modal from '@/shared/components/ui/Modal'
 import type { UserProfile } from '@/shared/lib/store'
+import AnatomicalFigure from '@/components/MuscleMap/AnatomicalFigure'
+import { useWeeklyMuscleActivation } from '@/features/stats/hooks/useWeeklyMuscleActivation'
+import type { IntensityLevel } from '@/components/MuscleMap/AnatomicalFigure'
 
 const LEVEL_CONFIG = {
   beginner:     { label: 'Beginner',   color: '#00E5A0', bg: 'rgba(0,229,160,0.1)' },
@@ -19,11 +22,13 @@ function PremiumProfileCard({
   isActive,
   onSelect,
   onDelete,
+  muscleActivation,
 }: {
   profile: UserProfile
   isActive: boolean
   onSelect: () => void
   onDelete?: () => void
+  muscleActivation?: Record<string, IntensityLevel>
 }) {
   const lvl = LEVEL_CONFIG[profile.fitnessLevel] || LEVEL_CONFIG.beginner
   const color = profile.color || '#FF5500'
@@ -74,12 +79,18 @@ function PremiumProfileCard({
         </button>
       )}
 
-      {/* Avatar */}
-      <div
-        className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mb-4"
-        style={{ background: `${color}15`, border: `1px solid ${color}20` }}
-      >
-        {profile.avatar}
+      <div className="flex items-start gap-4">
+        <div
+          className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mb-4 shrink-0"
+          style={{ background: `${color}15`, border: `1px solid ${color}20` }}
+        >
+          {profile.avatar}
+        </div>
+        {isActive && muscleActivation && (
+          <div className="-mt-3 ml-auto w-24">
+            <AnatomicalFigure muscleActivation={muscleActivation} size="sm" interactive={false} />
+          </div>
+        )}
       </div>
 
       {/* Name */}
@@ -114,6 +125,7 @@ export default function ProfilesPage() {
   const { profiles, activeProfileId, setActiveProfile, deleteProfile } = useProfiles()
   const navigate = useNavigate()
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
+  const muscleActivation = useWeeklyMuscleActivation()
 
   const profileToDelete = profiles.find(p => p.id === deleteTarget)
 
@@ -168,6 +180,7 @@ export default function ProfilesPage() {
                   isActive={profile.id === activeProfileId}
                   onSelect={() => setActiveProfile(profile.id)}
                   onDelete={() => setDeleteTarget(profile.id)}
+                  muscleActivation={profile.id === activeProfileId ? muscleActivation : undefined}
                 />
               </motion.div>
             ))}

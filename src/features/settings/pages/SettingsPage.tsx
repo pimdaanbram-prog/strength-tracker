@@ -198,12 +198,12 @@ function WeightSettingsModal({ isOpen, onClose, current, onSave }: { isOpen: boo
 // ─── Accent presets ──────────────────────────────────────────────────────────
 
 const ACCENT_PRESETS = [
-  { id: 'default-dark',      name: 'Tangerine',  accent: '#FF7A1F', hi: '#FFB020' },
-  { id: 'midnight-purple',   name: 'Iris',       accent: '#A855F7', hi: '#C084FC' },
-  { id: 'deep-ocean',        name: 'Electric',   accent: '#3D7CFF', hi: '#00D9FF' },
-  { id: 'forest-night',      name: 'Neon',       accent: '#3EE8A8', hi: '#9CFF4A' },
-  { id: 'crimson-dark',      name: 'Magma',      accent: '#FF3D6E', hi: '#FF7A1F' },
-  { id: 'arctic-blue',       name: 'Arctic',     accent: '#A0E9FF', hi: '#E0F4FF' },
+  { id: 'obsidian',    name: 'Obsidian', accent: '#6366F1', hi: '#8B5CF6' },
+  { id: 'aurora',      name: 'Aurora',   accent: '#00FFB4', hi: '#0066FF' },
+  { id: 'neon_tokyo',  name: 'Tokyo',    accent: '#FF0080', hi: '#00FFFF' },
+  { id: 'volcanic',    name: 'Volcanic', accent: '#FF5014', hi: '#FFAA00' },
+  { id: 'arctic',      name: 'Arctic',   accent: '#0078DC', hi: '#00C8FF' },
+  { id: 'gold_elite',  name: 'Gold',     accent: '#D4AF37', hi: '#F5E6A0' },
 ]
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -265,7 +265,7 @@ export default function SettingsPage() {
               <div style={{ fontSize: 10, fontFamily: 'var(--theme-font-mono)', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--theme-text-muted)', marginBottom: 10, paddingLeft: 4 }}>Accent kleur</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
                 {ACCENT_PRESETS.map(preset => {
-                  const isActive = themeId === preset.id || (themeId === 'default-dark' && preset.id === 'default-dark')
+                  const isActive = themeId === preset.id
                   const found = themes.find(t => t.id === preset.id)
                   const displayAccent = found?.vars['--theme-accent'] ?? preset.accent
                   const displayHi = found?.vars['--theme-accent-hi'] ?? preset.hi

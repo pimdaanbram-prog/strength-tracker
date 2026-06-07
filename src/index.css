@@ -37,6 +37,70 @@
   --theme-font-body: 'Inter Variable', 'Inter', -apple-system, sans-serif;
 }
 
+:root {
+  /* Spacing scale */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 40px;
+  --space-2xl: 64px;
+
+  /* Border radius */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-full: 9999px;
+
+  /* Typography scale */
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 15px;
+  --text-lg: 17px;
+  --text-xl: 20px;
+  --text-2xl: 28px;
+  --text-3xl: 36px;
+  --text-4xl: 48px;
+  --text-5xl: 64px;
+
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.12);
+  --shadow-md: 0 8px 32px rgba(0,0,0,0.18);
+  --shadow-lg: 0 24px 64px rgba(0,0,0,0.28);
+  --shadow-glow: 0 0 40px var(--accent-primary);
+
+  /* Animations */
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-sharp: cubic-bezier(0.25, 0, 0, 1);
+  --duration-fast: 150ms;
+  --duration-base: 300ms;
+  --duration-slow: 600ms;
+  --duration-xslow: 1000ms;
+
+  /* New design theme aliases, populated by ThemeContext */
+  --bg-primary: var(--theme-bg-primary);
+  --bg-secondary: var(--theme-bg-secondary);
+  --bg-tertiary: var(--theme-bg-input);
+  --bg-glass: var(--theme-glass);
+  --border-primary: var(--theme-border);
+  --border-accent: var(--theme-glass-border-hi);
+  --accent-primary: var(--theme-accent);
+  --accent-secondary: var(--theme-accent-hi);
+  --accent-glow: var(--theme-accent-glow);
+  --text-primary: var(--theme-text-primary);
+  --text-secondary: var(--theme-text-secondary);
+  --text-muted: var(--theme-text-muted);
+  --success: var(--theme-success);
+  --warning: var(--theme-warning);
+  --danger: var(--theme-error);
+  --gradient: var(--theme-bg-primary);
+  --gradient-card: var(--theme-accent-grad);
+  --font-display: var(--theme-font-display);
+  --font-body: var(--theme-font-body);
+}
+
 /* ─── Tailwind Theme Tokens ────────────────────────── */
 @theme {
   --color-bg-primary: var(--theme-bg-primary);
@@ -56,6 +120,10 @@
   --color-danger: var(--theme-error);
   --color-glass: var(--theme-glass);
   --color-glass-border: var(--theme-glass-border);
+  --color-bg-tertiary: var(--bg-tertiary);
+  --color-border-accent: var(--border-accent);
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-secondary: var(--accent-secondary);
   --font-heading: 'Space Grotesk', sans-serif;
   --font-display: 'Space Grotesk', sans-serif;
   --font-body: 'Inter', -apple-system, sans-serif;
@@ -76,7 +144,7 @@ body {
   padding: 0;
   background-color: var(--theme-bg-primary);
   color: var(--theme-text-primary);
-  font-family: 'Inter', -apple-system, sans-serif;
+  font-family: var(--font-body, 'Inter', -apple-system, sans-serif);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -95,9 +163,10 @@ body::before {
 }
 
 /* Dampen orbs for light themes */
-[data-theme="clean-light"] body::before,
-[data-theme="cream-light"] body::before,
-[data-theme="bubblegum"] body::before {
+[data-theme="platinum"] body::before,
+[data-theme="arctic"] body::before,
+[data-theme="sakura"] body::before,
+[data-theme="solar"] body::before {
   opacity: 0.15;
 }
 
@@ -110,9 +179,52 @@ body::before {
 }
 
 h1, h2, h3, h4 {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--font-display, 'Space Grotesk', sans-serif);
   letter-spacing: -0.02em;
   font-weight: 700;
+}
+
+.display {
+  font-family: var(--font-display, 'Space Grotesk', sans-serif);
+}
+
+/* Grain texture overlay */
+[data-noise="true"]::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.4;
+}
+
+/* Smooth scrolling */
+* {
+  scroll-behavior: smooth;
+}
+
+/* Glass morphism mixin */
+.glass {
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid var(--border-primary);
+}
+
+/* Accent glow effect */
+.glow {
+  box-shadow: 0 0 24px var(--accent-glow), 0 0 48px var(--accent-glow);
+}
+
+/* Card hover lift */
+.card-hover {
+  transition: transform var(--duration-base) var(--ease-bounce),
+              box-shadow var(--duration-base) var(--ease-smooth);
+}
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg), 0 0 32px var(--accent-glow);
 }
 
 /* ─── Scrollbar ─────────────────────────────────── */
@@ -344,14 +456,18 @@ body::after {
 }
 
 /* ─── Light theme specific adjustments ──────────── */
-[data-theme="clean-light"] .glass,
-[data-theme="cream-light"] .glass {
+[data-theme="platinum"] .glass,
+[data-theme="arctic"] .glass,
+[data-theme="sakura"] .glass,
+[data-theme="solar"] .glass {
   background: rgba(255,255,255,0.7);
   border-color: rgba(0,0,0,0.08);
 }
 
-[data-theme="clean-light"] body::after,
-[data-theme="cream-light"] body::after {
+[data-theme="platinum"] body::after,
+[data-theme="arctic"] body::after,
+[data-theme="sakura"] body::after,
+[data-theme="solar"] body::after {
   opacity: 0.01;
 }
 
@@ -455,6 +571,17 @@ body::after {
 
 /* ─── Tilt 3D card ───────────────────────────────── */
 .preserve-3d { transform-style: preserve-3d; }
+.backface-hidden { backface-visibility: hidden; }
+.rotate-y-180 { transform: rotateY(180deg); }
+
+@keyframes muscle-pulse {
+  0%, 100% { filter: drop-shadow(0 0 4px var(--accent-glow)); opacity: 0.9; }
+  50% { filter: drop-shadow(0 0 12px var(--accent-glow)); opacity: 1; }
+}
+
+.muscle-active {
+  animation: muscle-pulse 2s ease-in-out infinite;
+}
 
 /* ─── prefers-reduced-motion ─────────────────────── */
 @media (prefers-reduced-motion: reduce) {

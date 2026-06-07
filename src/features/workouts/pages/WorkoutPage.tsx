@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Clock, Users, User, CheckCircle, ArrowLeft } from 'lucide-react'
+import { Plus, Clock, Users, User, CheckCircle, ArrowLeft, Pause, Play, Square, Share2, Trophy, Zap, Dumbbell } from 'lucide-react'
 import ExerciseCard from '@/features/workouts/components/ExerciseCard'
 import MultiPersonExerciseCard from '@/features/workouts/components/MultiPersonExerciseCard'
 import SamenTrainenSelector from '@/features/workouts/components/SamenTrainenSelector'
@@ -23,8 +23,47 @@ import { workoutTemplates } from '@/features/workouts/data/workoutTemplates'
 import { calculateRecommendedWeight } from '@/features/tools/utils/weightCalculator'
 import { getDayLabel, toISODateString } from '@/shared/lib/weekUtils'
 import type { Exercise } from '@/features/exercises/data/exercises'
+import Modal from '@/shared/components/ui/Modal'
 
 type WorkoutMode = 'choose' | 'solo' | 'samen-select' | 'samen'
+
+interface FinishStats {
+  durationMinutes: number
+  volume: number
+  sets: number
+  xp: number
+}
+
+function getVolume(exercises: SessionExercise[]) {
+  return exercises.reduce((total, exercise) => (
+    total + exercise.sets.reduce((setTotal, set) => (
+      setTotal + ((set.completed || (set.weight && set.reps)) ? (set.weight ?? 0) * (set.reps ?? 0) : 0)
+    ), 0)
+  ), 0)
+}
+
+function getSetCount(exercises: SessionExercise[]) {
+  return exercises.reduce((total, exercise) => total + exercise.sets.filter(set => set.completed || set.reps || set.weight).length, 0)
+}
+
+function Confetti() {
+  return (
+    <div className="pointer-events-none fixed inset-0 z-[120] overflow-hidden">
+      {Array.from({ length: 42 }, (_, index) => (
+        <span
+          key={index}
+          className="absolute h-3 w-2 rounded-sm"
+          style={{
+            left: `${(index * 37) % 100}%`,
+            top: -20,
+            background: ['var(--accent-primary)', 'var(--success)', 'var(--warning)', 'var(--accent-secondary)'][index % 4],
+            animation: `confetti-fall ${1.6 + (index % 8) * 0.12}s ease-out ${index * 0.018}s forwards`,
+          }}
+        />
+      ))}
+    </div>
+  )
+}
 
 export default function WorkoutPage() {
   const location = useLocation()
@@ -51,6 +90,8 @@ export default function WorkoutPage() {
   const [restTimer, setRestTimer] = useState<number | null>(null)
   const [notes, setNotes] = useState('')
   const [started, setStarted] = useState(false)
+  const [showStopModal, setShowStopModal] = useState(false)
+  const [finishStats, setFinishStats] = useState<FinishStats | null>(null)
 
   const [exercises, setExercises] = useState<SessionExercise[]>([])
   const [samenParticipants, setSamenParticipants] = useState<UserProfile[]>([])
@@ -221,21 +262,36 @@ export default function WorkoutPage() {
       saveSession({ date: toISODateString(now), dayLabel: getDayLabel(now), workoutName, exercises, durationMinutes, notes, completedAt: now.toISOString() })
       for (const id of newPRIds) { const ex = getExercise(id); showAchievement('Nieuw PR!', ex ? exName(ex) : '') }
       awardWorkoutXP(durationMinutes, newPRIds.length > 0)
+      setFinishStats({
+        durationMinutes,
+        volume: getVolume(exercises),
+        sets: getSetCount(exercises),
+        xp: Math.max(25, durationMinutes * 2 + newPRIds.length * 50),
+      })
     } else if (mode === 'samen') {
       if (samenExerciseOrder.length === 0) return
       let anyPR = false
+      let totalVolume = 0
+      let totalSets = 0
       for (const participant of samenParticipants) {
         const participantExercises = samenExercises[participant.id] || []
         saveSessionForProfile(participant.id, { date: toISODateString(now), dayLabel: getDayLabel(now), workoutName, exercises: participantExercises, durationMinutes, notes, completedAt: now.toISOString() })
+        totalVolume += getVolume(participantExercises)
+        totalSets += getSetCount(participantExercises)
         const newPRIds = findNewPRExerciseIds(participantExercises)
         if (newPRIds.length > 0) anyPR = true
         for (const id of newPRIds) { const ex = getExercise(id); showAchievement('Nieuw PR!', `${participant.name} — ${ex ? exName(ex) : ''}`) }
       }
       awardWorkoutXP(durationMinutes, anyPR)
+      setFinishStats({
+        durationMinutes,
+        volume: totalVolume,
+        sets: totalSets,
+        xp: Math.max(25, durationMinutes * 2 + (anyPR ? 50 : 0)),
+      })
     }
 
     timer.reset()
-    navigate('/')
   }
 
   const totalExerciseCount = mode === 'solo' ? exercises.length : samenExerciseOrder.length
@@ -319,7 +375,7 @@ export default function WorkoutPage() {
         {/* ── Sticky glass top bar ──────────────────────────────────────────────── */}
         <div className="sticky top-0 z-40"
           style={{ background: 'rgba(6,6,10,0.7)', backdropFilter: 'blur(24px) saturate(180%)', WebkitBackdropFilter: 'blur(24px) saturate(180%)', borderBottom: '1px solid var(--theme-glass-border)' }}>
-          <div className="max-w-lg mx-auto px-4 py-3 flex items-center gap-3">
+          <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
             <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate('/')}
               className="w-9 h-9 rounded-xl flex items-center justify-center cursor-pointer border-0 shrink-0"
               style={{ background: 'var(--theme-glass)', border: '1px solid var(--theme-glass-border)', color: 'var(--theme-text-muted)' }}>
@@ -339,12 +395,35 @@ export default function WorkoutPage() {
             </div>
 
             {started && (
-              <div className="flex items-center gap-1.5 shrink-0 px-3 py-1.5 rounded-full"
-                style={{ background: 'var(--theme-glass)', border: '1px solid var(--theme-glass-border)' }}>
-                <Clock size={11} style={{ color: 'var(--theme-accent)' }} />
-                <span style={{ fontSize: 11, fontFamily: 'var(--theme-font-mono)', fontWeight: 600, color: 'var(--theme-text-secondary)' }}>
+              <div className="hidden sm:flex items-center gap-2 shrink-0 px-4 py-2 rounded-2xl"
+                style={{ background: 'var(--theme-glass)', border: '1px solid var(--theme-glass-border)', boxShadow: '0 0 22px var(--theme-accent-glow)' }}>
+                <Clock size={14} style={{ color: 'var(--theme-accent)' }} />
+                <span style={{ fontSize: 28, fontFamily: 'var(--theme-font-display)', fontWeight: 800, lineHeight: 1, color: 'var(--theme-accent)' }}>
                   {timer.formatTime()}
                 </span>
+              </div>
+            )}
+
+            {started && (
+              <div className="flex items-center gap-2">
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => timer.isRunning ? timer.pause() : timer.start()}
+                  className="w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer border-0"
+                  style={{ background: 'var(--theme-glass)', border: '1px solid var(--theme-glass-border)', color: 'var(--theme-accent)' }}
+                  title={timer.isRunning ? 'Pauzeren' : 'Doorgaan'}
+                >
+                  {timer.isRunning ? <Pause size={15} /> : <Play size={15} />}
+                </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setShowStopModal(true)}
+                  className="w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer border-0"
+                  style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.28)', color: 'var(--theme-error)' }}
+                  title="Stoppen"
+                >
+                  <Square size={14} />
+                </motion.button>
               </div>
             )}
           </div>
@@ -362,6 +441,19 @@ export default function WorkoutPage() {
         {/* ── Content ───────────────────────────────────────────────────────────── */}
         <div className="max-w-lg mx-auto px-4 pt-4"
           style={{ paddingBottom: 'calc(max(4.5rem, env(safe-area-inset-bottom)) + 6rem)' }}>
+
+          {started && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 flex items-center justify-center rounded-[28px] px-5 py-5 sm:hidden"
+              style={{ background: 'var(--gradient-card)', border: '1px solid var(--border-primary)', boxShadow: '0 0 32px var(--accent-glow)' }}
+            >
+              <span className="display text-5xl font-bold leading-none" style={{ color: 'var(--accent-primary)' }}>
+                {timer.formatTime()}
+              </span>
+            </motion.div>
+          )}
 
           {/* Exercise count pill */}
           {started && totalExerciseCount > 0 && (
@@ -487,6 +579,90 @@ export default function WorkoutPage() {
       <AnimatePresence>
         {restTimer !== null && (
           <RestTimer duration={restTimer} onClose={() => setRestTimer(null)} />
+        )}
+      </AnimatePresence>
+
+      <Modal isOpen={showStopModal} onClose={() => setShowStopModal(false)} title="Training stoppen?">
+        <p className="m-0 mb-5 text-sm leading-6" style={{ color: 'var(--theme-text-secondary)' }}>
+          Je huidige invoer blijft op het scherm zolang je annuleert. Stoppen brengt je terug naar het dashboard zonder deze workout op te slaan.
+        </p>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowStopModal(false)}
+            className="min-h-[48px] flex-1 rounded-2xl border text-sm font-bold"
+            style={{ background: 'var(--theme-glass)', borderColor: 'var(--theme-glass-border)', color: 'var(--theme-text-secondary)' }}
+          >
+            Annuleren
+          </button>
+          <button
+            onClick={() => { timer.reset(); navigate('/') }}
+            className="min-h-[48px] flex-1 rounded-2xl border text-sm font-bold"
+            style={{ background: 'rgba(239,68,68,0.14)', borderColor: 'rgba(239,68,68,0.28)', color: 'var(--theme-error)' }}
+          >
+            Stoppen
+          </button>
+        </div>
+      </Modal>
+
+      <AnimatePresence>
+        {finishStats && (
+          <>
+            <Confetti />
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[110] flex items-center justify-center px-4"
+              style={{ background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(10px)' }}
+            >
+              <motion.div
+                initial={{ scale: 0.9, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.9, y: 20 }}
+                className="w-full max-w-md rounded-[32px] p-6"
+                style={{ background: 'var(--bg-glass)', border: '1px solid var(--border-primary)', boxShadow: 'var(--shadow-lg)' }}
+              >
+                <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-3xl" style={{ background: 'var(--theme-accent-grad)', boxShadow: '0 0 34px var(--accent-glow)' }}>
+                  <Trophy size={30} color="#fff" />
+                </div>
+                <h2 className="display m-0 text-center text-3xl font-bold">Workout voltooid</h2>
+                <p className="m-0 mt-2 text-center text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  Sterke sessie. Je progressie is opgeslagen.
+                </p>
+                <div className="mt-6 grid grid-cols-2 gap-3">
+                  {[
+                    { label: 'Duur', value: `${finishStats.durationMinutes} min`, icon: Clock },
+                    { label: 'Volume', value: `${Math.round(finishStats.volume).toLocaleString('nl-NL')} kg`, icon: Dumbbell },
+                    { label: 'Sets', value: `${finishStats.sets}`, icon: CheckCircle },
+                    { label: 'XP', value: `+${finishStats.xp}`, icon: Zap },
+                  ].map(({ label, value, icon: Icon }) => (
+                    <div key={label} className="rounded-2xl p-3" style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--border-primary)' }}>
+                      <Icon size={15} style={{ color: 'var(--accent-primary)' }} />
+                      <p className="m-0 mt-2 text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{value}</p>
+                      <p className="m-0 text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: 'var(--text-muted)' }}>{label}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-5 flex gap-3">
+                  <button
+                    onClick={() => navigator.share?.({ title: 'StrengthTracker workout', text: `Workout voltooid: ${finishStats.durationMinutes} min, ${Math.round(finishStats.volume)} kg volume.` })}
+                    className="min-h-[48px] flex-1 rounded-2xl border text-sm font-bold"
+                    style={{ background: 'var(--bg-tertiary)', borderColor: 'var(--border-primary)', color: 'var(--text-secondary)' }}
+                  >
+                    <Share2 className="mr-2 inline" size={15} />
+                    Delen
+                  </button>
+                  <button
+                    onClick={() => navigate('/')}
+                    className="min-h-[48px] flex-1 rounded-2xl border-0 text-sm font-bold text-white"
+                    style={{ background: 'var(--theme-accent-grad)', boxShadow: '0 12px 30px var(--accent-glow)' }}
+                  >
+                    Dashboard
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </div>

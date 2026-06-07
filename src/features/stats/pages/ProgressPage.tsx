@@ -1,4 +1,4 @@
-import { useState, useMemo, lazy, Suspense } from 'react'
+import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Activity, RefreshCw, AlertCircle, Trophy } from 'lucide-react'
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
@@ -7,8 +7,8 @@ import { useWorkouts } from '@/features/workouts/hooks/useWorkouts'
 import { useExercises } from '@/features/exercises/hooks/useExercises'
 import { useSync } from '@/shared/hooks/useSync'
 import { useLanguage } from '@/shared/hooks/useLanguage'
-
-const MuscleFigure3D = lazy(() => import('@/shared/components/ui/MuscleFigure3D'))
+import AnatomicalFigure from '@/components/MuscleMap/AnatomicalFigure'
+import { useWeeklyMuscleActivation } from '@/features/stats/hooks/useWeeklyMuscleActivation'
 
 const CATEGORY_NL: Record<string, string> = {
   'Chest': 'Borst', 'Back': 'Rug', 'Shoulders': 'Schouders',
@@ -38,6 +38,7 @@ export default function ProgressPage() {
   const { exercises, getExercise } = useExercises()
   const { pullFromCloud, diagnoseSyncIssue, syncError, isSyncing, lastSyncAt } = useSync()
   const { exName } = useLanguage()
+  const weeklyMuscleActivation = useWeeklyMuscleActivation()
 
   const sessions  = getProfileSessions()
   const prs       = getPersonalRecords()
@@ -203,18 +204,11 @@ export default function ProgressPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
               <div style={{ width: 3, height: 12, background: 'linear-gradient(to bottom, #818CF8, #C084FC)', borderRadius: 2 }} />
               <span style={{ fontSize: 10, fontFamily: 'var(--theme-font-mono)', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--theme-text-secondary)' }}>Spiergroepen</span>
-              <span style={{ fontSize: 10, color: 'var(--theme-text-muted)', fontFamily: 'var(--theme-font-mono)', marginLeft: 'auto' }}>Draaien · Klikken</span>
+              <span style={{ fontSize: 10, color: 'var(--theme-text-muted)', fontFamily: 'var(--theme-font-mono)', marginLeft: 'auto' }}>Voor · Achter</span>
             </div>
 
-            <div style={{ background: 'var(--theme-glass)', backdropFilter: 'blur(24px) saturate(180%)', WebkitBackdropFilter: 'blur(24px) saturate(180%)', border: '1px solid var(--theme-glass-border)', borderRadius: 18, overflow: 'hidden' }}>
-              <Suspense fallback={
-                <div style={{ height: 380, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--theme-text-muted)', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'var(--theme-font-mono)' }}>
-                  Loading anatomy…
-                </div>
-              }>
-                <MuscleFigure3D categoryFreq={categoryFreq} selectedCategory={selectedMuscle}
-                  onCategorySelect={(cat) => setSelectedMuscle(cat === selectedMuscle ? null : cat)} height={380} />
-              </Suspense>
+            <div style={{ background: 'var(--theme-glass)', backdropFilter: 'blur(24px) saturate(180%)', WebkitBackdropFilter: 'blur(24px) saturate(180%)', border: '1px solid var(--theme-glass-border)', borderRadius: 18, overflow: 'hidden', paddingTop: 16 }}>
+              <AnatomicalFigure muscleActivation={weeklyMuscleActivation} size="lg" interactive />
 
               {/* Category chips */}
               <div style={{ padding: '0 16px 16px' }}>
