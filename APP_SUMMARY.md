@@ -54,20 +54,39 @@ Een krachttraining tracking app gebouwd als React PWA. Gebruikers loggen workout
 ### Workout loggen
 - **Solo**: 1 persoon logt sets (gewicht, reps, RPE, seconden voor cardio)
 - **Samen trainen**: Meerdere profielen tegelijk, elk met eigen sets
-- Rust timer tussen sets
+- **Set-types**: warm-up, dropset, AMRAP en failure — tik op het setlabel om te wisselen; warm-ups tellen niet mee voor PR's
+- Rust timer tussen sets, met geluid/vibratie bij afloop en −15s/+30s knoppen
 - Aanbevolen gewichten op basis van profiel (geslacht, gewicht, niveau)
 - Automatische suggestie: Training A of B (wisselt per dag)
 
 ### Oefeningen bibliotheek
-- 50+ oefeningen, tweetalig (NL + EN)
+- 100+ oefeningen, tweetalig (NL + EN)
+- Fuzzy search (tolerant voor typefouten en afkortingen zoals "rdl", "ohp")
 - Filters op categorie (Borst, Rug, Benen, Schouders, etc.)
 - Per oefening: instructies, tips, veelgemaakte fouten, aanbevolen gewichten per niveau
+- Alternatieven-suggesties op basis van spiergroepen en jouw beschikbare materiaal
+- Voice-over: instructies hands-free laten voorlezen (Web Speech API)
 
 ### Progressie
 - Persoonlijke records bijgehouden per oefening
 - Weekvolume grafiek (totaal gewicht per week)
 - Lichaamsdeelfrequentie (welke spiergroepen hoe vaak)
 - Per oefening: history grafiek
+
+### Dashboard
+- Volume-trend grafiek (laatste 8 weken) + week-vs-week delta
+- Gepersonaliseerde "Tip van de dag" op basis van je trainingsdata
+- Streak, weekdoel-ring, spier-heatmap en snelkoppelingen
+
+### Tools
+- Plate calculator (welke schijven op de stang, op basis van jouw inventaris)
+- 1RM-calculator (gemiddelde van Epley, Brzycki en Lombardi)
+- Sterkte-standaarden: vergelijk je 1RM met niveaus (ongetraind → elite), gecorrigeerd voor leeftijd/geslacht/lichaamsgewicht
+- Warming-up calculator, rusttimer, BMR/TDEE en macro-calculator
+
+### Data
+- Export als JSON-backup of CSV (workouts per set, metingen per datum)
+- Import van een eerder geëxporteerde JSON-backup
 
 ### Wekelijkse feedback
 - Automatisch gegenereerd bij bekijken van feedback pagina
