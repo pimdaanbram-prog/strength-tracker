@@ -1,14 +1,45 @@
+import { useEffect, useRef } from 'react'
 import { useCountdown } from '@/shared/hooks/useTimer'
 import { motion } from 'framer-motion'
 import { Play, Pause, RotateCcw, X } from 'lucide-react'
+import { useAppStore } from '@/shared/lib/store'
 
 interface RestTimerProps {
   duration: number
   onClose: () => void
 }
 
+function playFinishBeep() {
+  try {
+    const ctx = new AudioContext()
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.frequency.value = 880
+    gain.gain.setValueAtTime(0.5, ctx.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8)
+    osc.start()
+    osc.stop(ctx.currentTime + 0.8)
+  } catch { /* AudioContext niet beschikbaar */ }
+}
+
 export default function RestTimer({ duration, onClose }: RestTimerProps) {
-  const { isRunning, isFinished, start, pause, reset, formatTime, progress } = useCountdown(duration)
+  const { isRunning, isFinished, start, pause, reset, addTime, formatTime, progress } = useCountdown(duration)
+  const settings = useAppStore(s => s.settings)
+  const notifiedRef = useRef(false)
+
+  // Geluid + vibratie zodra de rusttijd voorbij is (volgens instellingen)
+  useEffect(() => {
+    if (!isFinished) {
+      notifiedRef.current = false
+      return
+    }
+    if (notifiedRef.current) return
+    notifiedRef.current = true
+    if (settings.soundEnabled) playFinishBeep()
+    if (settings.hapticEnabled && navigator.vibrate) navigator.vibrate([200, 100, 200])
+  }, [isFinished, settings.soundEnabled, settings.hapticEnabled])
 
   return (
     <motion.div
@@ -77,6 +108,26 @@ export default function RestTimer({ duration, onClose }: RestTimerProps) {
             )}
           </div>
         </div>
+
+        {/* Tijd bijstellen */}
+        {!isFinished && (
+          <div className="flex justify-center gap-2 mb-4">
+            {[
+              { label: '−15s', delta: -15 },
+              { label: '+30s', delta: 30 },
+            ].map(({ label, delta }) => (
+              <button
+                key={label}
+                onClick={() => addTime(delta)}
+                aria-label={`Rusttijd ${label}`}
+                className="min-h-[40px] px-4 rounded-xl text-xs font-bold cursor-pointer border-0"
+                style={{ background: 'var(--theme-bg-input)', color: 'var(--theme-text-secondary)', border: '1px solid var(--theme-border)' }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Controls */}
         <div className="flex justify-center gap-4 mb-4">
