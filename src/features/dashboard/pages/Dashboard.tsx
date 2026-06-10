@@ -1,16 +1,20 @@
-import { useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   ArrowRight,
+  Award,
+  BookOpen,
   CalendarDays,
   Dumbbell,
   Flame,
   Gauge,
+  LineChart,
   Plus,
   Ruler,
   Sparkles,
   Trophy,
+  Wrench,
   Zap,
 } from 'lucide-react'
 import Header from '@/app/layout/Header'
@@ -25,6 +29,11 @@ import type { WorkoutSession } from '@/features/workouts/hooks/useWorkouts'
 import { workoutTemplates } from '@/features/workouts/data/workoutTemplates'
 import AmbientBackground from '@/shared/components/ui/AmbientBackground'
 import StatCarousel from '@/shared/components/StatCarousel'
+import { getWeekNumber, getYear } from '@/shared/lib/weekUtils'
+import { getDailyTip } from '@/features/dashboard/utils/dailyTip'
+
+// Recharts in een eigen chunk houden — pas laden wanneer het dashboard rendert
+const VolumeTrendChart = lazy(() => import('@/features/dashboard/components/VolumeTrendChart'))
 
 const MONTHS_SHORT = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec']
 const WEEK_DAYS = ['M', 'D', 'W', 'D', 'V', 'Z', 'Z']
@@ -81,7 +90,8 @@ export default function Dashboard() {
   const streak = getStreak()
   const weekCount = getThisWeekSessionCount()
   const prs = getPersonalRecords()
-  const now = new Date()
+  // Stabiel per mount zodat afgeleide useMemo's niet elke render opnieuw rekenen
+  const now = useMemo(() => new Date(), [])
   const monthIso = now.toISOString().slice(0, 7)
 
   const suggestedTemplate = useMemo(() => {
@@ -114,6 +124,48 @@ export default function Dashboard() {
   const bestPrExercise = bestPr ? getExercise(bestPr.exerciseId) : undefined
   const recentWorkouts = sessions.slice().sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3)
   const weeklyGoalPct = Math.min(100, Math.round((weekCount / 5) * 100))
+  const prsThisMonth = prs.filter(pr => pr.date.startsWith(monthIso)).length
+
+  // Volume per week, laatste 8 weken (op basis van weekNumber/year op de sessie)
+  const volumeTrend = useMemo(() => {
+    const weeks: { weekNumber: number; year: number }[] = []
+    const cursor = new Date(now)
+    for (let i = 0; i < 8; i++) {
+      weeks.unshift({ weekNumber: getWeekNumber(cursor), year: getYear(cursor) })
+      cursor.setDate(cursor.getDate() - 7)
+    }
+    return weeks.map(({ weekNumber, year }) => ({
+      label: `W${weekNumber}`,
+      volume: Math.round(sumVolume(sessions.filter(s => s.weekNumber === weekNumber && s.year === year))),
+    }))
+  }, [sessions, now])
+
+  const lastWeekVolume = volumeTrend.length >= 2 ? volumeTrend[volumeTrend.length - 2].volume : 0
+  const volumeDeltaPct = lastWeekVolume > 0
+    ? Math.round(((thisWeekVolume - lastWeekVolume) / lastWeekVolume) * 100)
+    : null
+
+  const dailyTip = useMemo(() => {
+    const lastSessionDate = sessions.length > 0
+      ? sessions.map(s => s.date).sort((a, b) => b.localeCompare(a))[0]
+      : null
+    const daysSinceLastWorkout = lastSessionDate
+      ? Math.floor((now.getTime() - new Date(lastSessionDate).getTime()) / 86_400_000)
+      : null
+    const neglectedMuscles = Object.entries(muscleActivation)
+      .filter(([, intensity]) => intensity === 0)
+      .map(([muscle]) => muscle)
+      .slice(0, 2)
+    return getDailyTip({
+      streak,
+      weekSessionCount: weekCount,
+      thisWeekVolume,
+      lastWeekVolume,
+      prsThisMonth,
+      neglectedMuscles,
+      daysSinceLastWorkout,
+    }, now)
+  }, [sessions, muscleActivation, streak, weekCount, thisWeekVolume, lastWeekVolume, prsThisMonth, now])
 
   if (isOnboarding) {
     return (
@@ -221,11 +273,17 @@ export default function Dashboard() {
 
           <section className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {[
-              { label: 'Streak', value: streak, suffix: ' dagen', icon: Flame, color: 'var(--warning)' },
-              { label: 'Volume deze week', value: Math.round(thisWeekVolume), suffix: ' kg', icon: Gauge, color: 'var(--accent-primary)' },
-              { label: 'Workouts deze maand', value: workoutsThisMonth, suffix: '', icon: CalendarDays, color: 'var(--success)' },
-              { label: 'Gewicht PR', value: bestPr?.weight ?? 0, suffix: ' kg', icon: Trophy, color: 'var(--warning)' },
-            ].map(({ label, value, suffix, icon: Icon, color }, index) => (
+              { label: 'Streak', value: streak, suffix: ' dagen', icon: Flame, color: 'var(--warning)', sub: undefined as string | undefined },
+              {
+                label: 'Volume deze week', value: Math.round(thisWeekVolume), suffix: ' kg', icon: Gauge, color: 'var(--accent-primary)',
+                sub: volumeDeltaPct !== null ? `${volumeDeltaPct >= 0 ? '+' : ''}${volumeDeltaPct}% vs vorige week` : undefined,
+              },
+              { label: 'Workouts deze maand', value: workoutsThisMonth, suffix: '', icon: CalendarDays, color: 'var(--success)', sub: undefined },
+              {
+                label: 'Gewicht PR', value: bestPr?.weight ?? 0, suffix: ' kg', icon: Trophy, color: 'var(--warning)',
+                sub: prsThisMonth > 0 ? `${prsThisMonth} PR${prsThisMonth === 1 ? '' : '’s'} deze maand` : undefined,
+              },
+            ].map(({ label, value, suffix, icon: Icon, color, sub }, index) => (
               <motion.div
                 key={label}
                 initial={{ opacity: 0, y: 16 }}
@@ -241,8 +299,11 @@ export default function Dashboard() {
                 <p className="m-0 mt-2 text-xs font-bold uppercase tracking-[0.14em]" style={{ color: 'var(--text-muted)' }}>
                   {label}
                 </p>
+                {sub && (
+                  <p className="m-0 mt-2 truncate text-xs font-semibold" style={{ color }}>{sub}</p>
+                )}
                 {label === 'Gewicht PR' && bestPrExercise && (
-                  <p className="m-0 mt-2 truncate text-xs" style={{ color: 'var(--text-secondary)' }}>{exName(bestPrExercise)}</p>
+                  <p className="m-0 mt-1 truncate text-xs" style={{ color: 'var(--text-secondary)' }}>{exName(bestPrExercise)}</p>
                 )}
               </motion.div>
             ))}
@@ -251,6 +312,25 @@ export default function Dashboard() {
           <section className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
             <div>
               <StatCarousel />
+
+              {/* Volume trend — laatste 8 weken */}
+              <div className="mt-6 rounded-[2rem] p-5" style={{ background: 'var(--bg-glass)', border: '1px solid var(--border-primary)' }}>
+                <div className="mb-3 flex items-center justify-between">
+                  <h2 className="display m-0 text-2xl font-bold">Volume trend</h2>
+                  <button onClick={() => navigate('/progress')} className="flex cursor-pointer items-center gap-1 border-0 bg-transparent text-xs font-bold" style={{ color: 'var(--accent-primary)' }}>
+                    Progressie <ArrowRight size={13} />
+                  </button>
+                </div>
+                {volumeTrend.some(point => point.volume > 0) ? (
+                  <Suspense fallback={<div className="skeleton h-56 rounded-2xl" />}>
+                    <VolumeTrendChart data={volumeTrend} />
+                  </Suspense>
+                ) : (
+                  <div className="rounded-2xl border p-5 text-sm" style={{ borderColor: 'var(--border-primary)', color: 'var(--text-muted)' }}>
+                    Log je eerste workouts om hier je volume per week te zien groeien.
+                  </div>
+                )}
+              </div>
 
               <div className="mt-6 rounded-[2rem] p-5" style={{ background: 'var(--bg-glass)', border: '1px solid var(--border-primary)' }}>
                 <div className="mb-4 flex items-center justify-between">
@@ -297,6 +377,25 @@ export default function Dashboard() {
             </div>
 
             <aside className="grid gap-5">
+              {/* Tip van de dag */}
+              <motion.div
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="rounded-[2rem] p-5"
+                style={{ background: 'var(--gradient-card)', border: '1px solid var(--border-accent)' }}
+              >
+                <div className="flex items-center gap-2">
+                  <Sparkles size={16} style={{ color: 'var(--accent-primary)' }} />
+                  <p className="m-0 text-xs font-bold uppercase tracking-[0.14em]" style={{ color: 'var(--text-muted)' }}>
+                    Tip van de dag
+                  </p>
+                </div>
+                <h2 className="display m-0 mt-3 text-lg font-bold">{dailyTip.emoji} {dailyTip.title}</h2>
+                <p className="m-0 mt-2 text-sm leading-6" style={{ color: 'var(--text-secondary)' }}>
+                  {dailyTip.text}
+                </p>
+              </motion.div>
+
               <div className="rounded-[2rem] p-5" style={{ background: 'var(--bg-glass)', border: '1px solid var(--border-primary)' }}>
                 <h2 className="display m-0 text-xl font-bold">Weekdoel</h2>
                 <div className="relative mx-auto my-6 h-48 w-48">
@@ -343,6 +442,31 @@ export default function Dashboard() {
                   <button onClick={() => navigate('/plans/new')} className="flex min-h-[54px] items-center justify-center gap-2 rounded-2xl border bg-transparent text-sm font-bold" style={{ borderColor: 'var(--border-accent)', color: 'var(--accent-primary)' }}>
                     <Plus size={15} /> Plan maken
                   </button>
+                </div>
+              </div>
+
+              {/* Snelkoppelingen */}
+              <div className="rounded-[2rem] p-5" style={{ background: 'var(--bg-glass)', border: '1px solid var(--border-primary)' }}>
+                <h2 className="display m-0 text-xl font-bold">Snel naar</h2>
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  {[
+                    { label: 'Oefeningen', icon: BookOpen, to: '/exercises' },
+                    { label: 'Progressie', icon: LineChart, to: '/progress' },
+                    { label: 'Metingen', icon: Ruler, to: '/measurements' },
+                    { label: 'Badges', icon: Award, to: '/achievements' },
+                    { label: 'Tools', icon: Wrench, to: '/tools' },
+                    { label: 'Workout', icon: Dumbbell, to: '/workout' },
+                  ].map(({ label, icon: Icon, to }) => (
+                    <button
+                      key={to}
+                      onClick={() => navigate(to)}
+                      className="flex min-h-[52px] cursor-pointer items-center gap-2.5 rounded-2xl border bg-transparent px-3 text-left text-xs font-bold"
+                      style={{ borderColor: 'var(--border-primary)', color: 'var(--text-primary)' }}
+                    >
+                      <Icon size={16} style={{ color: 'var(--accent-primary)' }} />
+                      {label}
+                    </button>
+                  ))}
                 </div>
               </div>
 
