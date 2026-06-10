@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Play, Info, AlertTriangle, Lightbulb, TrendingUp, ExternalLink, ChevronRight, Target, Zap } from 'lucide-react'
+import { Play, Info, AlertTriangle, Lightbulb, TrendingUp, ExternalLink, ChevronRight, Target, Zap, Volume2, Square, Shuffle } from 'lucide-react'
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts'
 import Header from '@/app/layout/Header'
 import PageWrapper from '@/app/layout/PageWrapper'
@@ -9,7 +9,9 @@ import { useExercises } from '@/features/exercises/hooks/useExercises'
 import { useWorkouts } from '@/features/workouts/hooks/useWorkouts'
 import { useProfiles } from '@/features/profiles/hooks/useProfiles'
 import { useLanguage } from '@/shared/hooks/useLanguage'
+import { useSpeech } from '@/shared/hooks/useSpeech'
 import { calculateRecommendedWeight } from '@/features/tools/utils/weightCalculator'
+import { getAlternatives } from '@/features/exercises/utils/alternatives'
 
 type Tab = 'instructies' | 'tips' | 'fouten' | 'geschiedenis'
 
@@ -34,13 +36,19 @@ const DIFFICULTY_STYLE = {
 export default function ExerciseDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { getExercise } = useExercises()
+  const { getExercise, exercises } = useExercises()
   const { getExerciseHistory } = useWorkouts()
   const { activeProfile } = useProfiles()
   const { exName } = useLanguage()
   const [activeTab, setActiveTab] = useState<Tab>('instructies')
+  const { supported: speechSupported, speaking, speak, stop: stopSpeaking } = useSpeech()
 
   const exercise = getExercise(id || '')
+  const alternatives = useMemo(
+    () => (exercise ? getAlternatives(exercise, exercises, activeProfile?.availableEquipment) : []),
+    [exercise, exercises, activeProfile?.availableEquipment],
+  )
+
   if (!exercise) {
     return (
       <>
@@ -230,6 +238,23 @@ export default function ExerciseDetail() {
           >
             {activeTab === 'instructies' && (
               <div className="space-y-3">
+                {speechSupported && (
+                  <button
+                    onClick={() => speaking
+                      ? stopSpeaking()
+                      : speak([exName(exercise), ...exercise.instructions.map((step, i) => `Stap ${i + 1}. ${step}`)])}
+                    aria-pressed={speaking}
+                    className="flex w-full min-h-[46px] cursor-pointer items-center justify-center gap-2 rounded-2xl text-xs font-bold"
+                    style={{
+                      background: speaking ? 'var(--theme-accent-muted)' : 'var(--theme-bg-card)',
+                      border: `1px solid ${speaking ? 'var(--theme-accent)' : 'var(--theme-border)'}`,
+                      color: speaking ? 'var(--theme-accent)' : 'var(--theme-text-secondary)',
+                    }}
+                  >
+                    {speaking ? <Square size={14} /> : <Volume2 size={14} />}
+                    {speaking ? 'Stop voorlezen' : 'Lees instructies voor (hands-free)'}
+                  </button>
+                )}
                 {exercise.instructions.map((step, i) => (
                   <motion.div
                     key={i}
@@ -353,6 +378,44 @@ export default function ExerciseDetail() {
             )}
           </motion.div>
         </AnimatePresence>
+
+        {/* ─── Alternatieven ─────────────────────────────────────────── */}
+        {alternatives.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mb-6"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <Shuffle size={14} style={{ color: 'var(--theme-accent)' }} />
+              <p className="text-xs font-semibold uppercase tracking-widest m-0" style={{ color: 'var(--theme-text-muted)', letterSpacing: '0.1em' }}>
+                Alternatieven
+              </p>
+            </div>
+            <div className="space-y-2">
+              {alternatives.map(({ exercise: alt, hasEquipment }) => (
+                <button
+                  key={alt.id}
+                  onClick={() => navigate(`/exercises/${alt.id}`)}
+                  className="flex w-full cursor-pointer items-center justify-between gap-3 rounded-2xl p-3.5 text-left"
+                  style={{ background: 'var(--theme-bg-card)', border: '1px solid var(--theme-border)' }}
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold m-0 truncate" style={{ color: 'var(--theme-text-primary)' }}>
+                      {exName(alt)}
+                    </p>
+                    <p className="text-xs m-0 mt-0.5 capitalize" style={{ color: 'var(--theme-text-muted)' }}>
+                      {alt.equipment}
+                      {!hasEquipment && ' · niet in jouw materiaal'}
+                    </p>
+                  </div>
+                  <ChevronRight size={15} className="shrink-0" style={{ color: 'var(--theme-text-muted)' }} />
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
 
         {/* ─── CTA ───────────────────────────────────────────────────── */}
         <motion.button
