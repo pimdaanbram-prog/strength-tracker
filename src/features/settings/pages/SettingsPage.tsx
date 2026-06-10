@@ -1,16 +1,20 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
-  ChevronRight, Download, Trash2, AlertTriangle, Plus, Minus, Check,
+  ChevronRight, Download, Trash2, AlertTriangle, Plus, Minus, Check, Upload, FileSpreadsheet,
 } from 'lucide-react'
 import Modal from '@/shared/components/ui/Modal'
 import AmbientBackground from '@/shared/components/ui/AmbientBackground'
 import { useAppStore, DEFAULT_WEIGHT_SETTINGS } from '@/shared/lib/store'
-import type { WeightSettings } from '@/shared/lib/store'
+import type { WeightSettings, BodyWeight, BodyMeasurement } from '@/shared/lib/store'
 import { useTheme } from '@/features/themes/context/ThemeContext'
 import { useToast } from '@/shared/contexts/ToastContext'
 import { getAchievableBarbellWeights } from '@/features/tools/utils/plateCalculator'
+import { getFromStorage, STORAGE_KEYS } from '@/shared/lib/localStorage'
+import { exercises as exerciseData } from '@/features/exercises/data/exercises'
+import type { WorkoutSession } from '@/features/workouts/hooks/useWorkouts'
+import { sessionsToCSV, measurementsToCSV, downloadFile, importBackup } from '@/features/settings/utils/dataExport'
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -219,6 +223,37 @@ export default function SettingsPage() {
 
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showWeightModal, setShowWeightModal] = useState(false)
+  const importInputRef = useRef<HTMLInputElement>(null)
+  const { showError } = useToast()
+
+  const today = () => new Date().toISOString().split('T')[0]
+
+  const handleExportWorkoutsCSV = () => {
+    const sessions = getFromStorage<WorkoutSession[]>(STORAGE_KEYS.SESSIONS, [])
+    if (sessions.length === 0) { showError('Geen workouts om te exporteren'); return }
+    const nameById = new Map(exerciseData.map(e => [e.id, e.nameNL || e.name]))
+    downloadFile(`workouts-${today()}.csv`, sessionsToCSV(sessions, id => nameById.get(id) ?? id), 'text/csv')
+    showSuccess('Workouts geëxporteerd', `${sessions.length} sessies als CSV`)
+  }
+
+  const handleExportMeasurementsCSV = () => {
+    const weights = getFromStorage<BodyWeight[]>('st-body-weights', [])
+    const measurements = getFromStorage<BodyMeasurement[]>('st-measurements', [])
+    if (weights.length === 0 && measurements.length === 0) { showError('Geen metingen om te exporteren'); return }
+    downloadFile(`metingen-${today()}.csv`, measurementsToCSV(weights, measurements), 'text/csv')
+    showSuccess('Metingen geëxporteerd', 'CSV-bestand wordt gedownload')
+  }
+
+  const handleImportFile = async (file: File) => {
+    const text = await file.text()
+    const result = importBackup(text)
+    if (result.ok) {
+      showSuccess('Data geïmporteerd', `${result.keys} onderdelen hersteld — app wordt herladen`)
+      setTimeout(() => window.location.reload(), 1200)
+    } else {
+      showError('Import mislukt', result.error)
+    }
+  }
 
   const itemVariants = {
     hidden: { opacity: 0, y: 14 },
@@ -343,6 +378,26 @@ export default function SettingsPage() {
                   <button onClick={() => { exportAllData({ profiles, settings, language }); showSuccess('Data geëxporteerd', 'Bestand wordt gedownload') }}
                     style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 12, fontSize: 11, fontWeight: 700, cursor: 'pointer', border: '1px solid rgba(0,192,96,0.25)', background: 'rgba(0,192,96,0.1)', color: '#00C060' }}>
                     <Download size={12} /> Export
+                  </button>
+                </SettingRow>
+                <SettingRow label="Workouts als CSV" description="Eén rij per set — voor Excel of Google Sheets">
+                  <button onClick={handleExportWorkoutsCSV}
+                    style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 12, fontSize: 11, fontWeight: 700, cursor: 'pointer', border: '1px solid rgba(0,192,96,0.25)', background: 'rgba(0,192,96,0.1)', color: '#00C060' }}>
+                    <FileSpreadsheet size={12} /> CSV
+                  </button>
+                </SettingRow>
+                <SettingRow label="Metingen als CSV" description="Lichaamsgewicht en omtrekken per datum">
+                  <button onClick={handleExportMeasurementsCSV}
+                    style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 12, fontSize: 11, fontWeight: 700, cursor: 'pointer', border: '1px solid rgba(0,192,96,0.25)', background: 'rgba(0,192,96,0.1)', color: '#00C060' }}>
+                    <FileSpreadsheet size={12} /> CSV
+                  </button>
+                </SettingRow>
+                <SettingRow label="Importeer backup" description="Herstel een eerder geëxporteerd JSON-bestand">
+                  <input ref={importInputRef} type="file" accept="application/json,.json" className="hidden" aria-hidden
+                    onChange={e => { const f = e.target.files?.[0]; if (f) void handleImportFile(f); e.target.value = '' }} />
+                  <button onClick={() => importInputRef.current?.click()}
+                    style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 12, fontSize: 11, fontWeight: 700, cursor: 'pointer', border: '1px solid rgba(0,201,255,0.25)', background: 'rgba(0,201,255,0.1)', color: '#00C9FF' }}>
+                    <Upload size={12} /> Import
                   </button>
                 </SettingRow>
                 <SettingRow label="Verwijder al mijn data" description="Wist alle trainingen, metingen en instellingen">

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'strength-tracker-v2'
+const CACHE_NAME = 'strength-tracker-v3'
 
 const PRECACHE_URLS = [
   '/',
@@ -45,6 +45,25 @@ self.addEventListener('fetch', (event) => {
   // Pass Supabase and other live API traffic straight through — never cache
   if (shouldBypass(url)) {
     event.respondWith(fetch(event.request))
+    return
+  }
+
+  // SPA navigations: network-first, fall back to cached app shell so deep
+  // links like /workout or /exercises/:id keep working offline
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const clone = response.clone()
+            caches.open(CACHE_NAME).then((cache) => cache.put('/index.html', clone))
+          }
+          return response
+        })
+        .catch(() =>
+          caches.match('/index.html').then((cached) => cached || caches.match('/'))
+        )
+    )
     return
   }
 

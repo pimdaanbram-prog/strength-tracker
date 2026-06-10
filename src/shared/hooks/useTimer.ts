@@ -63,6 +63,8 @@ interface UseCountdownReturn {
   start: () => void
   pause: () => void
   reset: (newDuration?: number) => void
+  /** Tel seconden bij de lopende countdown op (of haal ze eraf) */
+  addTime: (delta: number) => void
   formatTime: () => string
   progress: number
 }
@@ -95,6 +97,13 @@ export function useCountdown(durationSeconds: number): UseCountdownReturn {
     setSeconds(dur)
   }, [])
 
+  const addTime = useCallback((delta: number) => {
+    totalRef.current = Math.max(1, totalRef.current + delta)
+    setTotal(t => Math.max(1, t + delta))
+    setSeconds(s => Math.max(0, s + delta))
+    if (delta > 0) setIsFinished(false)
+  }, [])
+
   useEffect(() => {
     if (isRunning) {
       intervalRef.current = setInterval(() => {
@@ -124,5 +133,5 @@ export function useCountdown(durationSeconds: number): UseCountdownReturn {
 
   const progress = total > 0 ? (total - seconds) / total : 0
 
-  return { seconds, isRunning, isFinished, start, pause, reset, formatTime, progress }
+  return { seconds, isRunning, isFinished, start, pause, reset, addTime, formatTime, progress }
 }

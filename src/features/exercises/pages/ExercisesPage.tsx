@@ -7,6 +7,7 @@ import AmbientBackground from '@/shared/components/ui/AmbientBackground'
 import { useExercises } from '@/features/exercises/hooks/useExercises'
 import { useWorkouts } from '@/features/workouts/hooks/useWorkouts'
 import { useLanguage } from '@/shared/hooks/useLanguage'
+import { fuzzyFilter } from '@/shared/lib/fuzzySearch'
 
 const CATEGORY_CONFIG: Record<string, { className: string; icon: string; label: string }> = {
   'Chest':         { className: 'cat-chest',     icon: '🫁', label: 'Borst' },
@@ -45,14 +46,9 @@ export default function ExercisesPage() {
   const filtered = useMemo(() => {
     let result = exercises
     if (activeCategory) result = exercisesByCategory[activeCategory] || []
-    if (search) {
-      const q = search.toLowerCase()
-      result = result.filter(e =>
-        e.name.toLowerCase().includes(q) || e.nameNL.toLowerCase().includes(q) ||
-        e.musclesWorked.some(m => m.toLowerCase().includes(q))
-      )
-    }
-    return result
+    // Fuzzy search: tolerant voor typefouten en afkortingen ("rdl", "ohp"),
+    // beste match eerst
+    return fuzzyFilter(result, search, e => [e.name, e.nameNL, ...e.musclesWorked])
   }, [exercises, activeCategory, search, exercisesByCategory])
 
   // Virtual list — window-based scrolling

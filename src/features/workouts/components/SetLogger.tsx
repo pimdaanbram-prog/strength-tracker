@@ -1,10 +1,20 @@
 import { useState } from 'react'
 import { Check, X } from 'lucide-react'
-import type { SetLog } from '@/features/workouts/hooks/useWorkouts'
+import type { SetLog, SetType } from '@/features/workouts/hooks/useWorkouts'
 
 interface PreviousSet {
   weight: number | null
   reps: number | null
+}
+
+const SET_TYPE_ORDER: SetType[] = ['normal', 'warmup', 'dropset', 'amrap', 'failure']
+
+const SET_TYPE_META: Record<SetType, { short: string; label: string; color: string | null }> = {
+  normal:  { short: '',  label: 'Normale set', color: null },
+  warmup:  { short: 'W', label: 'Warming-up set (telt niet mee voor PR’s)', color: '#FFB300' },
+  dropset: { short: 'D', label: 'Dropset', color: '#C084FC' },
+  amrap:   { short: 'A', label: 'AMRAP — zoveel mogelijk herhalingen', color: 'var(--theme-accent)' },
+  failure: { short: 'F', label: 'Tot spierfalen', color: '#FF5470' },
 }
 
 interface SetLoggerProps {
@@ -22,6 +32,14 @@ export default function SetLogger({ set, isTimeBased, onChange, previousSet, isU
     onChange({ ...set, completed: !set.completed })
   }
 
+  const setType: SetType = set.type ?? 'normal'
+  const typeMeta = SET_TYPE_META[setType]
+
+  const cycleSetType = () => {
+    const next = SET_TYPE_ORDER[(SET_TYPE_ORDER.indexOf(setType) + 1) % SET_TYPE_ORDER.length]
+    onChange({ ...set, type: next === 'normal' ? undefined : next })
+  }
+
   const hasPrevHint = !isTimeBased && previousSet &&
     (previousSet.weight !== null || previousSet.reps !== null)
 
@@ -32,10 +50,19 @@ export default function SetLogger({ set, isTimeBased, onChange, previousSet, isU
           set.completed ? 'bg-success/10' : 'bg-bg-input'
         }`}
       >
-        {/* Set label */}
-        <span className="text-xs text-text-muted w-8 shrink-0 font-medium">
-          S{set.setNumber}
-        </span>
+        {/* Set label — tap to cycle set type (normal → warm-up → dropset → AMRAP → failure) */}
+        <button
+          onClick={cycleSetType}
+          aria-label={`Set ${set.setNumber}: ${typeMeta.label}. Tik om set-type te wijzigen.`}
+          title={typeMeta.label}
+          className="w-9 h-9 shrink-0 rounded-lg flex items-center justify-center text-xs font-bold cursor-pointer border-0 bg-transparent transition-colors"
+          style={{
+            color: typeMeta.color ?? 'var(--theme-text-muted)',
+            background: typeMeta.color ? 'color-mix(in srgb, currentColor 12%, transparent)' : 'transparent',
+          }}
+        >
+          {typeMeta.short ? `${typeMeta.short}${set.setNumber}` : `S${set.setNumber}`}
+        </button>
 
         {!isTimeBased ? (
           <>
