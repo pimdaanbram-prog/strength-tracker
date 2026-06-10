@@ -2,11 +2,19 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Dumbbell, TrendingUp, Flame, Timer, BarChart3, Utensils,
-  ChevronDown, Play, Pause, RotateCcw, Wrench,
+  ChevronDown, Play, Pause, RotateCcw, Wrench, Medal,
 } from 'lucide-react'
 import Header from '@/app/layout/Header'
 import PageWrapper from '@/app/layout/PageWrapper'
 import { useAppStore } from '@/shared/lib/store'
+import { estimate1RM } from '@/features/tools/utils/oneRepMax'
+import {
+  getStrengthStandard,
+  STRENGTH_LEVELS,
+  STRENGTH_LEVEL_LABELS,
+  STANDARD_LIFT_LABELS,
+  type StandardLift,
+} from '@/features/tools/utils/strengthStandards'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -49,10 +57,6 @@ function calcPlates(target: number): { plate: number; count: number }[] {
     }
   }
   return result
-}
-
-function calcEpley(weight: number, reps: number): number {
-  return reps === 1 ? weight : weight * (1 + reps / 30)
 }
 
 function calcWarmup(w: number) {
@@ -224,7 +228,16 @@ export default function ToolsPage() {
   // ── 2. 1RM calculator ─────────────────────────────────────────────────────
   const [rmWeight, setRmWeight] = useState('')
   const [rmReps,   setRmReps]   = useState('5')
-  const rm1 = rmWeight && rmReps ? calcEpley(+rmWeight, Math.min(15, Math.max(1, +rmReps))) : null
+  const rm1 = rmWeight && rmReps ? estimate1RM(+rmWeight, +rmReps) : null
+
+  // ── 2b. Strength standards ────────────────────────────────────────────────
+  const [stdLift, setStdLift] = useState<StandardLift>('bench')
+  const [stdOneRM, setStdOneRM] = useState('')
+  const [stdBodyweight, setStdBodyweight] = useState(profile?.weight?.toString() ?? '')
+  const [stdGender, setStdGender] = useState<'male' | 'female'>(profile?.gender ?? 'male')
+  const stdResult = stdOneRM && stdBodyweight && +stdOneRM > 0 && +stdBodyweight > 0
+    ? getStrengthStandard(stdLift, stdGender, +stdBodyweight, +stdOneRM, profile?.age ?? 30)
+    : null
 
   // ── 3. Warm-up calculator ─────────────────────────────────────────────────
   const [warmupWeight, setWarmupWeight] = useState('')
@@ -511,7 +524,7 @@ export default function ToolsPage() {
                       {Math.round(rm1)} kg
                     </p>
                     <p className="text-[10px] m-0 mt-1" style={{ color: 'var(--theme-text-muted)' }}>
-                      Epley-formule
+                      Gemiddelde van Epley · Brzycki · Lombardi
                     </p>
                   </div>
 
@@ -551,6 +564,133 @@ export default function ToolsPage() {
                       })}
                     </div>
                   </div>
+                </div>
+              )}
+            </ToolCard>
+          </motion.div>
+
+          {/* ─── 2b. Strength Standards ───────────────────────────────────── */}
+          <motion.div variants={itemVariants}>
+            <ToolCard
+              id="standards" icon={<Medal size={18} style={{ color: '#FFB300' }} />}
+              title="Sterkte-standaarden" accent="#FFB300"
+              isOpen={openTool === 'standards'} onToggle={toggle}
+            >
+              {/* Lift selector */}
+              <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Oefening">
+                {(Object.keys(STANDARD_LIFT_LABELS) as StandardLift[]).map(lift => (
+                  <button
+                    key={lift}
+                    role="radio"
+                    aria-checked={stdLift === lift}
+                    onClick={() => setStdLift(lift)}
+                    className="px-3 py-2 rounded-xl text-xs font-bold cursor-pointer transition-colors min-h-[40px]"
+                    style={{
+                      background: stdLift === lift ? 'var(--theme-accent-muted)' : 'var(--theme-bg-input)',
+                      border: `1px solid ${stdLift === lift ? 'var(--theme-accent)' : 'var(--theme-border)'}`,
+                      color: stdLift === lift ? 'var(--theme-accent)' : 'var(--theme-text-secondary)',
+                    }}
+                  >
+                    {STANDARD_LIFT_LABELS[lift].nl}
+                  </button>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <NumInput
+                  label="Jouw 1RM (kg)" value={stdOneRM} onChange={setStdOneRM}
+                  placeholder={rm1 ? `bijv. ${Math.round(rm1)}` : 'bijv. 100'} min={1}
+                />
+                <NumInput
+                  label="Lichaamsgewicht (kg)" value={stdBodyweight} onChange={setStdBodyweight}
+                  placeholder="bijv. 80" min={30}
+                />
+              </div>
+
+              {/* Gender toggle */}
+              <div className="flex gap-2" role="radiogroup" aria-label="Geslacht">
+                {(['male', 'female'] as const).map(g => (
+                  <button
+                    key={g}
+                    role="radio"
+                    aria-checked={stdGender === g}
+                    onClick={() => setStdGender(g)}
+                    className="flex-1 py-2 rounded-xl text-xs font-bold cursor-pointer min-h-[40px]"
+                    style={{
+                      background: stdGender === g ? 'var(--theme-accent-muted)' : 'var(--theme-bg-input)',
+                      border: `1px solid ${stdGender === g ? 'var(--theme-accent)' : 'var(--theme-border)'}`,
+                      color: stdGender === g ? 'var(--theme-accent)' : 'var(--theme-text-secondary)',
+                    }}
+                  >
+                    {g === 'male' ? 'Man' : 'Vrouw'}
+                  </button>
+                ))}
+              </div>
+
+              {stdResult && (
+                <div className="space-y-3">
+                  <div
+                    className="p-4 rounded-xl text-center"
+                    style={{ background: 'rgba(255,179,0,0.08)', border: '1px solid rgba(255,179,0,0.25)' }}
+                  >
+                    <p className="text-[10px] font-bold uppercase tracking-widest m-0 mb-1" style={{ color: '#FFB300', letterSpacing: '0.1em' }}>
+                      Jouw niveau · {STANDARD_LIFT_LABELS[stdResult.lift].nl}
+                    </p>
+                    <p className="text-3xl font-black m-0" style={{ color: 'var(--theme-text-primary)' }}>
+                      {STRENGTH_LEVEL_LABELS[stdResult.level].nl}
+                    </p>
+                    <p className="text-[11px] m-0 mt-1" style={{ color: 'var(--theme-text-muted)' }}>
+                      {stdResult.ratio.toFixed(2)}× lichaamsgewicht
+                      {stdResult.nextLevel && (
+                        <> · nog {Math.round(stdResult.kgToNextLevel * 2) / 2} kg tot {STRENGTH_LEVEL_LABELS[stdResult.nextLevel].nl.toLowerCase()}</>
+                      )}
+                    </p>
+                  </div>
+
+                  {/* Progress to next level */}
+                  <div
+                    className="h-2 rounded-full overflow-hidden"
+                    role="progressbar"
+                    aria-valuenow={Math.round(stdResult.progressToNext * 100)}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-label="Voortgang naar volgend niveau"
+                    style={{ background: 'var(--theme-border)' }}
+                  >
+                    <div
+                      className="h-full rounded-full"
+                      style={{ width: `${Math.round(stdResult.progressToNext * 100)}%`, background: 'linear-gradient(90deg, #FFB300, var(--theme-accent))' }}
+                    />
+                  </div>
+
+                  {/* Thresholds */}
+                  <div className="space-y-1.5">
+                    {stdResult.thresholds.map((kg, i) => {
+                      const level = STRENGTH_LEVELS[i + 1]
+                      const reached = +stdOneRM >= kg
+                      return (
+                        <div
+                          key={level}
+                          className="flex items-center justify-between px-3 py-2 rounded-xl"
+                          style={{
+                            background: 'var(--theme-bg-input)',
+                            opacity: reached ? 1 : 0.7,
+                            border: `1px solid ${reached ? 'rgba(255,179,0,0.3)' : 'transparent'}`,
+                          }}
+                        >
+                          <span className="text-xs font-semibold" style={{ color: reached ? '#FFB300' : 'var(--theme-text-secondary)' }}>
+                            {reached ? '✓ ' : ''}{STRENGTH_LEVEL_LABELS[level].nl}
+                          </span>
+                          <span className="text-sm font-bold" style={{ color: 'var(--theme-text-primary)' }}>
+                            {kg} kg
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                  <p className="text-[10px] m-0" style={{ color: 'var(--theme-text-muted)' }}>
+                    Gecorrigeerd voor leeftijd ({profile?.age ?? 30} jaar). Standaarden op basis van gangbare powerlifting-tabellen.
+                  </p>
                 </div>
               )}
             </ToolCard>
