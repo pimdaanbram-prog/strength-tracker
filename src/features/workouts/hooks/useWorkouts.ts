@@ -6,6 +6,9 @@ import { useSync } from '@/shared/hooks/useSync'
 import { exercises as exerciseData } from '@/features/exercises/data/exercises'
 import { getAchievableWeightsForEquipment, nearestWeight } from '@/features/tools/utils/plateCalculator'
 
+/** Geavanceerde set-types; ontbreken van het veld = 'normal' (backward compatible). */
+export type SetType = 'normal' | 'warmup' | 'dropset' | 'amrap' | 'failure'
+
 export interface SetLog {
   setNumber: number
   weight: number | null
@@ -15,6 +18,7 @@ export interface SetLog {
   seconds: number | null
   completed: boolean
   rpe: number | null
+  type?: SetType
 }
 
 export interface SessionExercise {
@@ -225,6 +229,7 @@ export function useWorkouts() {
     for (const session of sessions) {
       for (const exercise of session.exercises) {
         for (const set of exercise.sets) {
+          if (set.type === 'warmup') continue
           if (set.weight === null || set.weight === 0) continue
           if (!set.completed && !(set.reps !== null && set.reps > 0)) continue
           const current = prMap[exercise.exerciseId]
