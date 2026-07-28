@@ -3,6 +3,7 @@ import { Link, Navigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { LogIn, Mail, Lock, Eye, EyeOff, Zap } from 'lucide-react'
 import { useAuthContext } from '@/features/auth/context/AuthContext'
+import { getFriendlyAuthError } from '@/features/auth/lib/authErrors'
 
 function AnimatedBlob({ style }: { style: React.CSSProperties }) {
   return (
@@ -43,13 +44,7 @@ export default function LoginPage() {
     setError('')
     setSubmitting(true)
     const { error } = await signIn(email, password)
-    if (error) {
-      setError(
-        error.message === 'Invalid login credentials'
-          ? 'Onjuist e-mailadres of wachtwoord'
-          : error.message
-      )
-    }
+    if (error) setError(getFriendlyAuthError(error))
     setSubmitting(false)
   }
 

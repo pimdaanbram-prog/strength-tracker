@@ -3,6 +3,7 @@ import { Link, Navigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { UserPlus, Mail, Lock, Eye, EyeOff, Zap, CheckCircle2 } from 'lucide-react'
 import { useAuthContext } from '@/features/auth/context/AuthContext'
+import { getFriendlyAuthError } from '@/features/auth/lib/authErrors'
 
 function AnimatedBlob({ style }: { style: React.CSSProperties }) {
   return <div className="absolute rounded-full pointer-events-none blob-drift" style={{ filter: 'blur(80px)', ...style }} />
@@ -42,7 +43,7 @@ export default function RegisterPage() {
     if (password.length < 6) { setError('Wachtwoord moet minimaal 6 tekens zijn'); return }
     setSubmitting(true)
     const { error } = await signUp(email, password)
-    if (error) setError(error.message)
+    if (error) setError(getFriendlyAuthError(error))
     else setSuccess(true)
     setSubmitting(false)
   }

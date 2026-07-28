@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Mail, ArrowLeft } from 'lucide-react'
 import { useAuthContext } from '@/features/auth/context/AuthContext'
+import { getFriendlyAuthError } from '@/features/auth/lib/authErrors'
 
 export default function ForgotPasswordPage() {
   const { resetPassword } = useAuthContext()
@@ -18,7 +19,7 @@ export default function ForgotPasswordPage() {
 
     const { error } = await resetPassword(email)
     if (error) {
-      setError(error.message)
+      setError(getFriendlyAuthError(error))
     } else {
       setSuccess(true)
     }
